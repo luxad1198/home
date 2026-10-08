@@ -44,10 +44,42 @@
       line-height: 1.15;
     }
 
-    .head-tbl { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
-    .head-tbl td { vertical-align: top; border: none; padding: 0; }
-    .logo { max-height: 48px; margin-bottom: 4px; display: block; }
-    
+    /* Сетка шапки Word из 4 блоков */
+    .head-grid {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 16px;
+    }
+    .head-grid td {
+      border: none;
+      padding: 0 0 10px 0;
+      vertical-align: top;
+    }
+    .head-logo-cell {
+      width: 50%;
+    }
+    .logo {
+      max-height: 52px;
+      display: block;
+    }
+    .head-req-cell {
+      width: 50%;
+      padding-left: 20px !important;
+      font-size: 11pt;
+      line-height: 1.25;
+    }
+    .head-meta-cell {
+      width: 50%;
+      font-size: 11pt;
+      line-height: 1.35;
+    }
+    .head-client-cell {
+      width: 50%;
+      padding-left: 20px !important;
+      font-size: 11pt;
+      line-height: 1.25;
+    }
+
     .meta-input {
       font-family: inherit;
       font-size: 11pt;
@@ -79,7 +111,7 @@
       padding: 0 2px;
     }
 
-    .client-box textarea {
+    .client-textarea {
       width: 100%;
       font-family: inherit;
       font-size: 11pt;
@@ -89,10 +121,10 @@
       outline: none;
       resize: none;
       overflow: hidden;
-      line-height: 1.2;
+      line-height: 1.25;
     }
 
-    .title { text-align: center; font-size: 12pt; font-weight: bold; margin: 10px 0 6px; }
+    .title { text-align: center; font-size: 12pt; font-weight: bold; margin: 12px 0 6px; }
     .intro { text-align: justify; text-indent: 10mm; font-size: 11pt; margin-bottom: 8px; line-height: 1.15; }
 
     table.spec { 
@@ -160,7 +192,6 @@
 
     .tot-phrase { font-size: 11pt; line-height: 1.25; margin: 6px 0 10px; }
 
-    /* Таблица условий: увеличен нижний отступ */
     table.cond { 
       width: 100%; 
       border-collapse: collapse; 
@@ -175,7 +206,6 @@
     }
     .cond-lbl { width: 140px; background: #ACB9CA; font-weight: bold; }
 
-    /* Блок директора: смещен вниз с запасом под печать */
     .sign-row { 
       display: flex; 
       justify-content: space-between; 
@@ -215,29 +245,34 @@
 
   <div class="panel no-print">
     <button class="btn btn-add" onclick="addRow()">+ Добавить позицию</button>
-    <span style="font-size: 13px; color: #4b5563;">Сумма прописью скорректирована без дублирования слова «рублей»</span>
+    <span style="font-size: 13px; color: #4b5563;">Сетка шапки соответствует оригинальному бланку</span>
     <button class="btn" onclick="window.print()">🖨️ Сохранить в PDF / Печать</button>
   </div>
 
   <div class="page">
-    <table class="head-tbl">
+    <!-- Оригинальная 4-блочная шапка Word -->
+    <table class="head-grid">
       <tr>
-        <td style="width: 52%;">
+        <td class="head-logo-cell">
           <img src="logo.png" alt="РТСТАНДАРТ" class="logo" onerror="this.outerHTML='<b style=\'font-size:14pt;\'>ООО &quot;РТСТАНДАРТ&quot;</b>'">
+        </td>
+        <td class="head-req-cell">
           <b>ООО "РТСТАНДАРТ"</b><br>
           г. Санкт-Петербург, наб. Обводного канала, д. 23, лит. Г ИНН 7842228552<br>
-          +7 (812) 983-44-33<br>
-          <div style="margin-top: 6px;">
-            <div class="kp-num-wrapper">
-              КП № <span class="kp-prefix" id="kpPrefix">10-08/</span>
-              <input type="text" class="kp-user-input" placeholder="1" value="1">
-            </div><br>
-            От <input type="text" id="docDate" class="meta-input" style="width: 155px;">
-          </div>
+          +7 (812) 983-44-33
         </td>
-        <td class="client-box" style="width: 48%; padding-left: 15px;">
-          Заказчику:<br>
-          <textarea rows="2" class="auto-grow" placeholder="можете вписать сюда наименование заказчика"></textarea>
+      </tr>
+      <tr>
+        <td class="head-meta-cell">
+          <div class="kp-num-wrapper">
+            КП № <span class="kp-prefix" id="kpPrefix">10-08/</span>
+            <input type="text" class="kp-user-input" placeholder="1" value="1">
+          </div><br>
+          От <input type="text" id="docDate" class="meta-input" style="width: 155px;">
+        </td>
+        <td class="head-client-cell">
+          Заказчику:
+          <textarea rows="2" class="auto-grow client-textarea" placeholder="можете вписать сюда наименование заказчика"></textarea>
         </td>
       </tr>
     </table>
@@ -265,7 +300,7 @@
         <tr>
           <td class="c row-idx">1</td>
           <td><textarea class="auto-grow" placeholder="Впиши наименование"></textarea></td>
-          <td><textarea class="auto-grow" placeholder="Впиши характеристики"></textarea></td>
+          <td><textarea class="auto-grow" placeholder="впиши характеристики"></textarea></td>
           <td class="c"><input type="text" class="inp-text c" placeholder="Китай" value="Китай"></td>
           <td class="c"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1" oninput="recalc()"></td>
           <td class="c">
@@ -467,7 +502,6 @@
       const vRubDecl = decl(vRub, ['рубль', 'рубля', 'рублей']);
       const vKopDecl = decl(vKop, ['копейка', 'копейки', 'копеек']);
 
-      // Внутри скобок только само число словами без слова "рублей"
       document.getElementById('textTotalBlock').innerHTML = 
         `ИТОГО: <b>${tRub} (${tRubW}) ${tRubDecl} ${String(tKop).padStart(2, '0')} копеек</b>, в том числе НДС 22% <b>${vRub} (${vRubW}) ${vRubDecl} ${String(vKop).padStart(2, '0')} ${vKopDecl}</b>.`;
     }
