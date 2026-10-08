@@ -57,6 +57,28 @@
       outline: none;
     }
 
+    /* Блок номера КП */
+    .kp-num-wrapper {
+      display: inline-flex;
+      align-items: baseline;
+      font-weight: bold;
+    }
+    .kp-prefix {
+      font-weight: bold;
+      margin-left: 2px;
+    }
+    .kp-user-input {
+      font-family: inherit;
+      font-size: 11pt;
+      font-weight: bold;
+      border: none;
+      border-bottom: 1px dashed #777;
+      background: transparent;
+      outline: none;
+      width: 45px;
+      padding: 0 2px;
+    }
+
     .client-box textarea {
       width: 100%;
       font-family: inherit;
@@ -73,7 +95,6 @@
     .title { text-align: center; font-size: 12pt; font-weight: bold; margin: 10px 0 6px; }
     .intro { text-align: justify; text-indent: 10mm; font-size: 11pt; margin-bottom: 8px; line-height: 1.15; }
 
-    /* Таблица спецификации */
     table.spec { 
       width: 100%; 
       border-collapse: collapse; 
@@ -95,7 +116,6 @@
     }
     .t-tot { background: #ACB9CA; font-weight: bold; }
 
-    /* Авторастягивающиеся поля */
     .auto-grow {
       width: 100%;
       border: none;
@@ -112,8 +132,8 @@
       field-sizing: content;
     }
 
-    /* Числовые поля без стрелочек изменения значения */
-    .inp-num {
+    /* Поле количества: со стрелками */
+    .inp-qty {
       width: 100%;
       border: none;
       outline: none;
@@ -122,11 +142,18 @@
       background: transparent;
       padding: 0;
       margin: 0;
-      -moz-appearance: textfield;
+      text-align: center;
     }
-    .inp-num::-webkit-outer-spin-button,
-    .inp-num::-webkit-inner-spin-button {
-      -webkit-appearance: none;
+
+    /* Текстовые и ценовые поля */
+    .inp-text {
+      width: 100%;
+      border: none;
+      outline: none;
+      font-family: inherit;
+      font-size: 9.5pt;
+      background: transparent;
+      padding: 0;
       margin: 0;
     }
 
@@ -152,6 +179,13 @@
       .page { box-shadow: none; margin: 0; width: 100%; padding: 0; }
       input, textarea { border-bottom: none !important; }
       ::placeholder { color: transparent; }
+      /* При печати скрываем стрелочки у чисел */
+      .inp-qty { -moz-appearance: textfield; }
+      .inp-qty::-webkit-outer-spin-button,
+      .inp-qty::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
     }
   </style>
 </head>
@@ -159,7 +193,7 @@
 
   <div class="panel no-print">
     <button class="btn btn-add" onclick="addRow()">+ Добавить позицию</button>
-    <span style="font-size: 13px; color: #4b5563;">Заполняйте наименование, количество и цену</span>
+    <span style="font-size: 13px; color: #4b5563;">Стрелочки у количества включены, цена форматируется в виде 500,00</span>
     <button class="btn" onclick="window.print()">🖨️ Сохранить в PDF / Печать</button>
   </div>
 
@@ -172,7 +206,10 @@
           г. Санкт-Петербург, наб. Обводного канала, д. 23, лит. Г ИНН 7842228552<br>
           +7 (812) 983-44-33<br>
           <div style="margin-top: 6px;">
-            КП № <input type="text" class="meta-input" placeholder="впишите номер" style="width: 110px; font-weight: bold;"><br>
+            <div class="kp-num-wrapper">
+              КП № <span class="kp-prefix" id="kpPrefix">10-08/</span>
+              <input type="text" class="kp-user-input" placeholder="1" value="1">
+            </div><br>
             От <input type="text" id="docDate" class="meta-input" style="width: 155px;">
           </div>
         </td>
@@ -188,7 +225,7 @@
       Общество с ограниченной ответственностью «РТСтандарт», в лице генерального директора Маркова Дмитрия Евгеньевича, действующего на основании Устава, предлагает рассмотреть возможность поставки следующего оборудования:
     </div>
 
-    <!-- Таблица спецификации с чистыми строками и подсказками -->
+    <!-- Таблица спецификации -->
     <table class="spec" id="itemsTable">
       <thead>
         <tr>
@@ -207,24 +244,30 @@
           <td class="c row-idx">1</td>
           <td><textarea class="auto-grow" placeholder="Впиши наименование"></textarea></td>
           <td><textarea class="auto-grow" placeholder="впиши характеристики"></textarea></td>
-          <td class="c"><input type="text" class="inp-num c" placeholder="Китай"></td>
-          <td class="c"><input type="number" class="inp-num c col-qty" placeholder="1" oninput="recalc()"></td>
-          <td class="c"><input type="number" class="inp-num r col-price" placeholder="0" oninput="recalc()"></td>
-          <td class="r col-total" style="font-weight:bold;">0,00</td>
+          <td class="c"><input type="text" class="inp-text c" placeholder="Китай" value="Китай"></td>
+          <td class="c"><input type="number" class="inp-qty col-qty" min="1" step="1" value="1" oninput="recalc()"></td>
+          <td class="c">
+            <input type="text" class="inp-text r col-price" placeholder="500,00" 
+                   data-raw="500" value="500,00"
+                   onfocus="onPriceFocus(this)" 
+                   onblur="onPriceBlur(this)" 
+                   oninput="onPriceInput(this)">
+          </td>
+          <td class="r col-total" style="font-weight:bold;">500,00</td>
           <td class="no-print c" style="border:none;"><button class="btn-del" onclick="deleteRow(this)">✕</button></td>
         </tr>
       </tbody>
       <tfoot>
         <tr class="t-tot">
           <td colspan="6" class="r" style="padding-right: 8px;">ИТОГО:</td>
-          <td id="grandTotal" class="r">0,00</td>
+          <td id="grandTotal" class="r">500,00</td>
           <td class="no-print" style="border:none; background:#fff;"></td>
         </tr>
       </tfoot>
     </table>
 
     <div class="tot-phrase" id="textTotalBlock">
-      ИТОГО: 0 (ноль рублей) рублей 00 копеек, в том числе НДС 22% 0 (ноль рублей) рублей 00 копеек.
+      ИТОГО: 500 (пятьсот рублей) рублей 00 копеек, в том числе НДС 22% 90 (девяносто рублей) рублей 16 копеек.
     </div>
 
     <table class="cond">
@@ -289,12 +332,48 @@
       autoResizeTextarea(this);
     }
 
-    function setCurrentDate() {
+    function setDateAndKpPrefix() {
       const now = new Date();
-      const m = ["января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"];
-      const d = String(now.getDate()).padStart(2, '0');
-      const elem = document.getElementById('docDate');
-      if (elem) elem.value = `${d} ${m[now.getMonth()]} ${now.getFullYear()} года`;
+      const monthNum = String(now.getMonth() + 1).padStart(2, '0');
+      const dayNum = String(now.getDate()).padStart(2, '0');
+      
+      const prefixElem = document.getElementById('kpPrefix');
+      if (prefixElem) {
+        prefixElem.textContent = `${monthNum}-${dayNum}/`;
+      }
+
+      const months = ["января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"];
+      const dateElem = document.getElementById('docDate');
+      if (dateElem) {
+        dateElem.value = `${dayNum} ${months[now.getMonth()]} ${now.getFullYear()} года`;
+      }
+    }
+
+    // Обработка ввода цены с форматированием в виде "500,00"
+    function parseNum(val) {
+      if (!val) return 0;
+      val = String(val).replace(/\s+/g, '').replace(',', '.');
+      return parseFloat(val) || 0;
+    }
+
+    function onPriceFocus(input) {
+      const raw = input.getAttribute('data-raw');
+      if (raw && parseNum(raw) > 0) {
+        input.value = raw;
+      }
+    }
+
+    function onPriceInput(input) {
+      const num = parseNum(input.value);
+      input.setAttribute('data-raw', num);
+      recalc();
+    }
+
+    function onPriceBlur(input) {
+      const num = parseNum(input.value || input.getAttribute('data-raw'));
+      input.setAttribute('data-raw', num);
+      input.value = num > 0 ? fmt(num) : '';
+      recalc();
     }
 
     function addRow() {
@@ -305,9 +384,14 @@
         <td class="c row-idx">${idx}</td>
         <td><textarea class="auto-grow" placeholder="Впиши наименование"></textarea></td>
         <td><textarea class="auto-grow" placeholder="впиши характеристики"></textarea></td>
-        <td class="c"><input type="text" class="inp-num c" placeholder="Китай"></td>
-        <td class="c"><input type="number" class="inp-num c col-qty" placeholder="1" oninput="recalc()"></td>
-        <td class="c"><input type="number" class="inp-num r col-price" placeholder="0" oninput="recalc()"></td>
+        <td class="c"><input type="text" class="inp-text c" placeholder="Китай" value="Китай"></td>
+        <td class="c"><input type="number" class="inp-qty col-qty" min="1" step="1" value="1" oninput="recalc()"></td>
+        <td class="c">
+          <input type="text" class="inp-text r col-price" placeholder="500,00" data-raw="0" 
+                 onfocus="onPriceFocus(this)" 
+                 onblur="onPriceBlur(this)" 
+                 oninput="onPriceInput(this)">
+        </td>
         <td class="r col-total" style="font-weight:bold;">0,00</td>
         <td class="no-print c" style="border:none;"><button class="btn-del" onclick="deleteRow(this)">✕</button></td>
       `;
@@ -321,9 +405,9 @@
       if (tbody.children.length > 1) {
         btn.closest('tr').remove();
       } else {
-        // Если осталась одна строка, очищаем её поля
         const row = tbody.children[0];
         row.querySelectorAll('textarea, input').forEach(input => input.value = '');
+        row.querySelector('.col-price').setAttribute('data-raw', 0);
       }
       document.querySelectorAll('#tableBody tr').forEach((row, i) => {
         row.querySelector('.row-idx').textContent = i + 1;
@@ -339,7 +423,8 @@
       let grandTotal = 0;
       document.querySelectorAll('#tableBody tr').forEach(row => {
         const q = parseFloat(row.querySelector('.col-qty').value) || 0;
-        const p = parseFloat(row.querySelector('.col-price').value) || 0;
+        const priceInput = row.querySelector('.col-price');
+        const p = parseNum(priceInput.getAttribute('data-raw') || priceInput.value);
         const tot = q * p;
         row.querySelector('.col-total').textContent = fmt(tot);
         grandTotal += tot;
@@ -412,7 +497,7 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
-      setCurrentDate();
+      setDateAndKpPrefix();
       initAutoResize();
       recalc();
     });
