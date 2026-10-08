@@ -38,7 +38,7 @@
     .btn-add { background: #f3f4f6; color: #111; border-color: #cbd5e1; }
     .btn-del { background: #fee2e2; color: #b91c1c; border: 1px solid #f87171; padding: 2px 5px; font-size: 11px; cursor: pointer; border-radius: 3px; }
 
-    /* Лист на экране */
+    /* Лист А4 */
     .page {
       width: 210mm;
       min-height: 297mm;
@@ -65,8 +65,10 @@
     .head-logo-cell {
       width: 52%;
     }
+    /* Логотип пропорционально увеличен на 30% через CSS */
     .logo {
-      height: 64px;
+      height: 83px;
+      width: auto;
       max-width: 100%;
       object-fit: contain;
       display: block;
@@ -75,14 +77,14 @@
       width: 48%;
       padding-left: 20px !important;
       font-size: 11.5pt;
-      line-height: 1.25;
+      line-height: 1.3;
     }
     .head-meta-cell {
       width: 52%;
       font-size: 11pt;
       line-height: 1.35;
       vertical-align: top !important;
-      padding-top: 4px !important;
+      padding-top: 6px !important;
     }
     .head-client-cell {
       width: 48%;
@@ -90,7 +92,7 @@
       font-size: 11pt;
       line-height: 1.25;
       vertical-align: top !important;
-      padding-top: 4px !important;
+      padding-top: 6px !important;
     }
 
     .meta-input {
@@ -102,6 +104,7 @@
       outline: none;
     }
 
+    /* Блок номера КП */
     .kp-num-wrapper {
       display: inline-flex;
       align-items: baseline;
@@ -136,9 +139,10 @@
       line-height: 1.25;
     }
 
-    .title { text-align: center; font-size: 12pt; font-weight: bold; margin: 10px 0 6px; }
+    .title { text-align: center; font-size: 12pt; font-weight: bold; margin: 12px 0 6px; }
     .intro { text-align: justify; text-indent: 10mm; font-size: 11pt; margin-bottom: 8px; line-height: 1.15; }
 
+    /* Таблица спецификации */
     table.spec { 
       width: 100%; 
       border-collapse: collapse; 
@@ -157,14 +161,10 @@
       text-align: center; 
       font-weight: bold; 
       padding: 4px 2px;
-      -webkit-print-color-adjust: exact !important;
-      print-color-adjust: exact !important;
     }
     .t-tot { 
       background-color: #ACB9CA !important; 
       font-weight: bold; 
-      -webkit-print-color-adjust: exact !important;
-      print-color-adjust: exact !important;
     }
 
     .auto-grow {
@@ -211,11 +211,12 @@
 
     .tot-phrase { font-size: 11pt; line-height: 1.25; margin: 6px 0 10px; }
 
+    /* Таблица условий поставки */
     table.cond { 
       width: 100%; 
       border-collapse: collapse; 
       font-size: 10pt; 
-      margin-bottom: 20px; 
+      margin-bottom: 35px;
     }
     table.cond td { 
       border: 1px solid #000; 
@@ -227,20 +228,25 @@
       width: 140px; 
       background-color: #ACB9CA !important; 
       font-weight: bold; 
-      -webkit-print-color-adjust: exact !important;
-      print-color-adjust: exact !important;
+    }
+
+    /* Неразрывный блок подписи, печати и контактов */
+    .keep-together-block {
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
+      position: relative;
     }
 
     .sign-row { 
       display: flex; 
       justify-content: space-between; 
       position: relative; 
-      margin-top: 30px; 
+      margin-top: 10px; 
       font-size: 11pt; 
     }
     .stamp-box { 
       position: absolute; 
-      top: -45px; 
+      top: -28px; 
       right: 105px; 
       width: 170px; 
       pointer-events: none; 
@@ -248,8 +254,9 @@
     }
     .stamp-box img { width: 100%; display: block; }
 
-    .contacts { margin-top: 16px; font-size: 10pt; line-height: 1.25; }
+    .contacts { margin-top: 18px; font-size: 10pt; line-height: 1.25; }
 
+    /* Стили печати */
     @page { 
       size: A4 portrait; 
       margin: 8mm 12mm 8mm 12mm; 
@@ -264,7 +271,6 @@
         background: #fff !important;
         margin: 0 !important;
         padding: 0 !important;
-        height: auto !important;
       }
       .panel, .no-print { 
         display: none !important; 
@@ -274,15 +280,14 @@
         margin: 0 !important;
         padding: 0 !important;
         width: 100% !important;
-        height: auto !important;
         min-height: 0 !important;
-        page-break-after: avoid !important;
-        page-break-inside: avoid !important;
       }
       table.spec th, .t-tot, .cond-lbl {
         background-color: #ACB9CA !important;
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
+      }
+      .keep-together-block {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
       }
       input, textarea { 
         border-bottom: none !important; 
@@ -305,7 +310,7 @@
 
   <div class="panel no-print">
     <button class="btn btn-add" onclick="addRow()">+ Добавить позицию</button>
-    <span style="font-size: 13px; color: #4b5563;">Включена принудительная заливка шапок таблиц для печати</span>
+    <span style="font-size: 13px; color: #4b5563;">Размер логотипа увеличен на 30% через стили сайта</span>
     <button class="btn" onclick="window.print()">🖨️ Сохранить в PDF / Печать</button>
   </div>
 
@@ -408,28 +413,30 @@
     </table>
 
     <!-- Блок подписи и печать -->
-    <div class="sign-row">
-      <div>
-        Генеральный директор<br>
-        ООО «РТСтандарт»
-      </div>
-      <div style="position: relative; width: 320px; text-align: right; padding-top: 10px;">
-        <span style="border-bottom: 1px solid #000; display: inline-block; width: 140px;"></span>
-        &nbsp;/ Марков Д.Е.
-        <div class="stamp-box">
-          <img src="stamp.png" alt="Печать" onerror="this.style.display='none'">
+    <div class="keep-together-block">
+      <div class="sign-row">
+        <div>
+          Генеральный директор<br>
+          ООО «РТСтандарт»
+        </div>
+        <div style="position: relative; width: 320px; text-align: right; padding-top: 10px;">
+          <span style="border-bottom: 1px solid #000; display: inline-block; width: 140px;"></span>
+          &nbsp;/ Марков Д.Е.
+          <div class="stamp-box">
+            <img src="stamp.png" alt="Печать" onerror="this.style.display='none'">
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="contacts">
-      Исп.<br>
-      Коммерческий департамент<br>
-      ООО «РТСтандарт»<br>
-      E-mail: info@liscorp.ru<br>
-      +7 (981) 040-10-70<br>
-      +7 (812) 983-44-33<br>
-      https://liscorp.ru/
+      <div class="contacts">
+        Исп.<br>
+        Коммерческий департамент<br>
+        ООО «РТСтандарт»<br>
+        E-mail: info@liscorp.ru<br>
+        +7 (981) 040-10-70<br>
+        +7 (812) 983-44-33<br>
+        https://liscorp.ru/
+      </div>
     </div>
   </div>
 
