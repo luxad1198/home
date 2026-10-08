@@ -215,7 +215,7 @@
 
   <div class="panel no-print">
     <button class="btn btn-add" onclick="addRow()">+ Добавить позицию</button>
-    <span style="font-size: 13px; color: #4b5563;">Блок подписи опущен, печать больше не перекрывает таблицу</span>
+    <span style="font-size: 13px; color: #4b5563;">Сумма прописью скорректирована без дублирования слова «рублей»</span>
     <button class="btn" onclick="window.print()">🖨️ Сохранить в PDF / Печать</button>
   </div>
 
@@ -289,7 +289,7 @@
     </table>
 
     <div class="tot-phrase" id="textTotalBlock">
-      ИТОГО: 0 (ноль рублей) рублей 00 копеек, в том числе НДС 22% 0 (ноль рублей) рублей 00 копеек.
+      ИТОГО: 0 (ноль) рублей 00 копеек, в том числе НДС 22% 0 (ноль) рублей 00 копеек.
     </div>
 
     <!-- Таблица условий -->
@@ -312,7 +312,7 @@
       </tr>
     </table>
 
-    <!-- Блок подписи и печать (опущены вниз) -->
+    <!-- Блок подписи и печать -->
     <div class="sign-row">
       <div>
         Генеральный директор<br>
@@ -467,8 +467,9 @@
       const vRubDecl = decl(vRub, ['рубль', 'рубля', 'рублей']);
       const vKopDecl = decl(vKop, ['копейка', 'копейки', 'копеек']);
 
+      // Внутри скобок только само число словами без слова "рублей"
       document.getElementById('textTotalBlock').innerHTML = 
-        `ИТОГО: <b>${tRub} (${tRubW} ${tRubDecl}) рублей ${String(tKop).padStart(2, '0')} копеек</b>, в том числе НДС 22% <b>${vRub} (${vRubW}) ${vRubDecl} ${String(vKop).padStart(2, '0')} ${vKopDecl}</b>.`;
+        `ИТОГО: <b>${tRub} (${tRubW}) ${tRubDecl} ${String(tKop).padStart(2, '0')} копеек</b>, в том числе НДС 22% <b>${vRub} (${vRubW}) ${vRubDecl} ${String(vKop).padStart(2, '0')} ${vKopDecl}</b>.`;
     }
 
     function decl(n, forms) {
