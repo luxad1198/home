@@ -73,7 +73,7 @@
     .title { text-align: center; font-size: 12pt; font-weight: bold; margin: 10px 0 6px; }
     .intro { text-align: justify; text-indent: 10mm; font-size: 11pt; margin-bottom: 8px; line-height: 1.15; }
 
-    /* Таблица спецификации с центрированием как в Word */
+    /* Таблица спецификации */
     table.spec { 
       width: 100%; 
       border-collapse: collapse; 
@@ -84,7 +84,7 @@
     table.spec th, table.spec td { 
       border: 1px solid #000; 
       padding: 3px 4px; 
-      vertical-align: middle; /* Как в Word: по центру ячейки */
+      vertical-align: middle; 
       line-height: 1.15; 
     }
     table.spec th { 
@@ -112,6 +112,7 @@
       field-sizing: content;
     }
 
+    /* Числовые поля без стрелочек изменения значения */
     .inp-num {
       width: 100%;
       border: none;
@@ -121,7 +122,14 @@
       background: transparent;
       padding: 0;
       margin: 0;
+      -moz-appearance: textfield;
     }
+    .inp-num::-webkit-outer-spin-button,
+    .inp-num::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
     .r { text-align: right; }
     .c { text-align: center; }
 
@@ -151,7 +159,7 @@
 
   <div class="panel no-print">
     <button class="btn btn-add" onclick="addRow()">+ Добавить позицию</button>
-    <span style="font-size: 13px; color: #4b5563;">Выравнивание строк и плотность таблиц приведены в соответствие с Word</span>
+    <span style="font-size: 13px; color: #4b5563;">Заполняйте наименование, количество и цену</span>
     <button class="btn" onclick="window.print()">🖨️ Сохранить в PDF / Печать</button>
   </div>
 
@@ -180,7 +188,7 @@
       Общество с ограниченной ответственностью «РТСтандарт», в лице генерального директора Маркова Дмитрия Евгеньевича, действующего на основании Устава, предлагает рассмотреть возможность поставки следующего оборудования:
     </div>
 
-    <!-- Таблица спецификации с оригинальными пропорциями Word -->
+    <!-- Таблица спецификации с чистыми строками и подсказками -->
     <table class="spec" id="itemsTable">
       <thead>
         <tr>
@@ -197,88 +205,26 @@
       <tbody id="tableBody">
         <tr>
           <td class="c row-idx">1</td>
-          <td><textarea class="auto-grow" placeholder="Наименование">Проектор короткофокусный ViewSonic PS502X</textarea></td>
-          <td><textarea class="auto-grow" placeholder="Характеристики">- Формат изображения по умолчанию 4:3
-- Реальное физическое разрешение 1024 x 768
-- Коррекция трапецеидальных искажений вертикальная и горизонтальная
-- Коэффициент контрастности: 15000:1;
-- Размер изображения: 30"-300";
-- Цвет: 1.07 миллиардов цветов;
-- Тип источника света: UHP лампа;
-- Встроенный динамик 16 Вт;
-- Коррекция трапецеидальных искажений: +19°/-19°/</textarea></td>
-          <td class="c"><input type="text" class="inp-num c" value="Китай"></td>
-          <td class="c"><input type="number" class="inp-num c col-qty" value="1" oninput="recalc()"></td>
-          <td class="c"><input type="number" class="inp-num r col-price" value="70500" step="0.01" oninput="recalc()"></td>
-          <td class="r col-total" style="font-weight:bold;">70 500,00</td>
-          <td class="no-print c" style="border:none;"><button class="btn-del" onclick="deleteRow(this)">✕</button></td>
-        </tr>
-        <tr>
-          <td class="c row-idx">2</td>
-          <td><textarea class="auto-grow" placeholder="Наименование">Экран Cactus 180x180см Wallscreen CS-PSW-180x180 1:1 настенно-потолочный рулонный белый</textarea></td>
-          <td><textarea class="auto-grow" placeholder="Характеристики">- Размер полотна: 180х180 см.
-- Диагональ экрана в дюймах: 100.
-- Угол обзора: 180° (отличная видимость с любого ракурса).
-- Коэффициент усиления: 1.
-- Материал полотна: Белое стекловолокно (White glass fiber).
-- Совместимость: подходит абсолютно для любых моделей современных проекторов.
-- Установка: Универсальное крепление на стену или потолок.</textarea></td>
-          <td class="c"><input type="text" class="inp-num c" value="Китай"></td>
-          <td class="c"><input type="number" class="inp-num c col-qty" value="1" oninput="recalc()"></td>
-          <td class="c"><input type="number" class="inp-num r col-price" value="5550" step="0.01" oninput="recalc()"></td>
-          <td class="r col-total" style="font-weight:bold;">5 550,00</td>
-          <td class="no-print c" style="border:none;"><button class="btn-del" onclick="deleteRow(this)">✕</button></td>
-        </tr>
-        <tr>
-          <td class="c row-idx">3</td>
-          <td><textarea class="auto-grow" placeholder="Наименование">Кронштейн REXANT для проектора, серия PROFI, потолочный с регулировкой расстояния (430-650 мм) макс. 15кг, белый</textarea></td>
-          <td><textarea class="auto-grow" placeholder="Характеристики">- Тип: потолочный.
-- Регулировка: наклонный, поворотный, фиксированный.
-- Макс. Нагрузка: 15 кг.
-- Цвет: белый.</textarea></td>
-          <td class="c"><input type="text" class="inp-num c" value="Китай"></td>
-          <td class="c"><input type="number" class="inp-num c col-qty" value="1" oninput="recalc()"></td>
-          <td class="c"><input type="number" class="inp-num r col-price" value="2800" step="0.01" oninput="recalc()"></td>
-          <td class="r col-total" style="font-weight:bold;">2 800,00</td>
-          <td class="no-print c" style="border:none;"><button class="btn-del" onclick="deleteRow(this)">✕</button></td>
-        </tr>
-        <tr>
-          <td class="c row-idx">4</td>
-          <td><textarea class="auto-grow" placeholder="Наименование">Кабель питания ExeGate Special EC-10S C13->C14, 3*1.0mm2, CCA, черный, 10м</textarea></td>
-          <td><textarea class="auto-grow" placeholder="Характеристики">- Тип: кабель питания.
-- Разъем 1: C13 
-- Разъем 2: C14 
-- Длина: 10 м</textarea></td>
-          <td class="c"><input type="text" class="inp-num c" value="Китай"></td>
-          <td class="c"><input type="number" class="inp-num c col-qty" value="1" oninput="recalc()"></td>
-          <td class="c"><input type="number" class="inp-num r col-price" value="550" step="0.01" oninput="recalc()"></td>
-          <td class="r col-total" style="font-weight:bold;">550,00</td>
-          <td class="no-print c" style="border:none;"><button class="btn-del" onclick="deleteRow(this)">✕</button></td>
-        </tr>
-        <tr>
-          <td class="c row-idx">5</td>
-          <td><textarea class="auto-grow" placeholder="Наименование">Кабель HDMI Wize v.2.0b, 4K/60 Hz, 28 AWG, , Ethernet, позол.разъемы, 10м (WAVC-HDMI-10M)</textarea></td>
-          <td><textarea class="auto-grow" placeholder="Характеристики">- Тип соединения: HDMI - HDMI 
-- Длина кабеля: 10 м 
-- Версия HDMI: HDMI 2.0b</textarea></td>
-          <td class="c"><input type="text" class="inp-num c" value="Китай"></td>
-          <td class="c"><input type="number" class="inp-num c col-qty" value="1" oninput="recalc()"></td>
-          <td class="c"><input type="number" class="inp-num r col-price" value="2100" step="0.01" oninput="recalc()"></td>
-          <td class="r col-total" style="font-weight:bold;">2 100,00</td>
+          <td><textarea class="auto-grow" placeholder="Впиши наименование"></textarea></td>
+          <td><textarea class="auto-grow" placeholder="впиши характеристики"></textarea></td>
+          <td class="c"><input type="text" class="inp-num c" placeholder="Китай"></td>
+          <td class="c"><input type="number" class="inp-num c col-qty" placeholder="1" oninput="recalc()"></td>
+          <td class="c"><input type="number" class="inp-num r col-price" placeholder="0" oninput="recalc()"></td>
+          <td class="r col-total" style="font-weight:bold;">0,00</td>
           <td class="no-print c" style="border:none;"><button class="btn-del" onclick="deleteRow(this)">✕</button></td>
         </tr>
       </tbody>
       <tfoot>
         <tr class="t-tot">
           <td colspan="6" class="r" style="padding-right: 8px;">ИТОГО:</td>
-          <td id="grandTotal" class="r">81 500,00</td>
+          <td id="grandTotal" class="r">0,00</td>
           <td class="no-print" style="border:none; background:#fff;"></td>
         </tr>
       </tfoot>
     </table>
 
     <div class="tot-phrase" id="textTotalBlock">
-      ИТОГО: 81500 (восемьдесят одна тысяча пятьсот рублей) рублей 00 копеек, в том числе НДС 22% 14696 (четырнадцать тысяч шестьсот девяносто шесть) рублей 72 копейки.
+      ИТОГО: 0 (ноль рублей) рублей 00 копеек, в том числе НДС 22% 0 (ноль рублей) рублей 00 копеек.
     </div>
 
     <table class="cond">
@@ -357,11 +303,11 @@
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td class="c row-idx">${idx}</td>
-        <td><textarea class="auto-grow" placeholder="Наименование"></textarea></td>
-        <td><textarea class="auto-grow" placeholder="Характеристики"></textarea></td>
-        <td class="c"><input type="text" class="inp-num c" value="Россия"></td>
-        <td class="c"><input type="number" class="inp-num c col-qty" value="1" oninput="recalc()"></td>
-        <td class="c"><input type="number" class="inp-num r col-price" value="0" step="0.01" oninput="recalc()"></td>
+        <td><textarea class="auto-grow" placeholder="Впиши наименование"></textarea></td>
+        <td><textarea class="auto-grow" placeholder="впиши характеристики"></textarea></td>
+        <td class="c"><input type="text" class="inp-num c" placeholder="Китай"></td>
+        <td class="c"><input type="number" class="inp-num c col-qty" placeholder="1" oninput="recalc()"></td>
+        <td class="c"><input type="number" class="inp-num r col-price" placeholder="0" oninput="recalc()"></td>
         <td class="r col-total" style="font-weight:bold;">0,00</td>
         <td class="no-print c" style="border:none;"><button class="btn-del" onclick="deleteRow(this)">✕</button></td>
       `;
@@ -371,7 +317,14 @@
     }
 
     function deleteRow(btn) {
-      btn.closest('tr').remove();
+      const tbody = document.getElementById('tableBody');
+      if (tbody.children.length > 1) {
+        btn.closest('tr').remove();
+      } else {
+        // Если осталась одна строка, очищаем её поля
+        const row = tbody.children[0];
+        row.querySelectorAll('textarea, input').forEach(input => input.value = '');
+      }
       document.querySelectorAll('#tableBody tr').forEach((row, i) => {
         row.querySelector('.row-idx').textContent = i + 1;
       });
