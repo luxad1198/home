@@ -132,7 +132,6 @@
       field-sizing: content;
     }
 
-    /* Поле количества: со стрелками */
     .inp-qty {
       width: 100%;
       border: none;
@@ -145,7 +144,6 @@
       text-align: center;
     }
 
-    /* Текстовые и ценовые поля */
     .inp-text {
       width: 100%;
       border: none;
@@ -162,15 +160,40 @@
 
     .tot-phrase { font-size: 11pt; line-height: 1.25; margin: 6px 0 10px; }
 
-    table.cond { width: 100%; border-collapse: collapse; font-size: 10pt; margin-bottom: 10px; }
-    table.cond td { border: 1px solid #000; padding: 3px 6px; vertical-align: middle; line-height: 1.15; }
+    /* Таблица условий: увеличен нижний отступ */
+    table.cond { 
+      width: 100%; 
+      border-collapse: collapse; 
+      font-size: 10pt; 
+      margin-bottom: 24px; 
+    }
+    table.cond td { 
+      border: 1px solid #000; 
+      padding: 3px 6px; 
+      vertical-align: middle; 
+      line-height: 1.15; 
+    }
     .cond-lbl { width: 140px; background: #ACB9CA; font-weight: bold; }
 
-    .sign-row { display: flex; justify-content: space-between; position: relative; margin-top: 10px; font-size: 11pt; }
-    .stamp-box { position: absolute; top: -35px; right: 110px; width: 170px; pointer-events: none; opacity: 0.95; }
+    /* Блок директора: смещен вниз с запасом под печать */
+    .sign-row { 
+      display: flex; 
+      justify-content: space-between; 
+      position: relative; 
+      margin-top: 35px; 
+      font-size: 11pt; 
+    }
+    .stamp-box { 
+      position: absolute; 
+      top: -45px; 
+      right: 105px; 
+      width: 170px; 
+      pointer-events: none; 
+      opacity: 0.95; 
+    }
     .stamp-box img { width: 100%; display: block; }
 
-    .contacts { margin-top: 12px; font-size: 10pt; line-height: 1.2; }
+    .contacts { margin-top: 20px; font-size: 10pt; line-height: 1.25; }
 
     @page { size: A4; margin: 10mm 15mm; }
     @media print {
@@ -179,7 +202,6 @@
       .page { box-shadow: none; margin: 0; width: 100%; padding: 0; }
       input, textarea { border-bottom: none !important; }
       ::placeholder { color: transparent; }
-      /* При печати скрываем стрелочки у чисел */
       .inp-qty { -moz-appearance: textfield; }
       .inp-qty::-webkit-outer-spin-button,
       .inp-qty::-webkit-inner-spin-button {
@@ -193,7 +215,7 @@
 
   <div class="panel no-print">
     <button class="btn btn-add" onclick="addRow()">+ Добавить позицию</button>
-    <span style="font-size: 13px; color: #4b5563;">Стрелочки у количества включены, цена форматируется в виде 500,00</span>
+    <span style="font-size: 13px; color: #4b5563;">Блок подписи опущен, печать больше не перекрывает таблицу</span>
     <button class="btn" onclick="window.print()">🖨️ Сохранить в PDF / Печать</button>
   </div>
 
@@ -245,31 +267,32 @@
           <td><textarea class="auto-grow" placeholder="Впиши наименование"></textarea></td>
           <td><textarea class="auto-grow" placeholder="впиши характеристики"></textarea></td>
           <td class="c"><input type="text" class="inp-text c" placeholder="Китай" value="Китай"></td>
-          <td class="c"><input type="number" class="inp-qty col-qty" min="1" step="1" value="1" oninput="recalc()"></td>
+          <td class="c"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1" oninput="recalc()"></td>
           <td class="c">
             <input type="text" class="inp-text r col-price" placeholder="500,00" 
-                   data-raw="500" value="500,00"
+                   data-raw="0" value=""
                    onfocus="onPriceFocus(this)" 
                    onblur="onPriceBlur(this)" 
                    oninput="onPriceInput(this)">
           </td>
-          <td class="r col-total" style="font-weight:bold;">500,00</td>
+          <td class="r col-total" style="font-weight:bold;">0,00</td>
           <td class="no-print c" style="border:none;"><button class="btn-del" onclick="deleteRow(this)">✕</button></td>
         </tr>
       </tbody>
       <tfoot>
         <tr class="t-tot">
           <td colspan="6" class="r" style="padding-right: 8px;">ИТОГО:</td>
-          <td id="grandTotal" class="r">500,00</td>
+          <td id="grandTotal" class="r">0,00</td>
           <td class="no-print" style="border:none; background:#fff;"></td>
         </tr>
       </tfoot>
     </table>
 
     <div class="tot-phrase" id="textTotalBlock">
-      ИТОГО: 500 (пятьсот рублей) рублей 00 копеек, в том числе НДС 22% 90 (девяносто рублей) рублей 16 копеек.
+      ИТОГО: 0 (ноль рублей) рублей 00 копеек, в том числе НДС 22% 0 (ноль рублей) рублей 00 копеек.
     </div>
 
+    <!-- Таблица условий -->
     <table class="cond">
       <tr>
         <td class="cond-lbl">Срок поставки</td>
@@ -289,6 +312,7 @@
       </tr>
     </table>
 
+    <!-- Блок подписи и печать (опущены вниз) -->
     <div class="sign-row">
       <div>
         Генеральный директор<br>
@@ -349,7 +373,6 @@
       }
     }
 
-    // Обработка ввода цены с форматированием в виде "500,00"
     function parseNum(val) {
       if (!val) return 0;
       val = String(val).replace(/\s+/g, '').replace(',', '.');
@@ -385,7 +408,7 @@
         <td><textarea class="auto-grow" placeholder="Впиши наименование"></textarea></td>
         <td><textarea class="auto-grow" placeholder="впиши характеристики"></textarea></td>
         <td class="c"><input type="text" class="inp-text c" placeholder="Китай" value="Китай"></td>
-        <td class="c"><input type="number" class="inp-qty col-qty" min="1" step="1" value="1" oninput="recalc()"></td>
+        <td class="c"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1" oninput="recalc()"></td>
         <td class="c">
           <input type="text" class="inp-text r col-price" placeholder="500,00" data-raw="0" 
                  onfocus="onPriceFocus(this)" 
