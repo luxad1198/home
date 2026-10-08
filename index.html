@@ -18,7 +18,7 @@
       color: #000; 
     }
     
-    /* Панель управления (не печатается) */
+    /* Панель управления */
     .controls-panel {
       max-width: 210mm;
       margin: 0 auto 15px;
@@ -51,7 +51,7 @@
       cursor: pointer; 
     }
 
-    /* Лист А4 по параметрам Word */
+    /* Лист А4 */
     .page {
       width: 210mm;
       min-height: 297mm;
@@ -108,9 +108,11 @@
       border: none;
       border-bottom: 1px dashed #777;
       outline: none;
-      resize: vertical;
+      resize: none;
+      overflow: hidden;
       line-height: 1.25;
       background: transparent;
+      display: block;
     }
 
     /* Заголовок КП */
@@ -123,7 +125,7 @@
     }
     .intro-text {
       text-align: justify;
-      text-indent: 12mm; /* Отступ красной строки Word */
+      text-indent: 12mm;
       font-size: 12pt;
       line-height: 1.25;
       margin-bottom: 12px;
@@ -138,419 +140,12 @@
     }
     table.kp-table th, table.kp-table td {
       border: 1px solid #000;
-      padding: 3px 5px;
-      vertical-align: middle;
+      padding: 4px 5px;
+      vertical-align: top;
     }
     table.kp-table th {
       background-color: var(--header-bg);
       text-align: center;
       font-weight: bold;
       font-size: 10pt;
-      line-height: 1.15;
-    }
-    .num-col { text-align: center; width: 28px; }
-    .col-country { width: 60px; text-align: center; }
-    .col-qty-header { width: 55px; text-align: center; }
-    .col-price-header { width: 80px; text-align: right; }
-    .col-sum-header { width: 90px; text-align: right; font-weight: bold; }
-    
-    .table-input {
-      width: 100%;
-      border: none;
-      outline: none;
-      font-family: inherit;
-      font-size: 10.5pt;
-      background: transparent;
-      padding: 0;
-      margin: 0;
-    }
-    textarea.table-input {
-      resize: vertical;
-      min-height: 28px;
-      line-height: 1.2;
-    }
-    .table-input.num { text-align: right; }
-    .table-input.center { text-align: center; }
-
-    /* Строка ИТОГО в таблице */
-    .table-total-row td {
-      background-color: var(--header-bg);
-      font-weight: bold;
-    }
-
-    /* Блок суммы прописью */
-    .total-rub-phrase {
-      font-size: 12pt;
-      line-height: 1.35;
-      margin: 12px 0 14px;
-    }
-
-    /* Таблица коммерческих условий */
-    table.conditions-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 11pt;
-      margin-bottom: 16px;
-    }
-    table.conditions-table td {
-      border: 1px solid #000;
-      padding: 3px 6px;
-      vertical-align: middle;
-    }
-    td.cond-label {
-      width: 155px;
-      background-color: var(--header-bg);
-      font-weight: bold;
-    }
-
-    /* Подпись и факсимиле */
-    .sign-row {
-      display: flex;
-      justify-content: space-between;
-      position: relative;
-      margin-top: 16px;
-      font-size: 12pt;
-      line-height: 1.25;
-    }
-    .stamp-container {
-      position: absolute;
-      top: -38px;
-      right: 120px;
-      width: 175px;
-      pointer-events: none;
-      opacity: 0.95;
-    }
-    .stamp-container img {
-      width: 100%;
-      display: block;
-    }
-
-    .contacts-footer {
-      margin-top: 18px;
-      font-size: 11pt;
-      line-height: 1.3;
-    }
-
-    /* Стили для чистой печати в PDF */
-    @page {
-      size: A4;
-      margin: 10mm 15mm 10mm 15mm;
-    }
-    @media print {
-      body { background: #fff; padding: 0; }
-      .controls-panel, .no-print { display: none !important; }
-      .page {
-        box-shadow: none;
-        margin: 0;
-        width: 100%;
-        min-height: auto;
-        padding: 0;
-      }
-      textarea.table-input { overflow: hidden; }
-      input, textarea { border-bottom: none !important; }
-      ::placeholder { color: transparent; }
-    }
-  </style>
-</head>
-<body>
-
-  <!-- Верхняя панель действий -->
-  <div class="controls-panel no-print">
-    <button class="btn btn-secondary" onclick="addRow()">+ Добавить позицию</button>
-    <div style="font-size: 12px; color: #4b5563;">
-      Расчёт сумм, НДС 22% и прописи происходит автоматически
-    </div>
-    <button class="btn btn-primary" onclick="window.print()">🖨️ Сохранить в PDF / Печать</button>
-  </div>
-
-  <div class="page">
-    <!-- Двухколоночная шапка Word -->
-    <table class="header-table">
-      <tr>
-        <td style="width: 52%;">
-          <!-- Оригинальный логотип -->
-          <img src="logo.png" alt="ООО РТСтандарт" class="logo-img" onerror="this.outerHTML='<b style=\'font-size:14pt;\'>ООО &quot;РТСТАНДАРТ&quot;</b>'">
-          <div class="requisites">
-            <b>ООО "РТСТАНДАРТ"</b><br>
-            г. Санкт-Петербург, наб. Обводного канала, д. 23, лит. Г ИНН 7842228552<br>
-            +7 (812) 983-44-33
-          </div>
-          <div class="doc-meta">
-            КП № <input type="text" placeholder="впишите номер" style="width: 110px; font-weight: bold;"><br>
-            От <input type="text" id="docDate" style="width: 155px;">
-          </div>
-        </td>
-        <td class="client-block">
-          Заказчику:
-          <textarea rows="3" placeholder="можете вписать сюда наименование заказчика"></textarea>
-        </td>
-      </tr>
-    </table>
-
-    <div class="title-doc">КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ</div>
-    <div class="intro-text">
-      Общество с ограниченной ответственностью «РТСтандарт», в лице генерального директора Маркова Дмитрия Евгеньевича, действующего на основании Устава, предлагает рассмотреть возможность поставки следующего оборудования:
-    </div>
-
-    <!-- Таблица спецификации -->
-    <table class="kp-table" id="itemsTable">
-      <thead>
-        <tr>
-          <th class="num-col">№</th>
-          <th style="width: 170px;">Наименование товара</th>
-          <th>Основные характеристики предложенного товара и прочие условия</th>
-          <th class="col-country">Страна</th>
-          <th class="col-qty-header">Количество, шт.</th>
-          <th class="col-price-header">Цена за ед. руб., включая НДС 22%</th>
-          <th class="col-sum-header">Сумма руб., включая НДС 22%</th>
-          <th class="no-print" style="width: 25px; border: none; background: #fff;"></th>
-        </tr>
-      </thead>
-      <tbody id="tableBody">
-        <!-- Позиции таблицы -->
-      </tbody>
-      <tfoot>
-        <tr class="table-total-row">
-          <td colspan="6" style="text-align: right; padding-right: 10px;">ИТОГО:</td>
-          <td id="grandTotal" style="text-align: right;">0,00</td>
-          <td class="no-print" style="border: none; background: #fff;"></td>
-        </tr>
-      </tfoot>
-    </table>
-
-    <!-- Сумма прописью в скобках и НДС 22% -->
-    <div class="total-rub-phrase" id="textTotalBlock">
-      ИТОГО: 0 (ноль рублей) рублей 00 копеек, в том числе НДС 22% 0 (ноль рублей) рублей 00 копеек.
-    </div>
-
-    <!-- Таблица условий сделки -->
-    <table class="conditions-table">
-      <tr>
-        <td class="cond-label">Срок поставки</td>
-        <td><input type="text" class="table-input" value="5-10(пять-десять) рабочих дней"></td>
-      </tr>
-      <tr>
-        <td class="cond-label">Условия оплаты</td>
-        <td><input type="text" class="table-input" value="100% постоплата"></td>
-      </tr>
-      <tr>
-        <td class="cond-label">Доставка</td>
-        <td><input type="text" class="table-input" value="Доставка товара до адреса заказчика включена"></td>
-      </tr>
-      <tr>
-        <td class="cond-label">Гарантия</td>
-        <td><input type="text" class="table-input" value="12 месяцев с возможностью расширения до 5 лет. Выезд инженера в рамках гарантийного ремонта по адресу Заказчика – опционально. Обслуживание On-site (на месте) / Keep Your Drive (KYD) ремонт с сохранением жестких дисков у клиента – опционально.."></td>
-      </tr>
-    </table>
-
-    <!-- Блок подписи и печать -->
-    <div class="sign-row">
-      <div>
-        Генеральный директор<br>
-        ООО «РТСтандарт»
-      </div>
-      <div style="position: relative; width: 320px; text-align: right; padding-top: 10px;">
-        <span style="border-bottom: 1px solid #000; display: inline-block; width: 150px;"></span>
-        &nbsp;/ Марков Д.Е.
-        <!-- Оригинальная печать поверх подписи -->
-        <div class="stamp-container">
-          <img src="stamp.png" alt="Печать" onerror="this.style.display='none'">
-        </div>
-      </div>
-    </div>
-
-    <!-- Контакты -->
-    <div class="contacts-footer">
-      Исп.<br>
-      Коммерческий департамент<br>
-      ООО «РТСтандарт»<br>
-      E-mail: info@liscorp.ru<br>
-      +7 (981) 040-10-70<br>
-      +7 (812) 983-44-33<br>
-      https://liscorp.ru/
-    </div>
-  </div>
-
-  <script>
-    // Текущая дата прописью на русском языке
-    function setCurrentDate() {
-      const now = new Date();
-      const months = [
-        "января", "февраля", "марта", "апреля", "мая", "июня",
-        "июля", "августа", "сентября", "октября", "ноября", "декабря"
-      ];
-      const day = String(now.getDate()).padStart(2, '0');
-      const month = months[now.getMonth()];
-      const year = now.getFullYear();
-      document.getElementById('docDate').value = `${day} ${month} ${year} года`;
-    }
-
-    // Позиции по умолчанию (из вашего бланка)
-    const initialItems = [
-      {
-        name: "Проектор короткофокусный ViewSonic PS502X",
-        desc: "- Формат изображения по умолчанию 4:3\n- Реальное физическое разрешение 1024 x 768\n- Коррекция трапецеидальных искажений вертикальная и горизонтальная\n- Коэффициент контрастности: 15000:1\n- Размер изображения: 30\"-300\"\n- Цвет: 1.07 миллиардов цветов\n- Тип источника света: UHP лампа\n- Встроенный динамик 16 Вт",
-        country: "Китай",
-        qty: 1,
-        price: 70500.00
-      },
-      {
-        name: "Экран Cactus 180x180см Wallscreen CS-PSW-180x180 1:1 настенно-потолочный рулонный белый",
-        desc: "- Размер полотна: 180х180 см.\n- Диагональ экрана в дюймах: 100.\n- Угол обзора: 180°.\n- Материал полотна: Белое стекловолокно.\n- Установка: Универсальное крепление на стену или потолок.",
-        country: "Китай",
-        qty: 1,
-        price: 5550.00
-      },
-      {
-        name: "Кронштейн REXANT для проектора, серия PROFI",
-        desc: "- Тип: потолочный.\n- Регулировка: наклонный, поворотный.\n- Макс. Нагрузка: 15 кг.\n- Цвет: белый.",
-        country: "Китай",
-        qty: 1,
-        price: 2800.00
-      },
-      {
-        name: "Кабель питания ExeGate Special EC-10S C13->C14, 10м",
-        desc: "- Тип: кабель питания.\n- Длина: 10 м.",
-        country: "Китай",
-        qty: 1,
-        price: 550.00
-      },
-      {
-        name: "Кабель HDMI Wize v.2.0b, 4K/60 Hz, 10м",
-        desc: "- Тип соединения: HDMI - HDMI.\n- Длина кабеля: 10 м.\n- Версия HDMI: HDMI 2.0b",
-        country: "Китай",
-        qty: 1,
-        price: 2100.00
-      }
-    ];
-
-    function createRow(index, item = { name: '', desc: '', country: '', qty: '', price: '' }) {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td class="num-col row-idx">${index}</td>
-        <td><textarea class="table-input" placeholder="Наименование">${item.name}</textarea></td>
-        <td><textarea class="table-input" style="min-height:42px;" placeholder="Характеристики">${item.desc}</textarea></td>
-        <td class="col-country"><input type="text" class="table-input center" value="${item.country}"></td>
-        <td><input type="number" class="table-input num col-qty" value="${item.qty}" oninput="recalc()"></td>
-        <td><input type="number" class="table-input num col-price" value="${item.price}" step="0.01" oninput="recalc()"></td>
-        <td class="col-sum-header col-total">0,00</td>
-        <td class="no-print" style="text-align: center; border: none; background: transparent;">
-          <button class="btn-danger" onclick="deleteRow(this)">✕</button>
-        </td>
-      `;
-      return tr;
-    }
-
-    function initTable() {
-      const tbody = document.getElementById('tableBody');
-      tbody.innerHTML = '';
-      initialItems.forEach((row, i) => {
-        tbody.appendChild(createRow(i + 1, row));
-      });
-      setCurrentDate();
-      recalc();
-    }
-
-    function addRow() {
-      const tbody = document.getElementById('tableBody');
-      const nextIdx = tbody.children.length + 1;
-      tbody.appendChild(createRow(nextIdx));
-      recalc();
-    }
-
-    function deleteRow(btn) {
-      btn.closest('tr').remove();
-      document.querySelectorAll('#tableBody tr').forEach((row, idx) => {
-        row.querySelector('.row-idx').textContent = idx + 1;
-      });
-      recalc();
-    }
-
-    function formatNumber(num) {
-      return num.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    }
-
-    function recalc() {
-      let grandTotal = 0;
-      const rows = document.querySelectorAll('#tableBody tr');
-      rows.forEach(row => {
-        const qty = parseFloat(row.querySelector('.col-qty').value) || 0;
-        const price = parseFloat(row.querySelector('.col-price').value) || 0;
-        const total = qty * price;
-        row.querySelector('.col-total').textContent = formatNumber(total);
-        grandTotal += total;
-      });
-
-      document.getElementById('grandTotal').textContent = formatNumber(grandTotal);
-
-      // НДС 22%: Сумма * 22 / 122
-      const vat = grandTotal > 0 ? (grandTotal * 22 / 122) : 0;
-      const totalRub = Math.floor(grandTotal);
-      const vatRub = Math.floor(vat);
-      const totalKop = Math.round((grandTotal - totalRub) * 100);
-      const vatKop = Math.round((vat - vatRub) * 100);
-
-      const totalRubWords = numberToWordsRu(totalRub);
-      const totalWordRub = declension(totalRub, ['рубль', 'рубля', 'рублей']);
-      const vatRubWords = numberToWordsRu(vatRub);
-      const vatWordRub = declension(vatRub, ['рубль', 'рубля', 'рублей']);
-      const vatKopWord = declension(vatKop, ['копейка', 'копейки', 'копеек']);
-
-      document.getElementById('textTotalBlock').innerHTML = 
-        `ИТОГО: <b>${totalRub} (${totalRubWords} ${totalWordRub}) рублей ${String(totalKop).padStart(2, '0')} копеек</b>, в том числе НДС 22% <b>${vatRub} (${vatRubWords}) ${vatWordRub} ${String(vatKop).padStart(2, '0')} ${vatKopWord}</b>.`;
-    }
-
-    function declension(n, forms) {
-      n = Math.abs(n) % 100;
-      const n1 = n % 10;
-      if (n > 10 && n < 20) return forms[2];
-      if (n1 > 1 && n1 < 5) return forms[1];
-      if (n1 === 1) return forms[0];
-      return forms[2];
-    }
-
-    function numberToWordsRu(n) {
-      if (n === 0) return 'ноль';
-      const ones = ['', 'один', 'два', 'три', 'четыре', 'пять', 'шесть', 'семь', 'восемь', 'девять'];
-      const onesF = ['', 'одна', 'две', 'три', 'четыре', 'пять', 'шесть', 'семь', 'восемь', 'девять'];
-      const teens = ['десять', 'одиннадцать', 'двенадцать', 'тринадцать', 'четырнадцать', 'пятнадцать', 'шестнадцать', 'семнадцать', 'восемнадцать', 'девятнадцать'];
-      const tens = ['', '', 'двадцать', 'тридцать', 'сорок', 'пятьдесят', 'шестьдесят', 'семьдесят', 'восемьдесят', 'девяносто'];
-      const hundreds = ['', 'сто', 'двести', 'триста', 'четыреста', 'пятьсот', 'шестьсот', 'семьсот', 'восемьсот', 'девятьсот'];
-
-      const groups = [
-        { unit: 1e9, forms: ['миллиард', 'миллиарда', 'миллиардов'], female: false },
-        { unit: 1e6, forms: ['миллион', 'миллиона', 'миллионов'], female: false },
-        { unit: 1e3, forms: ['тысяча', 'тысячи', 'тысяч'], female: true },
-        { unit: 1, forms: ['', '', ''], female: false }
-      ];
-
-      let words = [];
-      let rem = n;
-
-      for (let g of groups) {
-        let count = Math.floor(rem / g.unit);
-        rem %= g.unit;
-        if (count === 0) continue;
-
-        let h = Math.floor(count / 100);
-        let t = Math.floor((count % 100) / 10);
-        let o = count % 10;
-
-        if (h > 0) words.push(hundreds[h]);
-        if (t === 1) {
-          words.push(teens[o]);
-        } else {
-          if (t > 1) words.push(tens[t]);
-          if (o > 0) words.push(g.female ? onesF[o] : ones[o]);
-        }
-        if (g.forms[0]) {
-          words.push(declension(count, g.forms));
-        }
-      }
-      return words.join(' ');
-    }
-
-    initTable();
-  </script>
-</body>
-</html>
+      line-height: 1.15
