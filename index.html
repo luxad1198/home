@@ -4,7 +4,13 @@
   <meta charset="UTF-8">
   <title>Коммерческое предложение — ООО «РТСтандарт»</title>
   <style>
-    * { box-sizing: border-box; font-family: 'Times New Roman', Times, serif; }
+    * { 
+      box-sizing: border-box; 
+      font-family: 'Times New Roman', Times, serif; 
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      color-adjust: exact !important;
+    }
     body { background: #52525b; margin: 0; padding: 20px 10px; color: #000; }
     
     .panel {
@@ -147,12 +153,19 @@
       line-height: 1.15; 
     }
     table.spec th { 
-      background: #ACB9CA; 
+      background-color: #ACB9CA !important; 
       text-align: center; 
       font-weight: bold; 
       padding: 4px 2px;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
     }
-    .t-tot { background: #ACB9CA; font-weight: bold; }
+    .t-tot { 
+      background-color: #ACB9CA !important; 
+      font-weight: bold; 
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
 
     .auto-grow {
       width: 100%;
@@ -210,7 +223,13 @@
       vertical-align: middle; 
       line-height: 1.15; 
     }
-    .cond-lbl { width: 140px; background: #ACB9CA; font-weight: bold; }
+    .cond-lbl { 
+      width: 140px; 
+      background-color: #ACB9CA !important; 
+      font-weight: bold; 
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
 
     .sign-row { 
       display: flex; 
@@ -231,13 +250,16 @@
 
     .contacts { margin-top: 16px; font-size: 10pt; line-height: 1.25; }
 
-    /* ТОЧНЫЕ СТИЛИ ДЛЯ ИСКЛЮЧЕНИЯ ВТОРОЙ СТРАНИЦЫ ПРИ ПЕЧАТИ */
     @page { 
       size: A4 portrait; 
       margin: 8mm 12mm 8mm 12mm; 
     }
     
     @media print {
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
       html, body {
         background: #fff !important;
         margin: 0 !important;
@@ -256,6 +278,11 @@
         min-height: 0 !important;
         page-break-after: avoid !important;
         page-break-inside: avoid !important;
+      }
+      table.spec th, .t-tot, .cond-lbl {
+        background-color: #ACB9CA !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
       }
       input, textarea { 
         border-bottom: none !important; 
@@ -278,7 +305,7 @@
 
   <div class="panel no-print">
     <button class="btn btn-add" onclick="addRow()">+ Добавить позицию</button>
-    <span style="font-size: 13px; color: #4b5563;">Печать оптимизирована строго под 1 лист А4</span>
+    <span style="font-size: 13px; color: #4b5563;">Включена принудительная заливка шапок таблиц для печати</span>
     <button class="btn" onclick="window.print()">🖨️ Сохранить в PDF / Печать</button>
   </div>
 
