@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Генератор КП — ООО "РТСтандарт"</title>
+  <title>Коммерческое предложение</title>
   <style>
     :root {
       --primary: #1a56db;
@@ -11,12 +11,12 @@
     * { box-sizing: border-box; font-family: 'Liberation Sans', Arial, Helvetica, sans-serif; }
     body { background: var(--bg); margin: 0; padding: 20px; color: #000; }
     
-    /* Панель управления на экране */
+    /* Верхняя панель (скрыта при печати) */
     .controls-panel {
       max-width: 210mm;
       margin: 0 auto 16px;
       background: #fff;
-      padding: 14px 20px;
+      padding: 12px 20px;
       border-radius: 8px;
       box-shadow: 0 2px 10px rgba(0,0,0,0.08);
       display: flex;
@@ -56,32 +56,11 @@
       align-items: flex-start;
       margin-bottom: 12px;
     }
-    .company-logo-block {
-      display: flex;
-      gap: 10px;
-      align-items: center;
+    .logo-img {
+      height: 48px;
+      object-fit: contain;
       margin-bottom: 6px;
-    }
-    .logo-badge {
-      font-size: 24px;
-      font-weight: 900;
-      color: #1a56db;
-      border: 2px solid #1a56db;
-      border-radius: 4px;
-      padding: 0 6px;
-      line-height: 1.1;
-    }
-    .company-title-bold {
-      font-size: 13.5px;
-      font-weight: 800;
-      letter-spacing: 0.5px;
-    }
-    .company-subtitle {
-      font-size: 9.5px;
-      text-transform: uppercase;
-      color: #333;
-      font-weight: 600;
-      line-height: 1.15;
+      display: block;
     }
     .requisites {
       font-size: 11.5px;
@@ -96,24 +75,25 @@
       width: 48%;
       text-align: left;
       font-size: 11.5px;
-      padding-top: 8px;
+      padding-top: 4px;
     }
     .client-target textarea {
       width: 100%;
       border: none;
-      border-bottom: 1px solid #000;
+      border-bottom: 1px dashed #777;
       font-size: 11.5px;
       font-family: inherit;
       resize: vertical;
       background: transparent;
       outline: none;
+      line-height: 1.35;
     }
 
     .title-doc {
       text-align: center;
       font-size: 14.5px;
       font-weight: bold;
-      margin: 10px 0 6px;
+      margin: 12px 0 6px;
       letter-spacing: 0.3px;
     }
     .intro-text {
@@ -123,7 +103,7 @@
       text-align: justify;
     }
 
-    /* Таблица товаров */
+    /* Таблица спецификации */
     table.kp-table {
       width: 100%;
       border-collapse: collapse;
@@ -166,7 +146,7 @@
     .table-input.num { text-align: right; }
     .table-input.center { text-align: center; }
 
-    /* Итоговые строки */
+    /* Строка суммы прописью */
     .total-rub-phrase {
       font-size: 11.5px;
       line-height: 1.35;
@@ -200,7 +180,7 @@
     }
     .stamp-container {
       position: absolute;
-      top: -30px;
+      top: -38px;
       right: 120px;
       width: 175px;
       pointer-events: none;
@@ -217,7 +197,11 @@
       line-height: 1.35;
     }
 
-    /* Стили для печати */
+    /* Настройки для чистой печати без браузерных колонтитулов */
+    @page {
+      size: A4;
+      margin: 10mm 15mm;
+    }
     @media print {
       body { background: #fff; padding: 0; }
       .controls-panel, .no-print { display: none !important; }
@@ -229,44 +213,42 @@
         padding: 0;
       }
       textarea.table-input { overflow: hidden; }
+      input, textarea { border-bottom: none !important; }
+      ::placeholder { color: transparent; }
     }
   </style>
 </head>
 <body>
 
+  <!-- Панель управления -->
   <div class="controls-panel no-print">
     <button class="btn btn-secondary" onclick="addRow()">+ Добавить позицию</button>
     <div style="font-size: 12.5px; color: #555;">
-      Заполняйте количество и цену — всё пересчитывается автоматически
+      Заполните спецификацию — расчет и сумма прописью формируются на лету
     </div>
     <button class="btn btn-primary" onclick="window.print()">🖨️ Сохранить в PDF / Печать</button>
   </div>
 
   <div class="page">
-    <!-- Шапка -->
+    <!-- Шапка документа -->
     <div class="header-row">
       <div style="width: 50%;">
-        <div class="company-logo-block">
-          <div class="logo-badge">Р</div>
-          <div>
-            <div class="company-title-bold">РТСТАНДАРТ</div>
-            <div class="company-subtitle">Оптовые поставки компьютерного оборудования</div>
-          </div>
-        </div>
+        <!-- Логотип компании -->
+        <img src="logo.png" alt="РТСТАНДАРТ" class="logo-img" onerror="this.outerHTML='<b style=\'font-size:16px;color:#0f386c;\'>РТСТАНДАРТ</b>'">
         <div class="requisites">
           <b>ООО "РТСТАНДАРТ"</b><br>
           г. Санкт-Петербург, наб. Обводного канала, д. 23, лит. Г ИНН 7842228552<br>
           +7 (812) 983-44-33
         </div>
         <div class="doc-meta">
-          КП № <input type="text" value="10-08/2" style="border:none; border-bottom:1px dashed #777; width:65px; font-weight:bold; font-size:11.5px;">
-          От <input type="text" value="08 октября 2026 года" style="border:none; border-bottom:1px dashed #777; width:135px; font-size:11.5px;">
+          КП № <input type="text" placeholder="впишите номер" style="border:none; border-bottom:1px dashed #777; width:110px; font-weight:bold; font-size:11.5px;">
+          От <input type="text" id="docDate" style="border:none; border-bottom:1px dashed #777; width:150px; font-size:11.5px;">
         </div>
       </div>
 
       <div class="client-target">
         Заказчику: 
-        <textarea rows="2" placeholder="ГКВ (С)ОУ при ФКУ КП №3 УФСИН России">ГКВ (С)ОУ при ФКУ КП №3 УФСИН России</textarea>
+        <textarea rows="3" placeholder="можете вписать сюда наименование заказчика"></textarea>
       </div>
     </div>
 
@@ -290,12 +272,12 @@
         </tr>
       </thead>
       <tbody id="tableBody">
-        <!-- Позиции генерируются через JS -->
+        <!-- Строки -->
       </tbody>
       <tfoot>
         <tr>
           <td colspan="6" style="text-align: right; font-weight: bold; padding-right: 8px;">ИТОГО:</td>
-          <td id="grandTotal" style="text-align: right; font-weight: bold;">0.00</td>
+          <td id="grandTotal" style="text-align: right; font-weight: bold;">0,00</td>
           <td class="no-print"></td>
         </tr>
       </tfoot>
@@ -335,7 +317,7 @@
       <div style="position: relative; width: 300px; text-align: right; padding-top: 10px;">
         <span style="border-bottom: 1px solid #000; display: inline-block; width: 140px;"></span>
         &nbsp;/ Марков Д.Е.
-        <!-- Печать накладывается на подпись -->
+        <!-- Печать с подписью поверх строки -->
         <div class="stamp-container">
           <img src="stamp.png" alt="Печать" onerror="this.style.display='none'">
         </div>
@@ -355,7 +337,20 @@
   </div>
 
   <script>
-    // Начальные 2 позиции точно из вашего PDF-файла
+    // Автоматическая текущая дата прописью на русском языке
+    function setCurrentDate() {
+      const now = new Date();
+      const months = [
+        "января", "февраля", "марта", "апреля", "мая", "июня",
+        "июля", "августа", "сентября", "октября", "ноября", "декабря"
+      ];
+      const day = String(now.getDate()).padStart(2, '0');
+      const month = months[now.getMonth()];
+      const year = now.getFullYear();
+      document.getElementById('docDate').value = `${day} ${month} ${year} года`;
+    }
+
+    // Демонстрационные позиции
     const defaultData = [
       {
         name: "Ноутбук серии Rikor модель R-N NINO 200.1/AMD-028 (КДБА.466259.016-04) Art.: M4-G2 15 ar7640HS 1xM.2/256Gb-1x8Gb. Номер реестровой записи 10500359",
@@ -396,6 +391,7 @@
       defaultData.forEach((row, i) => {
         tbody.appendChild(createRow(i + 1, row));
       });
+      setCurrentDate();
       recalc();
     }
 
@@ -437,7 +433,6 @@
       const totalKop = Math.round((grandTotal - totalRub) * 100);
       const vatKop = Math.round((vat - vatRub) * 100);
 
-      // Склонение "рубль / рубля / рублей"
       const totalRubWords = numberToWordsRu(totalRub);
       const totalWordRub = declension(totalRub, ['рубль', 'рубля', 'рублей']);
       const vatRubWords = numberToWordsRu(vatRub);
