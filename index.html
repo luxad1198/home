@@ -4,28 +4,15 @@
   <meta charset="UTF-8">
   <title>Коммерческое предложение — ООО «РТСтандарт»</title>
   <style>
-    :root {
-      --header-bg: #ACB9CA;
-    }
-    * { 
-      box-sizing: border-box; 
-      font-family: 'Times New Roman', Times, serif; 
-    }
-    body { 
-      background: #4b5563; 
-      margin: 0; 
-      padding: 20px 10px; 
-      color: #000; 
-    }
+    * { box-sizing: border-box; font-family: 'Times New Roman', Times, serif; }
+    body { background: #52525b; margin: 0; padding: 20px 10px; color: #000; }
     
-    /* Панель управления над листом */
-    .controls-panel {
+    .panel {
       width: 210mm;
-      margin: 0 auto 15px;
-      background: #ffffff;
-      padding: 10px 18px;
+      margin: 0 auto 12px;
+      background: #fff;
+      padding: 10px 16px;
       border-radius: 6px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -38,215 +25,80 @@
       font-weight: 600;
       font-size: 13px;
       font-family: Arial, sans-serif;
-      border: 1px solid transparent;
+      border: 1px solid #1d4ed8;
+      background: #1d4ed8;
+      color: #fff;
     }
-    .btn-primary { background: #1a56db; color: #fff; }
-    .btn-secondary { background: #f3f4f6; color: #111; border-color: #cbd5e1; }
-    .btn-danger { 
-      background: #fee2e2; 
-      color: #b91c1c; 
-      border: 1px solid #f87171; 
-      padding: 2px 6px; 
-      font-size: 11px; 
-      cursor: pointer; 
-      border-radius: 3px;
-    }
+    .btn-add { background: #f3f4f6; color: #111; border-color: #cbd5e1; }
+    .btn-del { background: #fee2e2; color: #b91c1c; border: 1px solid #f87171; padding: 2px 5px; font-size: 11px; cursor: pointer; border-radius: 3px; }
 
-    /* Лист формата А4 */
     .page {
       width: 210mm;
       min-height: 297mm;
-      padding: 10mm 15mm 12mm 15mm;
+      padding: 12mm 15mm 12mm 15mm;
       margin: 0 auto;
-      background: #ffffff;
+      background: #fff;
       box-shadow: 0 4px 20px rgba(0,0,0,0.35);
       position: relative;
       font-size: 11.5pt;
-      line-height: 1.25;
-    }
-
-    /* Шапка документа */
-    .header-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 12px;
-    }
-    .header-table td {
-      vertical-align: top;
-      border: none;
-      padding: 0;
-    }
-    .logo-img {
-      max-height: 52px;
-      margin-bottom: 4px;
-      display: block;
-    }
-    .requisites {
-      font-size: 11pt;
-      line-height: 1.25;
-    }
-    .doc-meta {
-      margin-top: 8px;
-      font-size: 11pt;
-    }
-    .doc-meta input {
-      font-family: inherit;
-      font-size: 11pt;
-      border: none;
-      border-bottom: 1px dashed #777;
-      outline: none;
-      background: transparent;
-    }
-    .client-block {
-      width: 48%;
-      padding-left: 15px;
-      font-size: 11pt;
-    }
-    .client-block textarea {
-      width: 100%;
-      font-family: inherit;
-      font-size: 11pt;
-      border: none;
-      border-bottom: 1px dashed #777;
-      outline: none;
-      resize: vertical;
-      line-height: 1.25;
-      background: transparent;
-    }
-
-    /* Заголовок КП */
-    .title-doc {
-      text-align: center;
-      font-size: 12pt;
-      font-weight: bold;
-      margin: 12px 0 6px;
-      letter-spacing: 0.5px;
-    }
-    .intro-text {
-      text-align: justify;
-      text-indent: 10mm;
-      font-size: 11pt;
-      line-height: 1.25;
-      margin-bottom: 10px;
-    }
-
-    /* Таблица спецификации */
-    table.kp-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 10pt;
-      margin-bottom: 8px;
-    }
-    table.kp-table th, table.kp-table td {
-      border: 1px solid #000;
-      padding: 3px 5px;
-      vertical-align: top;
-    }
-    table.kp-table th {
-      background-color: var(--header-bg);
-      text-align: center;
-      font-weight: bold;
-      font-size: 9.5pt;
-      line-height: 1.15;
-    }
-    .num-col { text-align: center; width: 26px; }
-    .col-country { width: 55px; text-align: center; }
-    .col-qty-header { width: 50px; text-align: center; }
-    .col-price-header { width: 75px; text-align: right; }
-    .col-sum-header { width: 85px; text-align: right; font-weight: bold; }
-    
-    .table-input {
-      width: 100%;
-      border: none;
-      outline: none;
-      font-family: inherit;
-      font-size: 10pt;
-      background: transparent;
-      padding: 0;
-      margin: 0;
-    }
-    textarea.table-input {
-      resize: vertical;
-      min-height: 38px;
       line-height: 1.2;
     }
-    .table-input.num { text-align: right; }
-    .table-input.center { text-align: center; }
 
-    .table-total-row td {
-      background-color: var(--header-bg);
-      font-weight: bold;
-    }
-
-    /* Сумма прописью */
-    .total-rub-phrase {
+    .head-tbl { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+    .head-tbl td { vertical-align: top; border: none; padding: 0; }
+    .logo { max-height: 48px; margin-bottom: 4px; display: block; }
+    
+    .meta-input {
+      font-family: inherit;
       font-size: 11pt;
-      line-height: 1.35;
-      margin: 10px 0 12px;
+      border: none;
+      border-bottom: 1px dashed #777;
+      background: transparent;
+      outline: none;
     }
 
-    /* Условия */
-    table.conditions-table {
+    .client-box textarea {
       width: 100%;
-      border-collapse: collapse;
-      font-size: 10.5pt;
-      margin-bottom: 14px;
-    }
-    table.conditions-table td {
-      border: 1px solid #000;
-      padding: 3px 6px;
-      vertical-align: middle;
-    }
-    td.cond-label {
-      width: 145px;
-      background-color: var(--header-bg);
-      font-weight: bold;
-    }
-
-    /* Подпись и факсимиле */
-    .sign-row {
-      display: flex;
-      justify-content: space-between;
-      position: relative;
-      margin-top: 14px;
+      font-family: inherit;
       font-size: 11pt;
-      line-height: 1.25;
-    }
-    .stamp-container {
-      position: absolute;
-      top: -38px;
-      right: 120px;
-      width: 175px;
-      pointer-events: none;
-      opacity: 0.95;
-    }
-    .stamp-container img {
-      width: 100%;
-      display: block;
+      border: none;
+      border-bottom: 1px dashed #777;
+      background: transparent;
+      outline: none;
+      resize: vertical;
     }
 
-    .contacts-footer {
-      margin-top: 16px;
-      font-size: 10.5pt;
-      line-height: 1.3;
-    }
+    .title { text-align: center; font-size: 12pt; font-weight: bold; margin: 12px 0 6px; }
+    .intro { text-align: justify; text-indent: 10mm; font-size: 11pt; margin-bottom: 10px; }
 
-    /* Печать */
-    @page {
-      size: A4;
-      margin: 10mm 15mm;
-    }
+    table.spec { width: 100%; border-collapse: collapse; font-size: 9.5pt; margin-bottom: 6px; }
+    table.spec th, table.spec td { border: 1px solid #000; padding: 3px 4px; vertical-align: top; }
+    table.spec th { background: #ACB9CA; text-align: center; font-weight: bold; }
+    .t-tot { background: #ACB9CA; font-weight: bold; }
+
+    .inp { width: 100%; border: none; outline: none; font-family: inherit; font-size: 9.5pt; background: transparent; padding: 0; margin: 0; }
+    textarea.inp { resize: vertical; min-height: 34px; line-height: 1.15; }
+    .r { text-align: right; }
+    .c { text-align: center; }
+
+    .tot-phrase { font-size: 11pt; line-height: 1.3; margin: 8px 0 10px; }
+
+    table.cond { width: 100%; border-collapse: collapse; font-size: 10pt; margin-bottom: 12px; }
+    table.cond td { border: 1px solid #000; padding: 3px 6px; vertical-align: middle; }
+    .cond-lbl { width: 140px; background: #ACB9CA; font-weight: bold; }
+
+    .sign-row { display: flex; justify-content: space-between; position: relative; margin-top: 12px; font-size: 11pt; }
+    .stamp-box { position: absolute; top: -35px; right: 110px; width: 170px; pointer-events: none; opacity: 0.95; }
+    .stamp-box img { width: 100%; display: block; }
+
+    .contacts { margin-top: 14px; font-size: 10pt; line-height: 1.25; }
+
+    @page { size: A4; margin: 10mm 15mm; }
     @media print {
       body { background: #fff; padding: 0; }
-      .controls-panel, .no-print { display: none !important; }
-      .page {
-        box-shadow: none;
-        margin: 0;
-        width: 100%;
-        min-height: auto;
-        padding: 0;
-      }
-      textarea.table-input { overflow: hidden; }
+      .panel, .no-print { display: none !important; }
+      .page { box-shadow: none; margin: 0; width: 100%; padding: 0; }
+      textarea.inp { overflow: hidden; }
       input, textarea { border-bottom: none !important; }
       ::placeholder { color: transparent; }
     }
@@ -254,38 +106,277 @@
 </head>
 <body>
 
-  <!-- Панель управления -->
-  <div class="controls-panel no-print">
-    <button class="btn btn-secondary" onclick="addRow()">+ Добавить позицию</button>
-    <div style="font-size: 13px; color: #374151;">
-      Меняйте количество и цену — итоги пересчитываются моментально
-    </div>
-    <button class="btn btn-primary" onclick="window.print()">🖨️ Сохранить в PDF / Печать</button>
+  <div class="panel no-print">
+    <button class="btn btn-add" onclick="addRow()">+ Добавить позицию</button>
+    <span style="font-size: 13px; color: #4b5563;">Авторасчет сумм, НДС 22% и прописи включен</span>
+    <button class="btn" onclick="window.print()">🖨️ Сохранить в PDF / Печать</button>
   </div>
 
   <div class="page">
-    <!-- Шапка документа -->
-    <table class="header-table">
+    <table class="head-tbl">
       <tr>
         <td style="width: 52%;">
-          <img src="logo.png" alt="ООО РТСтандарт" class="logo-img" onerror="this.outerHTML='<b style=\'font-size:14pt;\'>ООО &quot;РТСТАНДАРТ&quot;</b>'">
-          <div class="requisites">
-            <b>ООО "РТСТАНДАРТ"</b><br>
-            г. Санкт-Петербург, наб. Обводного канала, д. 23, лит. Г ИНН 7842228552<br>
-            +7 (812) 983-44-33
-          </div>
-          <div class="doc-meta">
-            КП № <input type="text" placeholder="впишите номер" style="width: 110px; font-weight: bold;"><br>
-            От <input type="text" id="docDate" style="width: 155px;">
+          <img src="logo.png" alt="РТСТАНДАРТ" class="logo" onerror="this.outerHTML='<b style=\'font-size:14pt;\'>ООО &quot;РТСТАНДАРТ&quot;</b>'">
+          <b>ООО "РТСТАНДАРТ"</b><br>
+          г. Санкт-Петербург, наб. Обводного канала, д. 23, лит. Г ИНН 7842228552<br>
+          +7 (812) 983-44-33<br>
+          <div style="margin-top: 6px;">
+            КП № <input type="text" class="meta-input" placeholder="впишите номер" style="width: 110px; font-weight: bold;"><br>
+            От <input type="text" id="docDate" class="meta-input" style="width: 155px;">
           </div>
         </td>
-        <td class="client-block">
-          Заказчику:
+        <td class="client-box" style="width: 48%; padding-left: 15px;">
+          Заказчику:<br>
           <textarea rows="3" placeholder="можете вписать сюда наименование заказчика"></textarea>
         </td>
       </tr>
     </table>
 
-    <div class="title-doc">КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ</div>
-    <div class="intro-text">
-      Общество с ограниченной ответственностью «РТСтандарт», в
+    <div class="title">КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ</div>
+    <div class="intro">
+      Общество с ограниченной ответственностью «РТСтандарт», в лице генерального директора Маркова Дмитрия Евгеньевича, действующего на основании Устава, предлагает рассмотреть возможность поставки следующего оборудования:
+    </div>
+
+    <!-- Таблица спецификации -->
+    <table class="spec" id="itemsTable">
+      <thead>
+        <tr>
+          <th style="width: 24px;">№</th>
+          <th style="width: 175px;">Наименование товара</th>
+          <th>Основные характеристики предложенного товара и прочие условия</th>
+          <th style="width: 55px;">Страна</th>
+          <th style="width: 48px;">Кол-во, шт.</th>
+          <th style="width: 75px;">Цена за ед. руб., с НДС 22%</th>
+          <th style="width: 85px;">Сумма руб., с НДС 22%</th>
+          <th class="no-print" style="width: 22px; border: none; background: #fff;"></th>
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+        <tr>
+          <td class="c row-idx">1</td>
+          <td><textarea class="inp" placeholder="Наименование">Проектор короткофокусный ViewSonic PS502X</textarea></td>
+          <td><textarea class="inp" placeholder="Характеристики">- Формат изображения 4:3&#10;- Физическое разрешение 1024 x 768&#10;- Контрастность: 15000:1&#10;- Встроенный динамик 16 Вт</textarea></td>
+          <td><input type="text" class="inp c" value="Китай"></td>
+          <td><input type="number" class="inp r col-qty" value="1" oninput="recalc()"></td>
+          <td><input type="number" class="inp r col-price" value="70500" step="0.01" oninput="recalc()"></td>
+          <td class="r col-total" style="font-weight:bold;">70 500,00</td>
+          <td class="no-print c" style="border:none;"><button class="btn-del" onclick="deleteRow(this)">✕</button></td>
+        </tr>
+        <tr>
+          <td class="c row-idx">2</td>
+          <td><textarea class="inp" placeholder="Наименование">Экран Cactus 180x180см Wallscreen CS-PSW-180x180 1:1 настенно-потолочный рулонный белый</textarea></td>
+          <td><textarea class="inp" placeholder="Характеристики">- Размер полотна: 180х180 см&#10;- Диагональ: 100"&#10;- Угол обзора: 180°&#10;- Белое стекловолокно</textarea></td>
+          <td><input type="text" class="inp c" value="Китай"></td>
+          <td><input type="number" class="inp r col-qty" value="1" oninput="recalc()"></td>
+          <td><input type="number" class="inp r col-price" value="5550" step="0.01" oninput="recalc()"></td>
+          <td class="r col-total" style="font-weight:bold;">5 550,00</td>
+          <td class="no-print c" style="border:none;"><button class="btn-del" onclick="deleteRow(this)">✕</button></td>
+        </tr>
+        <tr>
+          <td class="c row-idx">3</td>
+          <td><textarea class="inp" placeholder="Наименование">Кронштейн REXANT для проектора, серия PROFI, белый</textarea></td>
+          <td><textarea class="inp" placeholder="Характеристики">- Тип: потолочный&#10;- Регулировка: наклонный, поворотный&#10;- Макс. нагрузка: 15 кг</textarea></td>
+          <td><input type="text" class="inp c" value="Китай"></td>
+          <td><input type="number" class="inp r col-qty" value="1" oninput="recalc()"></td>
+          <td><input type="number" class="inp r col-price" value="2800" step="0.01" oninput="recalc()"></td>
+          <td class="r col-total" style="font-weight:bold;">2 800,00</td>
+          <td class="no-print c" style="border:none;"><button class="btn-del" onclick="deleteRow(this)">✕</button></td>
+        </tr>
+        <tr>
+          <td class="c row-idx">4</td>
+          <td><textarea class="inp" placeholder="Наименование">Кабель питания ExeGate Special EC-10S C13->C14, 10м</textarea></td>
+          <td><textarea class="inp" placeholder="Характеристики">- Разъем 1: C13&#10;- Разъем 2: C14&#10;- Длина: 10 м</textarea></td>
+          <td><input type="text" class="inp c" value="Китай"></td>
+          <td><input type="number" class="inp r col-qty" value="1" oninput="recalc()"></td>
+          <td><input type="number" class="inp r col-price" value="550" step="0.01" oninput="recalc()"></td>
+          <td class="r col-total" style="font-weight:bold;">550,00</td>
+          <td class="no-print c" style="border:none;"><button class="btn-del" onclick="deleteRow(this)">✕</button></td>
+        </tr>
+        <tr>
+          <td class="c row-idx">5</td>
+          <td><textarea class="inp" placeholder="Наименование">Кабель HDMI Wize v.2.0b, 4K/60 Hz, Ethernet, 10м</textarea></td>
+          <td><textarea class="inp" placeholder="Характеристики">- Тип соединения: HDMI - HDMI&#10;- Длина: 10 м&#10;- Версия HDMI: 2.0b</textarea></td>
+          <td><input type="text" class="inp c" value="Китай"></td>
+          <td><input type="number" class="inp r col-qty" value="1" oninput="recalc()"></td>
+          <td><input type="number" class="inp r col-price" value="2100" step="0.01" oninput="recalc()"></td>
+          <td class="r col-total" style="font-weight:bold;">2 100,00</td>
+          <td class="no-print c" style="border:none;"><button class="btn-del" onclick="deleteRow(this)">✕</button></td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr class="t-tot">
+          <td colspan="6" class="r" style="padding-right: 8px;">ИТОГО:</td>
+          <td id="grandTotal" class="r">81 500,00</td>
+          <td class="no-print" style="border:none; background:#fff;"></td>
+        </tr>
+      </tfoot>
+    </table>
+
+    <div class="tot-phrase" id="textTotalBlock">
+      ИТОГО: 81500 (восемьдесят одна тысяча пятьсот рублей) рублей 00 копеек, в том числе НДС 22% 14696 (четырнадцать тысяч шестьсот девяносто шесть) рублей 72 копейки.
+    </div>
+
+    <table class="cond">
+      <tr>
+        <td class="cond-lbl">Срок поставки</td>
+        <td><input type="text" class="inp" value="5-10(пять-десять) рабочих дней"></td>
+      </tr>
+      <tr>
+        <td class="cond-lbl">Условия оплаты</td>
+        <td><input type="text" class="inp" value="100% постоплата"></td>
+      </tr>
+      <tr>
+        <td class="cond-lbl">Доставка</td>
+        <td><input type="text" class="inp" value="Доставка товара до адреса заказчика включена"></td>
+      </tr>
+      <tr>
+        <td class="cond-lbl">Гарантия</td>
+        <td><input type="text" class="inp" value="12 месяцев с возможностью расширения до 5 лет. Выезд инженера в рамках гарантийного ремонта по адресу Заказчика – опционально. Обслуживание On-site (на месте) / Keep Your Drive (KYD) ремонт с сохранением жестких дисков у клиента – опционально.."></td>
+      </tr>
+    </table>
+
+    <div class="sign-row">
+      <div>
+        Генеральный директор<br>
+        ООО «РТСтандарт»
+      </div>
+      <div style="position: relative; width: 320px; text-align: right; padding-top: 10px;">
+        <span style="border-bottom: 1px solid #000; display: inline-block; width: 140px;"></span>
+        &nbsp;/ Марков Д.Е.
+        <div class="stamp-box">
+          <img src="stamp.png" alt="Печать" onerror="this.style.display='none'">
+        </div>
+      </div>
+    </div>
+
+    <div class="contacts">
+      Исп.<br>
+      Коммерческий департамент<br>
+      ООО «РТСтандарт»<br>
+      E-mail: info@liscorp.ru<br>
+      +7 (981) 040-10-70<br>
+      +7 (812) 983-44-33<br>
+      https://liscorp.ru/
+    </div>
+  </div>
+
+  <script>
+    function setCurrentDate() {
+      const now = new Date();
+      const m = ["января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"];
+      const d = String(now.getDate()).padStart(2, '0');
+      const elem = document.getElementById('docDate');
+      if (elem) elem.value = `${d} ${m[now.getMonth()]} ${now.getFullYear()} года`;
+    }
+
+    function addRow() {
+      const tbody = document.getElementById('tableBody');
+      const idx = tbody.children.length + 1;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="c row-idx">${idx}</td>
+        <td><textarea class="inp" placeholder="Наименование"></textarea></td>
+        <td><textarea class="inp" placeholder="Характеристики"></textarea></td>
+        <td><input type="text" class="inp c" value="Россия"></td>
+        <td><input type="number" class="inp r col-qty" value="1" oninput="recalc()"></td>
+        <td><input type="number" class="inp r col-price" value="0" step="0.01" oninput="recalc()"></td>
+        <td class="r col-total" style="font-weight:bold;">0,00</td>
+        <td class="no-print c" style="border:none;"><button class="btn-del" onclick="deleteRow(this)">✕</button></td>
+      `;
+      tbody.appendChild(tr);
+      recalc();
+    }
+
+    function deleteRow(btn) {
+      btn.closest('tr').remove();
+      document.querySelectorAll('#tableBody tr').forEach((row, i) => {
+        row.querySelector('.row-idx').textContent = i + 1;
+      });
+      recalc();
+    }
+
+    function fmt(n) {
+      return n.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function recalc() {
+      let grandTotal = 0;
+      document.querySelectorAll('#tableBody tr').forEach(row => {
+        const q = parseFloat(row.querySelector('.col-qty').value) || 0;
+        const p = parseFloat(row.querySelector('.col-price').value) || 0;
+        const tot = q * p;
+        row.querySelector('.col-total').textContent = fmt(tot);
+        grandTotal += tot;
+      });
+
+      document.getElementById('grandTotal').textContent = fmt(grandTotal);
+
+      const vat = grandTotal > 0 ? (grandTotal * 22 / 122) : 0;
+      const tRub = Math.floor(grandTotal);
+      const vRub = Math.floor(vat);
+      const tKop = Math.round((grandTotal - tRub) * 100);
+      const vKop = Math.round((vat - vRub) * 100);
+
+      const tRubW = num2words(tRub);
+      const tRubDecl = decl(tRub, ['рубль', 'рубля', 'рублей']);
+      const vRubW = num2words(vRub);
+      const vRubDecl = decl(vRub, ['рубль', 'рубля', 'рублей']);
+      const vKopDecl = decl(vKop, ['копейка', 'копейки', 'копеек']);
+
+      document.getElementById('textTotalBlock').innerHTML = 
+        `ИТОГО: <b>${tRub} (${tRubW} ${tRubDecl}) рублей ${String(tKop).padStart(2, '0')} копеек</b>, в том числе НДС 22% <b>${vRub} (${vRubW}) ${vRubDecl} ${String(vKop).padStart(2, '0')} ${vKopDecl}</b>.`;
+    }
+
+    function decl(n, forms) {
+      n = Math.abs(n) % 100;
+      const n1 = n % 10;
+      if (n > 10 && n < 20) return forms[2];
+      if (n1 > 1 && n1 < 5) return forms[1];
+      if (n1 === 1) return forms[0];
+      return forms[2];
+    }
+
+    function num2words(n) {
+      if (n === 0) return 'ноль';
+      const o = ['', 'один', 'два', 'три', 'четыре', 'пять', 'шесть', 'семь', 'восемь', 'девять'];
+      const of = ['', 'одна', 'две', 'три', 'четыре', 'пять', 'шесть', 'семь', 'восемь', 'девять'];
+      const te = ['десять', 'одиннадцать', 'двенадцать', 'тринадцать', 'четырнадцать', 'пятнадцать', 'шестнадцать', 'семнадцать', 'восемнадцать', 'девятнадцать'];
+      const t = ['', '', 'двадцать', 'тридцать', 'сорок', 'пятьдесят', 'шестьдесят', 'семьдесят', 'восемьдесят', 'девяносто'];
+      const h = ['', 'сто', 'двести', 'триста', 'четыреста', 'пятьсот', 'шестьсот', 'семьсот', 'восемьсот', 'девятьсот'];
+
+      const grps = [
+        { u: 1e9, f: ['миллиард', 'миллиарда', 'миллиардов'], fem: false },
+        { u: 1e6, f: ['миллион', 'миллиона', 'миллионов'], fem: false },
+        { u: 1e3, f: ['тысяча', 'тысячи', 'тысяч'], fem: true },
+        { u: 1, f: ['', '', ''], fem: false }
+      ];
+
+      let res = [];
+      let rem = n;
+
+      for (let g of grps) {
+        let c = Math.floor(rem / g.u);
+        rem %= g.u;
+        if (c === 0) continue;
+
+        let ch = Math.floor(c / 100);
+        let ct = Math.floor((c % 100) / 10);
+        let co = c % 10;
+
+        if (ch > 0) res.push(h[ch]);
+        if (ct === 1) {
+          res.push(te[co]);
+        } else {
+          if (ct > 1) res.push(t[ct]);
+          if (co > 0) res.push(g.fem ? of[co] : o[co]);
+        }
+        if (g.f[0]) res.push(decl(c, g.f));
+      }
+      return res.join(' ');
+    }
+
+    setCurrentDate();
+    recalc();
+  </script>
+</body>
+</html>
