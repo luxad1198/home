@@ -32,6 +32,7 @@
     .btn-add { background: #f3f4f6; color: #111; border-color: #cbd5e1; }
     .btn-del { background: #fee2e2; color: #b91c1c; border: 1px solid #f87171; padding: 2px 5px; font-size: 11px; cursor: pointer; border-radius: 3px; }
 
+    /* Лист на экране */
     .page {
       width: 210mm;
       min-height: 297mm;
@@ -48,19 +49,18 @@
     .head-grid {
       width: 100%;
       border-collapse: collapse;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
     }
     .head-grid td {
       border: none;
-      padding: 0 0 10px 0;
-      vertical-align: middle; /* Центрирование по высоте логотипа и текста реквизитов */
+      padding: 0 0 8px 0;
+      vertical-align: middle;
     }
     .head-logo-cell {
       width: 52%;
     }
-    /* Увеличенный размер логотипа по референсу */
     .logo {
-      height: 68px;
+      height: 64px;
       max-width: 100%;
       object-fit: contain;
       display: block;
@@ -69,14 +69,14 @@
       width: 48%;
       padding-left: 20px !important;
       font-size: 11.5pt;
-      line-height: 1.3;
+      line-height: 1.25;
     }
     .head-meta-cell {
       width: 52%;
       font-size: 11pt;
       line-height: 1.35;
       vertical-align: top !important;
-      padding-top: 6px !important;
+      padding-top: 4px !important;
     }
     .head-client-cell {
       width: 48%;
@@ -84,7 +84,7 @@
       font-size: 11pt;
       line-height: 1.25;
       vertical-align: top !important;
-      padding-top: 6px !important;
+      padding-top: 4px !important;
     }
 
     .meta-input {
@@ -96,7 +96,6 @@
       outline: none;
     }
 
-    /* Блок номера КП */
     .kp-num-wrapper {
       display: inline-flex;
       align-items: baseline;
@@ -131,7 +130,7 @@
       line-height: 1.25;
     }
 
-    .title { text-align: center; font-size: 12pt; font-weight: bold; margin: 12px 0 6px; }
+    .title { text-align: center; font-size: 12pt; font-weight: bold; margin: 10px 0 6px; }
     .intro { text-align: justify; text-indent: 10mm; font-size: 11pt; margin-bottom: 8px; line-height: 1.15; }
 
     table.spec { 
@@ -203,7 +202,7 @@
       width: 100%; 
       border-collapse: collapse; 
       font-size: 10pt; 
-      margin-bottom: 24px; 
+      margin-bottom: 20px; 
     }
     table.cond td { 
       border: 1px solid #000; 
@@ -217,7 +216,7 @@
       display: flex; 
       justify-content: space-between; 
       position: relative; 
-      margin-top: 35px; 
+      margin-top: 30px; 
       font-size: 11pt; 
     }
     .stamp-box { 
@@ -230,16 +229,43 @@
     }
     .stamp-box img { width: 100%; display: block; }
 
-    .contacts { margin-top: 20px; font-size: 10pt; line-height: 1.25; }
+    .contacts { margin-top: 16px; font-size: 10pt; line-height: 1.25; }
 
-    @page { size: A4; margin: 10mm 15mm; }
+    /* ТОЧНЫЕ СТИЛИ ДЛЯ ИСКЛЮЧЕНИЯ ВТОРОЙ СТРАНИЦЫ ПРИ ПЕЧАТИ */
+    @page { 
+      size: A4 portrait; 
+      margin: 8mm 12mm 8mm 12mm; 
+    }
+    
     @media print {
-      body { background: #fff; padding: 0; }
-      .panel, .no-print { display: none !important; }
-      .page { box-shadow: none; margin: 0; width: 100%; padding: 0; }
-      input, textarea { border-bottom: none !important; }
-      ::placeholder { color: transparent; }
-      .inp-qty { -moz-appearance: textfield; }
+      html, body {
+        background: #fff !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        height: auto !important;
+      }
+      .panel, .no-print { 
+        display: none !important; 
+      }
+      .page {
+        box-shadow: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        height: auto !important;
+        min-height: 0 !important;
+        page-break-after: avoid !important;
+        page-break-inside: avoid !important;
+      }
+      input, textarea { 
+        border-bottom: none !important; 
+      }
+      ::placeholder { 
+        color: transparent !important; 
+      }
+      .inp-qty { 
+        -moz-appearance: textfield; 
+      }
       .inp-qty::-webkit-outer-spin-button,
       .inp-qty::-webkit-inner-spin-button {
         -webkit-appearance: none;
@@ -252,12 +278,11 @@
 
   <div class="panel no-print">
     <button class="btn btn-add" onclick="addRow()">+ Добавить позицию</button>
-    <span style="font-size: 13px; color: #4b5563;">Размер логотипа и перенос строк реквизитов соответствуют референсу</span>
+    <span style="font-size: 13px; color: #4b5563;">Печать оптимизирована строго под 1 лист А4</span>
     <button class="btn" onclick="window.print()">🖨️ Сохранить в PDF / Печать</button>
   </div>
 
   <div class="page">
-    <!-- Шапка по референсу -->
     <table class="head-grid">
       <tr>
         <td class="head-logo-cell">
