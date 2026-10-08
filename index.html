@@ -60,14 +60,14 @@
     .head-grid td {
       border: none;
       padding: 0 0 8px 0;
-      vertical-align: middle;
+      vertical-align: top; /* Выравнивание по верхнему краю */
     }
     .head-logo-cell {
       width: 52%;
     }
-    /* Логотип пропорционально увеличен на 30% через CSS */
+    /* Высота логотипа точно под высоту выделенного текста реквизитов */
     .logo {
-      height: 83px;
+      height: 104px;
       width: auto;
       max-width: 100%;
       object-fit: contain;
@@ -77,22 +77,20 @@
       width: 48%;
       padding-left: 20px !important;
       font-size: 11.5pt;
-      line-height: 1.3;
+      line-height: 1.35;
     }
     .head-meta-cell {
       width: 52%;
       font-size: 11pt;
       line-height: 1.35;
-      vertical-align: top !important;
-      padding-top: 6px !important;
+      padding-top: 10px !important;
     }
     .head-client-cell {
       width: 48%;
       padding-left: 20px !important;
       font-size: 11pt;
       line-height: 1.25;
-      vertical-align: top !important;
-      padding-top: 6px !important;
+      padding-top: 10px !important;
     }
 
     .meta-input {
@@ -310,7 +308,7 @@
 
   <div class="panel no-print">
     <button class="btn btn-add" onclick="addRow()">+ Добавить позицию</button>
-    <span style="font-size: 13px; color: #4b5563;">Размер логотипа увеличен на 30% через стили сайта</span>
+    <span style="font-size: 13px; color: #4b5563;">Высота логотипа синхронизирована с высотой блока реквизитов</span>
     <button class="btn" onclick="window.print()">🖨️ Сохранить в PDF / Печать</button>
   </div>
 
