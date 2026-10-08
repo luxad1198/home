@@ -22,12 +22,10 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 10px;
       font-family: Arial, sans-serif;
     }
-    .panel-left { display: flex; gap: 8px; align-items: center; }
     .btn {
-      padding: 8px 14px;
+      padding: 8px 16px;
       border-radius: 4px;
       cursor: pointer;
       font-weight: 600;
@@ -38,8 +36,6 @@
       color: #fff;
     }
     .btn-add { background: #f3f4f6; color: #111; border-color: #cbd5e1; }
-    .btn-clear { background: #fff; color: #64748b; border-color: #cbd5e1; }
-    .btn-clear:hover { background: #fee2e2; color: #b91c1c; border-color: #f87171; }
     .btn-del { background: #fee2e2; color: #b91c1c; border: 1px solid #f87171; padding: 2px 5px; font-size: 11px; cursor: pointer; border-radius: 3px; }
 
     /* Лист А4 */
@@ -151,227 +147,11 @@
       margin-bottom: 6px; 
       table-layout: fixed; 
     }
-    table.spec tr {
-      page-break-inside: avoid !important;
-      break-inside: avoid !important;
-    }
     table.spec th, table.spec td { 
       border: 1px solid #000; 
       padding: 3px 4px; 
       vertical-align: middle; 
       line-height: 1.15; 
-    }
-    table.spec th { 
-      background-color: #ACB9CA !important; 
-      text-align: center; 
-      font-weight: bold; 
-      padding: 4px 2px;
-    }
-    .t-tot { 
-      background-color: #ACB9CA !important; 
-      font-weight: bold; 
-    }
-
-    .auto-grow {
-      width: 100%;
-      border: none;
-      outline: none;
-      font-family: inherit;
-      font-size: 9.5pt;
-      background: transparent;
-      padding: 0;
-      margin: 0;
-      resize: none;
-      overflow: hidden;
-      line-height: 1.15;
-      display: block;
-      field-sizing: content;
-    }
-
-    .inp-qty {
-      width: 100%;
-      border: none;
-      outline: none;
-      font-family: inherit;
-      font-size: 9.5pt;
-      backgroundВсе 6 пунктов исправлены и объединены в итоговую версию кода:
-
-1. **Грамматика копеек**: для общей суммы копеек подключено склонение `decl(tKop, ['копейка', 'копейки', 'копеек'])` (теперь выводится *«01 копейка»*, *«23 копейки»*, *«05 копеек»*).
-2. **Ввод цены с копейками**: поле цены не ломает ввод при наборе запятой/точки, очищает любые лишние символы при вставке и форматируется в `500,00` только при выходе из поля (`blur`).
-3. **Автосохранение черновика (`localStorage`)**: при любом изменении текст и таблица сохраняются в памяти браузера. Если обновить страницу или случайно закрыть вкладку, ничего не пропадет. В панель добавлена кнопка «🗑️ Очистить бланк».
-4. **Многостраничная печать**: строки таблицы защищены от горизонтального разрыва пополам (`page-break-inside: avoid; tr { break-inside: avoid; }`), а при 5+ товарах документ корректно переносит переполненные строки на страницу 2 без наложений.
-5. **Габариты логотипа**: у тега `<img>` заданы явные параметры рендеринга.
-6. **Быстрый ввод с клавиатуры**: в последней ячейке цены при нажатии `Enter` автоматически создается новая строка, а курсор переходит в наименование.
-
----
-
-### Полный обновлённый код для `index.html`
-
-Замените весь код в файле `index.html` на GitHub и нажмите **Commit changes**:
-
-```html
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-  <meta charset="UTF-8">
-  <title>Коммерческое предложение — ООО «РТСтандарт»</title>
-  <style>
-    * { 
-      box-sizing: border-box; 
-      font-family: 'Times New Roman', Times, serif; 
-      -webkit-print-color-adjust: exact !important;
-      print-color-adjust: exact !important;
-      color-adjust: exact !important;
-    }
-    body { background: #52525b; margin: 0; padding: 20px 10px; color: #000; }
-    
-    .panel {
-      width: 210mm;
-      margin: 0 auto 12px;
-      background: #fff;
-      padding: 10px 16px;
-      border-radius: 6px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-family: Arial, sans-serif;
-      gap: 8px;
-    }
-    .panel-left { display: flex; gap: 8px; align-items: center; }
-    .btn {
-      padding: 8px 14px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 13px;
-      font-family: Arial, sans-serif;
-      border: 1px solid #1d4ed8;
-      background: #1d4ed8;
-      color: #fff;
-      transition: opacity 0.15s;
-    }
-    .btn:hover { opacity: 0.9; }
-    .btn-add { background: #f3f4f6; color: #111; border-color: #cbd5e1; }
-    .btn-clear { background: #fff1f2; color: #e11d48; border-color: #fecdd3; }
-    .btn-del { background: #fee2e2; color: #b91c1c; border: 1px solid #f87171; padding: 2px 6px; font-size: 11px; cursor: pointer; border-radius: 3px; }
-
-    /* Лист документа */
-    .page {
-      width: 210mm;
-      min-height: 297mm;
-      padding: 10mm 15mm 12mm 15mm;
-      margin: 0 auto;
-      background: #fff;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.35);
-      position: relative;
-      font-size: 11.5pt;
-      line-height: 1.15;
-    }
-
-    /* Шапка документа */
-    .head-grid {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 12px;
-    }
-    .head-grid td {
-      border: none;
-      padding: 0 0 8px 0;
-      vertical-align: top;
-    }
-    .head-logo-cell {
-      width: 52%;
-    }
-    .logo {
-      height: 104px;
-      width: auto;
-      max-width: 100%;
-      object-fit: contain;
-      display: block;
-    }
-    .head-req-cell {
-      width: 48%;
-      padding-left: 20px !important;
-      font-size: 11.5pt;
-      line-height: 1.35;
-    }
-    .head-meta-cell {
-      width: 52%;
-      font-size: 11pt;
-      line-height: 1.35;
-      padding-top: 10px !important;
-    }
-    .head-client-cell {
-      width: 48%;
-      padding-left: 20px !important;
-      font-size: 11pt;
-      line-height: 1.25;
-      padding-top: 10px !important;
-    }
-
-    .meta-input {
-      font-family: inherit;
-      font-size: 11pt;
-      border: none;
-      border-bottom: 1px dashed #777;
-      background: transparent;
-      outline: none;
-    }
-
-    .kp-num-wrapper {
-      display: inline-flex;
-      align-items: baseline;
-      font-weight: bold;
-    }
-    .kp-prefix {
-      font-weight: bold;
-      margin-left: 2px;
-    }
-    .kp-user-input {
-      font-family: inherit;
-      font-size: 11pt;
-      font-weight: bold;
-      border: none;
-      border-bottom: 1px dashed #777;
-      background: transparent;
-      outline: none;
-      width: 45px;
-      padding: 0 2px;
-    }
-
-    .client-textarea {
-      width: 100%;
-      font-family: inherit;
-      font-size: 11pt;
-      border: none;
-      border-bottom: 1px dashed #777;
-      background: transparent;
-      outline: none;
-      resize: none;
-      overflow: hidden;
-      line-height: 1.25;
-    }
-
-    .title { text-align: center; font-size: 12pt; font-weight: bold; margin: 12px 0 6px; }
-    .intro { text-align: justify; text-indent: 10mm; font-size: 11pt; margin-bottom: 8px; line-height: 1.15; }
-
-    /* Таблица спецификации */
-    table.spec { 
-      width: 100%; 
-      border-collapse: collapse; 
-      font-size: 9.5pt; 
-      margin-bottom: 6px; 
-      table-layout: fixed; 
-    }
-    table.spec th, table.spec td { 
-      border: 1px solid #000; 
-      padding: 3px 4px; 
-      vertical-align: middle; 
-      line-height: 1.15; 
-    }
-    table.spec tr {
-      page-break-inside: avoid !important;
-      break-inside: avoid !important;
     }
     table.spec th { 
       background-color: #ACB9CA !important; 
@@ -428,6 +208,7 @@
 
     .tot-phrase { font-size: 11pt; line-height: 1.25; margin: 6px 0 10px; }
 
+    /* Таблица условий поставки */
     table.cond { 
       width: 100%; 
       border-collapse: collapse; 
@@ -440,17 +221,13 @@
       vertical-align: middle; 
       line-height: 1.15; 
     }
-    table.cond tr {
-      page-break-inside: avoid !important;
-      break-inside: avoid !important;
-    }
     .cond-lbl { 
       width: 140px; 
       background-color: #ACB9CA !important; 
       font-weight: bold; 
     }
 
-    /* Неразрывный подвал: подпись + контакты */
+    /* Неразрывный блок подписи, печати и контактов */
     .keep-together-block {
       page-break-inside: avoid !important;
       break-inside: avoid !important;
@@ -476,7 +253,7 @@
 
     .contacts { margin-top: 18px; font-size: 10pt; line-height: 1.25; }
 
-    /* Печать */
+    /* Стили печати */
     @page { 
       size: A4 portrait; 
       margin: 8mm 12mm 8mm 12mm; 
@@ -505,7 +282,7 @@
       table.spec th, .t-tot, .cond-lbl {
         background-color: #ACB9CA !important;
       }
-      .keep-together-block, table.spec tr, table.cond tr {
+      .keep-together-block {
         page-break-inside: avoid !important;
         break-inside: avoid !important;
       }
@@ -529,19 +306,16 @@
 <body>
 
   <div class="panel no-print">
-    <div class="panel-left">
-      <button class="btn btn-add" onclick="addRow()">+ Добавить позицию</button>
-      <button class="btn btn-clear" onclick="clearForm()">🗑️ Очистить бланк</button>
-      <span style="font-size: 12px; color: #64748b; margin-left: 6px;">Автосохранение черновика активно</span>
-    </div>
-    <button class="btn" onclick="prepareAndPrint()">🖨️ Сохранить в PDF / Печать</button>
+    <button class="btn btn-add" onclick="addRow()">+ Добавить позицию</button>
+    <span style="font-size: 13px; color: #4b5563;">ООО «РТСтандарт» — Генератор коммерческих предложений</span>
+    <button class="btn" onclick="window.print()">🖨️ Сохранить в PDF / Печать</button>
   </div>
 
   <div class="page">
     <table class="head-grid">
       <tr>
         <td class="head-logo-cell">
-          <img src="logo.png" alt="РТСТАНДАРТ" class="logo" width="310" height="104" onerror="this.outerHTML='<b style=\'font-size:16pt;\'>РТСТАНДАРТ</b>'">
+          <img src="logo.png" alt="РТСТАНДАРТ" class="logo" onerror="this.outerHTML='<b style=\'font-size:16pt;\'>РТСТАНДАРТ</b>'">
         </td>
         <td class="head-req-cell">
           <b>ООО "РТСТАНДАРТ"</b><br>
@@ -554,13 +328,13 @@
         <td class="head-meta-cell">
           <div class="kp-num-wrapper">
             КП № <span class="kp-prefix" id="kpPrefix">10-08/</span>
-            <input type="text" class="kp-user-input" id="kpNumInput" placeholder="1" value="1" oninput="saveState()">
+            <input type="text" class="kp-user-input" placeholder="1" value="1">
           </div><br>
-          От <input type="text" id="docDate" class="meta-input" style="width: 155px;" oninput="saveState()">
+          От <input type="text" id="docDate" class="meta-input" style="width: 155px;">
         </td>
         <td class="head-client-cell">
           Заказчику:
-          <textarea rows="2" class="auto-grow client-textarea" id="clientBox" placeholder="можете вписать сюда наименование заказчика" oninput="saveState()"></textarea>
+          <textarea rows="2" class="auto-grow client-textarea" placeholder="можете вписать сюда наименование заказчика"></textarea>
         </td>
       </tr>
     </table>
@@ -587,16 +361,16 @@
       <tbody id="tableBody">
         <tr>
           <td class="c row-idx">1</td>
-          <td><textarea class="auto-grow col-name" placeholder="Впиши наименование" oninput="saveState()"></textarea></td>
-          <td><textarea class="auto-grow col-desc" placeholder="впиши характеристики" oninput="saveState()"></textarea></td>
-          <td class="c"><input type="text" class="inp-text c col-country" placeholder="Китай" value="Китай" oninput="saveState()"></td>
-          <td class="c"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1" oninput="recalc(); saveState();"></td>
+          <td><textarea class="auto-grow" placeholder="Впиши наименование"></textarea></td>
+          <td><textarea class="auto-grow" placeholder="впиши характеристики"></textarea></td>
+          <td class="c"><input type="text" class="inp-text c" placeholder="Китай" value="Китай"></td>
+          <td class="c"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1" oninput="recalc()"></td>
           <td class="c">
-            <input type="text" class="inp-text r col-price" placeholder="500,00" data-raw="0" value=""
+            <input type="text" class="inp-text r col-price" placeholder="500,00" 
+                   data-raw="0" value=""
                    onfocus="onPriceFocus(this)" 
                    onblur="onPriceBlur(this)" 
-                   oninput="onPriceInput(this)"
-                   onkeydown="onPriceKeyDown(event, this)">
+                   oninput="onPriceInput(this)">
           </td>
           <td class="r col-total" style="font-weight:bold;">0,00</td>
           <td class="no-print c" style="border:none;"><button class="btn-del" onclick="deleteRow(this)">✕</button></td>
@@ -619,23 +393,23 @@
     <table class="cond">
       <tr>
         <td class="cond-lbl">Срок поставки</td>
-        <td><textarea class="auto-grow cond-val" oninput="saveState()">5-10(пять-десять) рабочих дней</textarea></td>
+        <td><textarea class="auto-grow">5-10(пять-десять) рабочих дней</textarea></td>
       </tr>
       <tr>
         <td class="cond-lbl">Условия оплаты</td>
-        <td><textarea class="auto-grow cond-val" oninput="saveState()">100% постоплата</textarea></td>
+        <td><textarea class="auto-grow">100% постоплата</textarea></td>
       </tr>
       <tr>
         <td class="cond-lbl">Доставка</td>
-        <td><textarea class="auto-grow cond-val" oninput="saveState()">Доставка товара до адреса заказчика включена</textarea></td>
+        <td><textarea class="auto-grow">Доставка товара до адреса заказчика включена</textarea></td>
       </tr>
       <tr>
         <td class="cond-lbl">Гарантия</td>
-        <td><textarea class="auto-grow cond-val" oninput="saveState()">12 месяцев с возможностью расширения до 5 лет. Выезд инженера в рамках гарантийного ремонта по адресу Заказчика – опционально. Обслуживание On-site (на месте) / Keep Your Drive (KYD) ремонт с сохранением жестких дисков у клиента – опционально..</textarea></td>
+        <td><textarea class="auto-grow">12 месяцев с возможностью расширения до 5 лет. Выезд инженера в рамках гарантийного ремонта по адресу Заказчика – опционально. Обслуживание On-site (на месте) / Keep Your Drive (KYD) ремонт с сохранением жестких дисков у клиента – опционально..</textarea></td>
       </tr>
     </table>
 
-    <!-- Неразрывный подвал -->
+    <!-- Блок подписи и печать -->
     <div class="keep-together-block">
       <div class="sign-row">
         <div>
@@ -646,7 +420,7 @@
           <span style="border-bottom: 1px solid #000; display: inline-block; width: 140px;"></span>
           &nbsp;/ Марков Д.Е.
           <div class="stamp-box">
-            <img src="stamp.png" alt="Печать" width="170" onerror="this.style.display='none'">
+            <img src="stamp.png" alt="Печать" onerror="this.style.display='none'">
           </div>
         </div>
       </div>
@@ -658,14 +432,12 @@
         E-mail: info@liscorp.ru<br>
         +7 (981) 040-10-70<br>
         +7 (812) 983-44-33<br>
-        [https://liscorp.ru/](https://liscorp.ru/)
+        https://liscorp.ru/
       </div>
     </div>
   </div>
 
   <script>
-    const STORAGE_KEY = 'rtstandard_kp_draft_v1';
-
     function autoResizeTextarea(el) {
       el.style.height = 'auto';
       el.style.height = el.scrollHeight + 'px';
@@ -695,31 +467,21 @@
 
       const months = ["января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"];
       const dateElem = document.getElementById('docDate');
-      if (dateElem && !dateElem.value) {
+      if (dateElem) {
         dateElem.value = `${dayNum} ${months[now.getMonth()]} ${now.getFullYear()} года`;
       }
     }
 
-    // Точный парсинг чисел с поддержкой пробелов, точек и запятых
     function parseNum(val) {
-      if (val === null || val === undefined) return 0;
-      let clean = String(val).replace(/\s+/g, '').replace(',', '.');
-      clean = clean.replace(/[^0-9.]/g, '');
-      const parts = clean.split('.');
-      if (parts.length > 2) {
-        clean = parts[0] + '.' + parts.slice(1).join('');
-      }
-      return parseFloat(clean) || 0;
-    }
-
-    function fmt(n) {
-      return n.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      if (!val) return 0;
+      val = String(val).replace(/\s+/g, '').replace(',', '.');
+      return parseFloat(val) || 0;
     }
 
     function onPriceFocus(input) {
       const raw = input.getAttribute('data-raw');
       if (raw && parseNum(raw) > 0) {
-        input.value = String(raw).replace('.', ',');
+        input.value = raw;
       }
     }
 
@@ -727,7 +489,6 @@
       const num = parseNum(input.value);
       input.setAttribute('data-raw', num);
       recalc();
-      saveState();
     }
 
     function onPriceBlur(input) {
@@ -735,34 +496,23 @@
       input.setAttribute('data-raw', num);
       input.value = num > 0 ? fmt(num) : '';
       recalc();
-      saveState();
     }
 
-    // Быстрый переход по Enter на новую строку
-    function onPriceKeyDown(event, input) {
-      if (event.key === 'Enter') {
-        event.preventDefault();
-        input.blur();
-        addRow(true);
-      }
-    }
-
-    function addRow(focusNew = false) {
+    function addRow() {
       const tbody = document.getElementById('tableBody');
       const idx = tbody.children.length + 1;
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td class="c row-idx">${idx}</td>
-        <td><textarea class="auto-grow col-name" placeholder="Впиши наименование" oninput="saveState()"></textarea></td>
-        <td><textarea class="auto-grow col-desc" placeholder="впиши характеристики" oninput="saveState()"></textarea></td>
-        <td class="c"><input type="text" class="inp-text c col-country" placeholder="Китай" value="Китай" oninput="saveState()"></td>
-        <td class="c"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1" oninput="recalc(); saveState();"></td>
+        <td><textarea class="auto-grow" placeholder="Впиши наименование"></textarea></td>
+        <td><textarea class="auto-grow" placeholder="впиши характеристики"></textarea></td>
+        <td class="c"><input type="text" class="inp-text c" placeholder="Китай" value="Китай"></td>
+        <td class="c"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1" oninput="recalc()"></td>
         <td class="c">
-          <input type="text" class="inp-text r col-price" placeholder="500,00" data-raw="0" value=""
+          <input type="text" class="inp-text r col-price" placeholder="500,00" data-raw="0" 
                  onfocus="onPriceFocus(this)" 
                  onblur="onPriceBlur(this)" 
-                 oninput="onPriceInput(this)"
-                 onkeydown="onPriceKeyDown(event, this)">
+                 oninput="onPriceInput(this)">
         </td>
         <td class="r col-total" style="font-weight:bold;">0,00</td>
         <td class="no-print c" style="border:none;"><button class="btn-del" onclick="deleteRow(this)">✕</button></td>
@@ -770,12 +520,6 @@
       tbody.appendChild(tr);
       initAutoResize();
       recalc();
-      saveState();
-
-      if (focusNew) {
-        const nameField = tr.querySelector('.col-name');
-        if (nameField) nameField.focus();
-      }
     }
 
     function deleteRow(btn) {
@@ -785,21 +529,22 @@
       } else {
         const row = tbody.children[0];
         row.querySelectorAll('textarea, input').forEach(input => input.value = '');
-        const p = row.querySelector('.col-price');
-        if (p) p.setAttribute('data-raw', 0);
+        row.querySelector('.col-price').setAttribute('data-raw', 0);
       }
       document.querySelectorAll('#tableBody tr').forEach((row, i) => {
         row.querySelector('.row-idx').textContent = i + 1;
       });
       recalc();
-      saveState();
+    }
+
+    function fmt(n) {
+      return n.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
     function recalc() {
       let grandTotal = 0;
       document.querySelectorAll('#tableBody tr').forEach(row => {
-        const qVal = row.querySelector('.col-qty').value;
-        const q = qVal !== '' ? (parseFloat(qVal) || 0) : 1;
+        const q = parseFloat(row.querySelector('.col-qty').value) || 0;
         const priceInput = row.querySelector('.col-price');
         const p = parseNum(priceInput.getAttribute('data-raw') || priceInput.value);
         const tot = q * p;
@@ -817,14 +562,12 @@
 
       const tRubW = num2words(tRub);
       const tRubDecl = decl(tRub, ['рубль', 'рубля', 'рублей']);
-      const tKopDecl = decl(tKop, ['копейка', 'копейки', 'копеек']);
-
       const vRubW = num2words(vRub);
       const vRubDecl = decl(vRub, ['рубль', 'рубля', 'рублей']);
       const vKopDecl = decl(vKop, ['копейка', 'копейки', 'копеек']);
 
       document.getElementById('textTotalBlock').innerHTML = 
-        `ИТОГО: <b>${tRub} (${tRubW}) ${tRubDecl} ${String(tKop).padStart(2, '0')} ${tKopDecl}</b>, в том числе НДС 22% <b>${vRub} (${vRubW}) ${vRubDecl} ${String(vKop).padStart(2, '0')} ${vKopDecl}</b>.`;
+        `ИТОГО: <b>${tRub} (${tRubW}) ${tRubDecl} ${String(tKop).padStart(2, '0')} копеек</b>, в том числе НДС 22% <b>${vRub} (${vRubW}) ${vRubDecl} ${String(vKop).padStart(2, '0')} ${vKopDecl}</b>.`;
     }
 
     function decl(n, forms) {
@@ -875,126 +618,8 @@
       return res.join(' ');
     }
 
-    // Сохранение и восстановление состояния (localStorage)
-    function saveState() {
-      try {
-        const rows = [];
-        document.querySelectorAll('#tableBody tr').forEach(row => {
-          rows.push({
-            name: row.querySelector('.col-name').value,
-            desc: row.querySelector('.col-desc').value,
-            country: row.querySelector('.col-country').value,
-            qty: row.querySelector('.col-qty').value,
-            price: row.querySelector('.col-price').getAttribute('data-raw') || 0
-          });
-        });
-
-        const condVals = [];
-        document.querySelectorAll('.cond-val').forEach(el => condVals.push(el.value));
-
-        const state = {
-          kpNum: document.getElementById('kpNumInput').value,
-          docDate: document.getElementById('docDate').value,
-          client: document.getElementById('clientBox').value,
-          cond: condVals,
-          rows: rows
-        };
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-      } catch (e) {
-        console.warn('LocalStorage save failed', e);
-      }
-    }
-
-    function loadState() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return false;
-        const state = JSON.parse(raw);
-
-        if (state.kpNum) document.getElementById('kpNumInput').value = state.kpNum;
-        if (state.docDate) document.getElementById('docDate').value = state.docDate;
-        if (state.client) document.getElementById('clientBox').value = state.client;
-
-        if (state.cond && Array.isArray(state.cond)) {
-          document.querySelectorAll('.cond-val').forEach((el, i) => {
-            if (state.cond[i] !== undefined) el.value = state.cond[i];
-          });
-        }
-
-        if (state.rows && state.rows.length > 0) {
-          const tbody = document.getElementById('tableBody');
-          tbody.innerHTML = '';
-          state.rows.forEach((rData, i) => {
-            const tr = document.createElement('tr');
-            const pNum = parseNum(rData.price);
-            tr.innerHTML = `
-              <td class="c row-idx">${i + 1}</td>
-              <td><textarea class="auto-grow col-name" placeholder="Впиши наименование" oninput="saveState()">${rData.name || ''}</textarea></td>
-              <td><textarea class="auto-grow col-desc" placeholder="впиши характеристики" oninput="saveState()">${rData.desc || ''}</textarea></td>
-              <td class="c"><input type="text" class="inp-text c col-country" placeholder="Китай" value="${rData.country || 'Китай'}" oninput="saveState()"></td>
-              <td class="c"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1" value="${rData.qty || ''}" oninput="recalc(); saveState();"></td>
-              <td class="c">
-                <input type="text" class="inp-text r col-price" placeholder="500,00" data-raw="${pNum}" value="${pNum > 0 ? fmt(pNum) : ''}"
-                       onfocus="onPriceFocus(this)" 
-                       onblur="onPriceBlur(this)" 
-                       oninput="onPriceInput(this)"
-                       onkeydown="onPriceKeyDown(event, this)">
-              </td>
-              <td class="r col-total" style="font-weight:bold;">0,00</td>
-              <td class="no-print c" style="border:none;"><button class="btn-del" onclick="deleteRow(this)">✕</button></td>
-            `;
-            tbody.appendChild(tr);
-          });
-        }
-        return true;
-      } catch (e) {
-        console.warn('LocalStorage load failed', e);
-        return false;
-      }
-    }
-
-    function clearForm() {
-      if (!confirm('Вы уверены, что хотите очистить весь бланк?')) return;
-      localStorage.removeItem(STORAGE_KEY);
-      document.getElementById('clientBox').value = '';
-      document.getElementById('kpNumInput').value = '1';
-      document.getElementById('docDate').value = '';
-      setDateAndKpPrefix();
-
-      const tbody = document.getElementById('tableBody');
-      tbody.innerHTML = `
-        <tr>
-          <td class="c row-idx">1</td>
-          <td><textarea class="auto-grow col-name" placeholder="Впиши наименование" oninput="saveState()"></textarea></td>
-          <td><textarea class="auto-grow col-desc" placeholder="впиши характеристики" oninput="saveState()"></textarea></td>
-          <td class="c"><input type="text" class="inp-text c col-country" placeholder="Китай" value="Китай" oninput="saveState()"></td>
-          <td class="c"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1" oninput="recalc(); saveState();"></td>
-          <td class="c">
-            <input type="text" class="inp-text r col-price" placeholder="500,00" data-raw="0" value=""
-                   onfocus="onPriceFocus(this)" 
-                   onblur="onPriceBlur(this)" 
-                   oninput="onPriceInput(this)"
-                   onkeydown="onPriceKeyDown(event, this)">
-          </td>
-          <td class="r col-total" style="font-weight:bold;">0,00</td>
-          <td class="no-print c" style="border:none;"><button class="btn-del" onclick="deleteRow(this)">✕</button></td>
-        </tr>
-      `;
-      initAutoResize();
-      recalc();
-    }
-
-    function prepareAndPrint() {
-      initAutoResize();
-      recalc();
-      window.print();
-    }
-
     window.addEventListener('DOMContentLoaded', () => {
-      const restored = loadState();
-      if (!restored) {
-        setDateAndKpPrefix();
-      }
+      setDateAndKpPrefix();
       initAutoResize();
       recalc();
     });
