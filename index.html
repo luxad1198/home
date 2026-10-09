@@ -389,7 +389,6 @@
       font-weight: bold; 
     }
     
-    /* Стили выпадающего списка доставки */
     select.cond-val {
       cursor: pointer;
       font-size: 10pt;
@@ -498,9 +497,17 @@
       </div>
 
       <div class="calc-field">
-        <label class="calc-label" for="calcCostVat">Закупка с НДС 22%, ₽</label>
+        <label class="calc-label" for="calcCostVat">Закупка товара с НДС 22%, ₽</label>
         <div class="calc-input-wrap">
-          <input type="text" id="calcCostVat" class="calc-input" placeholder="например 100 000" oninput="calculateMargin()">
+          <input type="text" id="calcCostVat" class="calc-input" placeholder="например 100 000" oninput="calculateMargin(); saveState();">
+        </div>
+      </div>
+
+      <!-- Поле стоимости доставки (показывается только при включенной доставке) -->
+      <div class="calc-field" id="calcDeliveryRow">
+        <label class="calc-label" for="calcDeliveryCost">Доставка до клиента с НДС 22%, ₽</label>
+        <div class="calc-input-wrap">
+          <input type="text" id="calcDeliveryCost" class="calc-input" placeholder="например 3 500" oninput="calculateMargin(); saveState();">
         </div>
       </div>
 
@@ -513,7 +520,7 @@
           </div>
         </div>
         <div class="calc-input-wrap">
-          <input type="text" id="calcProfitTarget" class="calc-input" placeholder="15 000" oninput="calculateMargin()">
+          <input type="text" id="calcProfitTarget" class="calc-input" placeholder="15 000" oninput="calculateMargin(); saveState();">
         </div>
       </div>
 
@@ -642,7 +649,7 @@
         <tr>
           <td class="cond-lbl">Доставка</td>
           <td>
-            <select class="auto-grow cond-val" onchange="saveState()">
+            <select class="auto-grow cond-val" id="deliverySelect" onchange="onDeliveryChange()">
               <option value="Доставка товара до адреса заказчика включена">Доставка товара до адреса заказчика включена</option>
               <option value="Самовывоз со склада продавца">Самовывоз со склада продавца</option>
             </select>
@@ -695,44 +702,71 @@
       const input = document.getElementById('calcProfitTarget');
       input.placeholder = mode === 'rub' ? '15 000' : '15';
       calculateMargin();
+      saveState();
+    }
+
+    // Обработчик смены способа доставки
+    function onDeliveryChange() {
+      const select = document.getElementById('deliverySelect');
+      const deliveryRow = document.getElementById('calcDeliveryRow');
+      const isIncluded = select && select.value.indexOf('Доставка товара') !== -1;
+
+      if (deliveryRow) {
+        deliveryRow.style.display = isIncluded ? 'block' : 'none';
+      }
+      calculateMargin();
+      saveState();
     }
 
     function calculateMargin() {
       const cVat = parseNum(document.getElementById('calcCostVat').value);
       const targetVal = parseNum(document.getElementById('calcProfitTarget').value);
 
-      if (cVat <= 0) {
+      // Учет доставки только если выбрана доставка
+      const select = document.getElementById('deliverySelect');
+      const isDeliveryIncluded = select && select.value.indexOf('Доставка товара') !== -1;
+      const deliveryCostVat = isDeliveryIncluded ? parseNum(document.getElementById('calcDeliveryCost')?.value) : 0;
+
+      // Общая закупка (товар + доставка)
+      const totalCostVat = cVat + deliveryCostVat;
+
+      if (totalCostVat <= 0) {
         document.getElementById('resCostNet').textContent = '0,00 ₽';
         document.getElementById('resNetProfit').textContent = '0,00 ₽';
         document.getElementById('resProfitTax').textContent = '0,00 ₽';
         document.getElementById('resVatPayable').textContent = '0,00 ₽';
         document.getElementById('resSaleNet').textContent = '0,00 ₽';
         document.getElementById('resSaleVat').textContent = '0,00 ₽';
+        document.getElementById('resSaleVat').removeAttribute('data-val');
         return;
       }
 
       const vatRate = 0.22;
       const taxRate = 0.25;
 
-      const cNet = cVat / (1 + vatRate);
-      const vatIn = cVat - cNet;
+      // Себестоимость без НДС
+      const totalCostNet = totalCostVat / (1 + vatRate);
+      const vatIn = totalCostVat - totalCostNet;
 
+      // Чистая прибыль
       let netProfit = 0;
       if (currentMarginMode === 'rub') {
         netProfit = targetVal;
       } else {
-        netProfit = cVat * (targetVal / 100);
+        netProfit = totalCostVat * (targetVal / 100);
       }
 
+      // Доналоговая прибыль (EBT)
       const ebt = netProfit / (1 - taxRate);
       const profitTax = ebt * taxRate;
 
-      const saleNet = cNet + ebt;
+      // Выручка
+      const saleNet = totalCostNet + ebt;
       const vatOut = saleNet * vatRate;
       const vatPayable = vatOut - vatIn;
       const saleVat = saleNet * (1 + vatRate);
 
-      document.getElementById('resCostNet').textContent = fmt(cNet) + ' ₽';
+      document.getElementById('resCostNet').textContent = fmt(totalCostNet) + ' ₽';
       document.getElementById('resNetProfit').textContent = fmt(netProfit) + ' ₽';
       document.getElementById('resProfitTax').textContent = fmt(profitTax) + ' ₽';
       document.getElementById('resVatPayable').textContent = fmt(vatPayable) + ' ₽';
@@ -1002,7 +1036,11 @@
           docDate: document.getElementById('docDate').value,
           client: document.getElementById('clientBox').value,
           cond: condVals,
-          rows: rows
+          rows: rows,
+          calcCostVat: document.getElementById('calcCostVat')?.value || '',
+          calcDeliveryCost: document.getElementById('calcDeliveryCost')?.value || '',
+          calcProfitTarget: document.getElementById('calcProfitTarget')?.value || '',
+          calcMarginMode: currentMarginMode
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
       } catch (e) {
@@ -1025,6 +1063,11 @@
             if (state.cond[i] !== undefined) el.value = state.cond[i];
           });
         }
+
+        if (state.calcCostVat) document.getElementById('calcCostVat').value = state.calcCostVat;
+        if (state.calcDeliveryCost) document.getElementById('calcDeliveryCost').value = state.calcDeliveryCost;
+        if (state.calcProfitTarget) document.getElementById('calcProfitTarget').value = state.calcProfitTarget;
+        if (state.calcMarginMode) setMarginMode(state.calcMarginMode);
 
         if (state.rows && state.rows.length > 0) {
           const tbody = document.getElementById('tableBody');
@@ -1064,6 +1107,14 @@
       document.getElementById('clientBox').value = '';
       document.getElementById('kpNumInput').value = '1';
       document.getElementById('docDate').value = '';
+      
+      const costVat = document.getElementById('calcCostVat');
+      const delCost = document.getElementById('calcDeliveryCost');
+      const targetP = document.getElementById('calcProfitTarget');
+      if (costVat) costVat.value = '';
+      if (delCost) delCost.value = '';
+      if (targetP) targetP.value = '';
+      
       setDateAndKpPrefix();
 
       const tbody = document.getElementById('tableBody');
@@ -1086,6 +1137,7 @@
         </tr>
       `;
       initAutoResize();
+      onDeliveryChange();
       recalc();
       updateDocumentTitle();
     }
@@ -1103,6 +1155,7 @@
         setDateAndKpPrefix();
       }
       initAutoResize();
+      onDeliveryChange();
       recalc();
       updateDocumentTitle();
     });
