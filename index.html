@@ -780,7 +780,6 @@
     let currentMarginMode = 'rub';
     let isCalcCollapsed = false;
 
-    // Сворачивание и разворачивание калькулятора
     function toggleCalcSidebar() {
       const sidebar = document.getElementById('calcSidebar');
       const btn = document.getElementById('btnToggleCalc');
@@ -811,7 +810,6 @@
       saveState();
     }
 
-    // Обработчик смены доставки со сбросом стоимости
     function onDeliveryChange() {
       const select = document.getElementById('deliverySelect');
       const deliveryRow = document.getElementById('calcDeliveryRow');
@@ -821,7 +819,6 @@
       if (deliveryRow) {
         deliveryRow.style.display = isIncluded ? 'block' : 'none';
       }
-      // Сброс суммы при выборе самовывоза
       if (!isIncluded && delCostInput) {
         delCostInput.value = '';
       }
@@ -869,7 +866,7 @@
       saveState();
     }
 
-    // Применение цен: сохранение названий + округление цен до целых десятков
+    // ИСПРАВЛЕНО: точная синхронизация строк (добавление недостающих + удаление лишних строк)
     function applyBatchPricesToKp() {
       const batchItems = parseBatchLines();
       if (batchItems.length === 0) {
@@ -902,20 +899,30 @@
       const finalMultiplier = sumBatch > 0 ? (totalSaleVat / sumBatch) : 1;
       const tbody = document.getElementById('tableBody');
 
-      // Добавляем строки, только если их меньше
+      // 1. Добавляем недостающие строки
       while (tbody.children.length < batchItems.length) {
         addRow(false);
       }
 
+      // 2. УДАЛЯЕМ ЛИШНИЕ СТРОКИ СНИЗУ (если было 10, а стало 9)
+      while (tbody.children.length > batchItems.length) {
+        tbody.lastElementChild.remove();
+      }
+
+      // 3. Заполняем строки и перенумеровываем
       const rows = tbody.querySelectorAll('tr');
       batchItems.forEach((item, i) => {
         const row = rows[i];
         
-        // 1. Количество
+        // Порядковый номер
+        const idxElem = row.querySelector('.row-idx');
+        if (idxElem) idxElem.textContent = i + 1;
+
+        // Количество
         const qtyInput = row.querySelector('.col-qty');
         if (qtyInput) qtyInput.value = item.qty;
 
-        // 2. Расчет цены с округлением до целых ДЕСЯТОК (без копеек)
+        // Расчет цены с округлением до целых ДЕСЯТОК
         const exactPrice = item.cost * finalMultiplier;
         const roundedPrice = Math.round(exactPrice / 10) * 10;
 
@@ -928,16 +935,15 @@
 
       initAutoResize();
       recalc();
-      syncKpToCalculator(); // актуализируем калькулятор под фактические округленные цифры
+      syncKpToCalculator();
       saveState();
 
       const btn = document.querySelector('.btn-apply-batch');
       const orig = btn.innerHTML;
-      btn.innerHTML = '✅ Цены перенесены и округлены!';
+      btn.innerHTML = '✅ Строки синхронизированы и заполнены!';
       setTimeout(() => btn.innerHTML = orig, 1800);
     }
 
-    // Двусторонняя связь: при ручном изменении КП факт пересчитывается в калькуляторе
     function onTableRowChange() {
       recalc();
       syncKpToCalculator();
@@ -972,7 +978,6 @@
       const netProfit = ebt * (1 - taxRate);
       const vatPayable = Math.max(0, (saleNet - totalCostNet) * vatRate);
 
-      // Обновляем блок калькулятора фактическими данными из документа
       document.getElementById('resCostNet').textContent = fmt(totalCostNet) + ' ₽';
       document.getElementById('resNetProfit').textContent = fmt(netProfit) + ' ₽';
       document.getElementById('resProfitTax').textContent = fmt(profitTax) + ' ₽';
