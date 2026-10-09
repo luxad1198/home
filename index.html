@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Коммерческое предложение — ООО «РТСтандарт»</title>
+  <title>КП-РТСтандарт</title>
   <style>
     * { 
       box-sizing: border-box; 
@@ -43,7 +43,7 @@
     .btn-clear { background: #fff1f2; color: #e11d48; border-color: #fecdd3; }
     .btn-del { background: #fee2e2; color: #b91c1c; border: 1px solid #f87171; padding: 2px 6px; font-size: 11px; cursor: pointer; border-radius: 3px; }
 
-    /* Лист документа */
+    /* Лист А4 */
     .page {
       width: 210mm;
       min-height: 297mm;
@@ -68,7 +68,7 @@
       vertical-align: top;
     }
     .head-logo-cell {
-      width: 52%;
+      width: 50%;
     }
     .logo {
       height: 104px;
@@ -78,20 +78,20 @@
       display: block;
     }
     .head-req-cell {
-      width: 48%;
-      padding-left: 20px !important;
+      width: 50%;
+      padding-left: 15px !important;
       font-size: 11.5pt;
       line-height: 1.35;
     }
     .head-meta-cell {
-      width: 52%;
+      width: 50%;
       font-size: 11pt;
       line-height: 1.35;
       padding-top: 10px !important;
     }
     .head-client-cell {
-      width: 48%;
-      padding-left: 20px !important;
+      width: 50%;
+      padding-left: 15px !important;
       font-size: 11pt;
       line-height: 1.25;
       padding-top: 10px !important;
@@ -153,9 +153,14 @@
     }
     table.spec th, table.spec td { 
       border: 1px solid #000; 
-      padding: 3px 4px; 
-      vertical-align: middle; 
+      padding: 4px 4px; 
       line-height: 1.15; 
+    }
+    table.spec td.col-text-cell {
+      vertical-align: top;
+    }
+    table.spec td.col-num-cell {
+      vertical-align: middle;
     }
     table.spec tr {
       page-break-inside: avoid !important;
@@ -166,10 +171,12 @@
       text-align: center; 
       font-weight: bold; 
       padding: 4px 2px;
+      vertical-align: middle;
     }
     .t-tot { 
       background-color: #ACB9CA !important; 
       font-weight: bold; 
+      vertical-align: middle;
     }
 
     .auto-grow {
@@ -216,6 +223,7 @@
 
     .tot-phrase { font-size: 11pt; line-height: 1.25; margin: 6px 0 10px; }
 
+    /* Таблица условий */
     table.cond { 
       width: 100%; 
       border-collapse: collapse; 
@@ -238,7 +246,7 @@
       font-weight: bold; 
     }
 
-    /* Неразрывный подвал: подпись + контакты */
+    /* Неразрывный подвал */
     .keep-together-block {
       page-break-inside: avoid !important;
       break-inside: avoid !important;
@@ -341,14 +349,14 @@
       <tr>
         <td class="head-meta-cell">
           <div class="kp-num-wrapper">
-            КП № <span class="kp-prefix" id="kpPrefix">10-08/</span>
-            <input type="text" class="kp-user-input" id="kpNumInput" placeholder="1" value="1" oninput="saveState()">
+            КП № <span class="kp-prefix" id="kpPrefix">10-09/</span>
+            <input type="text" class="kp-user-input" id="kpNumInput" placeholder="1" value="1" oninput="saveState(); updateDocumentTitle();">
           </div><br>
           От <input type="text" id="docDate" class="meta-input" style="width: 155px;" oninput="saveState()">
         </td>
         <td class="head-client-cell">
           Заказчику:
-          <textarea rows="2" class="auto-grow client-textarea" id="clientBox" placeholder="можете вписать сюда наименование заказчика" oninput="saveState()"></textarea>
+          <textarea rows="2" class="auto-grow client-textarea" id="clientBox" placeholder="можете вписать сюда наименование заказчика" oninput="saveState(); updateDocumentTitle();"></textarea>
         </td>
       </tr>
     </table>
@@ -362,31 +370,31 @@
     <table class="spec" id="itemsTable">
       <thead>
         <tr>
-          <th style="width: 4.2%;">№</th>
-          <th style="width: 20%;">Наименование товара</th>
-          <th style="width: 33.5%;">Основные характеристики предложенного товара и прочие условия</th>
-          <th style="width: 8.5%;">Страна</th>
-          <th style="width: 8.0%;">Кол-во, шт.</th>
-          <th style="width: 11.3%;">Цена за ед. руб., включая НДС 22%</th>
-          <th style="width: 14.5%;">Сумма руб., включая НДС 22%</th>
+          <th style="width: 4%;">№</th>
+          <th style="width: 25%;">Наименование товара</th>
+          <th style="width: 30%;">Основные характеристики предложенного товара и прочие условия</th>
+          <th style="width: 8%;">Страна</th>
+          <th style="width: 7%;">Кол-во, шт.</th>
+          <th style="width: 12%;">Цена за ед. руб., включая НДС 22%</th>
+          <th style="width: 14%;">Сумма руб., включая НДС 22%</th>
           <th class="no-print" style="width: 25px; border: none; background: #fff;"></th>
         </tr>
       </thead>
       <tbody id="tableBody">
         <tr>
-          <td class="c row-idx">1</td>
-          <td><textarea class="auto-grow col-name" placeholder="Впиши наименование" oninput="saveState()"></textarea></td>
-          <td><textarea class="auto-grow col-desc" placeholder="впиши характеристики" oninput="saveState()"></textarea></td>
-          <td class="c"><input type="text" class="inp-text c col-country" placeholder="Китай" value="Китай" oninput="saveState()"></td>
-          <td class="c"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1" oninput="recalc(); saveState();"></td>
-          <td class="c">
+          <td class="c col-num-cell row-idx">1</td>
+          <td class="col-text-cell"><textarea class="auto-grow col-name" placeholder="Впиши наименование" oninput="saveState()"></textarea></td>
+          <td class="col-text-cell"><textarea class="auto-grow col-desc" placeholder="впиши характеристики" oninput="saveState()"></textarea></td>
+          <td class="c col-num-cell"><input type="text" class="inp-text c col-country" placeholder="Китай" value="Китай" oninput="saveState()"></td>
+          <td class="c col-num-cell"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1" oninput="recalc(); saveState();"></td>
+          <td class="c col-num-cell">
             <input type="text" class="inp-text r col-price" placeholder="500,00" data-raw="0" value=""
                    onfocus="onPriceFocus(this)" 
                    onblur="onPriceBlur(this)" 
                    oninput="onPriceInput(this)"
                    onkeydown="onPriceKeyDown(event, this)">
           </td>
-          <td class="r col-total" style="font-weight:bold;">0,00</td>
+          <td class="r col-num-cell col-total" style="font-weight:bold;">0,00</td>
           <td class="no-print c" style="border:none;"><button class="btn-del" onclick="deleteRow(this)">✕</button></td>
         </tr>
       </tbody>
@@ -488,6 +496,25 @@
       }
     }
 
+    // Автоматическая генерация имени файла: КП-Наименование компании-Номер
+    function updateDocumentTitle() {
+      const clientVal = (document.getElementById('clientBox')?.value || '').trim();
+      let company = 'РТСтандарт';
+      if (clientVal) {
+        // Берём первую строку наименования заказчика
+        const firstLine = clientVal.split('\n')[0].trim();
+        if (firstLine) company = firstLine;
+      }
+      // Очищаем от недопустимых в именах файлов символов
+      company = company.replace(/["'«»\\/:*?<>|]+/g, ' ').replace(/\s+/g, ' ').trim();
+
+      const prefix = (document.getElementById('kpPrefix')?.textContent || '').replace(/[\/\\]/g, '-');
+      const numVal = (document.getElementById('kpNumInput')?.value || '1').trim().replace(/[\/\\]/g, '-');
+      const fullNum = (prefix + numVal).replace(/-+$/, '');
+
+      document.title = `КП-${company}-${fullNum}`;
+    }
+
     function parseNum(val) {
       if (val === null || val === undefined) return 0;
       let clean = String(val).replace(/\s+/g, '').replace(',', '.');
@@ -501,6 +528,10 @@
 
     function fmt(n) {
       return n.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function fmtInt(n) {
+      return n.toLocaleString('ru-RU', { maximumFractionDigits: 0 });
     }
 
     function onPriceFocus(input) {
@@ -538,19 +569,19 @@
       const idx = tbody.children.length + 1;
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td class="c row-idx">${idx}</td>
-        <td><textarea class="auto-grow col-name" placeholder="Впиши наименование" oninput="saveState()"></textarea></td>
-        <td><textarea class="auto-grow col-desc" placeholder="впиши характеристики" oninput="saveState()"></textarea></td>
-        <td class="c"><input type="text" class="inp-text c col-country" placeholder="Китай" value="Китай" oninput="saveState()"></td>
-        <td class="c"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1" oninput="recalc(); saveState();"></td>
-        <td class="c">
+        <td class="c col-num-cell row-idx">${idx}</td>
+        <td class="col-text-cell"><textarea class="auto-grow col-name" placeholder="Впиши наименование" oninput="saveState()"></textarea></td>
+        <td class="col-text-cell"><textarea class="auto-grow col-desc" placeholder="впиши характеристики" oninput="saveState()"></textarea></td>
+        <td class="c col-num-cell"><input type="text" class="inp-text c col-country" placeholder="Китай" value="Китай" oninput="saveState()"></td>
+        <td class="c col-num-cell"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1" oninput="recalc(); saveState();"></td>
+        <td class="c col-num-cell">
           <input type="text" class="inp-text r col-price" placeholder="500,00" data-raw="0" value=""
                  onfocus="onPriceFocus(this)" 
                  onblur="onPriceBlur(this)" 
                  oninput="onPriceInput(this)"
                  onkeydown="onPriceKeyDown(event, this)">
         </td>
-        <td class="r col-total" style="font-weight:bold;">0,00</td>
+        <td class="r col-num-cell col-total" style="font-weight:bold;">0,00</td>
         <td class="no-print c" style="border:none;"><button class="btn-del" onclick="deleteRow(this)">✕</button></td>
       `;
       tbody.appendChild(tr);
@@ -610,7 +641,7 @@
       const vKopDecl = decl(vKop, ['копейка', 'копейки', 'копеек']);
 
       document.getElementById('textTotalBlock').innerHTML = 
-        `ИТОГО: <b>${tRub} (${tRubW}) ${tRubDecl} ${String(tKop).padStart(2, '0')} ${tKopDecl}</b>, в том числе НДС 22% <b>${vRub} (${vRubW}) ${vRubDecl} ${String(vKop).padStart(2, '0')} ${vKopDecl}</b>.`;
+        `ИТОГО: <b>${fmtInt(tRub)} (${tRubW}) ${tRubDecl} ${String(tKop).padStart(2, '0')} ${tKopDecl}</b>, в том числе НДС 22% <b>${fmtInt(vRub)} (${vRubW}) ${vRubDecl} ${String(vKop).padStart(2, '0')} ${vKopDecl}</b>.`;
     }
 
     function decl(n, forms) {
@@ -713,19 +744,19 @@
             const tr = document.createElement('tr');
             const pNum = parseNum(rData.price);
             tr.innerHTML = `
-              <td class="c row-idx">${i + 1}</td>
-              <td><textarea class="auto-grow col-name" placeholder="Впиши наименование" oninput="saveState()">${rData.name || ''}</textarea></td>
-              <td><textarea class="auto-grow col-desc" placeholder="впиши характеристики" oninput="saveState()">${rData.desc || ''}</textarea></td>
-              <td class="c"><input type="text" class="inp-text c col-country" placeholder="Китай" value="${rData.country || 'Китай'}" oninput="saveState()"></td>
-              <td class="c"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1" value="${rData.qty || ''}" oninput="recalc(); saveState();"></td>
-              <td class="c">
+              <td class="c col-num-cell row-idx">${i + 1}</td>
+              <td class="col-text-cell"><textarea class="auto-grow col-name" placeholder="Впиши наименование" oninput="saveState()">${rData.name || ''}</textarea></td>
+              <td class="col-text-cell"><textarea class="auto-grow col-desc" placeholder="впиши характеристики" oninput="saveState()">${rData.desc || ''}</textarea></td>
+              <td class="c col-num-cell"><input type="text" class="inp-text c col-country" placeholder="Китай" value="${rData.country || 'Китай'}" oninput="saveState()"></td>
+              <td class="c col-num-cell"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1" value="${rData.qty || ''}" oninput="recalc(); saveState();"></td>
+              <td class="c col-num-cell">
                 <input type="text" class="inp-text r col-price" placeholder="500,00" data-raw="${pNum}" value="${pNum > 0 ? fmt(pNum) : ''}"
                        onfocus="onPriceFocus(this)" 
                        onblur="onPriceBlur(this)" 
                        oninput="onPriceInput(this)"
                        onkeydown="onPriceKeyDown(event, this)">
               </td>
-              <td class="r col-total" style="font-weight:bold;">0,00</td>
+              <td class="r col-num-cell col-total" style="font-weight:bold;">0,00</td>
               <td class="no-print c" style="border:none;"><button class="btn-del" onclick="deleteRow(this)">✕</button></td>
             `;
             tbody.appendChild(tr);
@@ -749,29 +780,31 @@
       const tbody = document.getElementById('tableBody');
       tbody.innerHTML = `
         <tr>
-          <td class="c row-idx">1</td>
-          <td><textarea class="auto-grow col-name" placeholder="Впиши наименование" oninput="saveState()"></textarea></td>
-          <td><textarea class="auto-grow col-desc" placeholder="впиши характеристики" oninput="saveState()"></textarea></td>
-          <td class="c"><input type="text" class="inp-text c col-country" placeholder="Китай" value="Китай" oninput="saveState()"></td>
-          <td class="c"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1" oninput="recalc(); saveState();"></td>
-          <td class="c">
+          <td class="c col-num-cell row-idx">1</td>
+          <td class="col-text-cell"><textarea class="auto-grow col-name" placeholder="Впиши наименование" oninput="saveState()"></textarea></td>
+          <td class="col-text-cell"><textarea class="auto-grow col-desc" placeholder="впиши характеристики" oninput="saveState()"></textarea></td>
+          <td class="c col-num-cell"><input type="text" class="inp-text c col-country" placeholder="Китай" value="Китай" oninput="saveState()"></td>
+          <td class="c col-num-cell"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1" oninput="recalc(); saveState();"></td>
+          <td class="c col-num-cell">
             <input type="text" class="inp-text r col-price" placeholder="500,00" data-raw="0" value=""
                    onfocus="onPriceFocus(this)" 
                    onblur="onPriceBlur(this)" 
                    oninput="onPriceInput(this)"
                    onkeydown="onPriceKeyDown(event, this)">
           </td>
-          <td class="r col-total" style="font-weight:bold;">0,00</td>
+          <td class="r col-num-cell col-total" style="font-weight:bold;">0,00</td>
           <td class="no-print c" style="border:none;"><button class="btn-del" onclick="deleteRow(this)">✕</button></td>
         </tr>
       `;
       initAutoResize();
       recalc();
+      updateDocumentTitle();
     }
 
     function prepareAndPrint() {
       initAutoResize();
       recalc();
+      updateDocumentTitle();
       window.print();
     }
 
@@ -782,10 +815,12 @@
       }
       initAutoResize();
       recalc();
+      updateDocumentTitle();
     });
 
     window.addEventListener('load', () => {
       initAutoResize();
+      updateDocumentTitle();
     });
   </script>
 </body>
