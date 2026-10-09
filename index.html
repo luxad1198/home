@@ -631,7 +631,7 @@
           <span>📥 Закупки (2 столбца из Excel)</span>
         </div>
         <div class="calc-batch-hint">
-          Вставьте 2 столбца (<b>Количество</b> и <b>Цена</b>). Наименования в КП сохранятся!
+          Вставьте 2 столбца (<b>Количество</b> и <b>Цена</b>). При изменении кол-ва в КП поле синхронизируется!
         </div>
         <textarea id="calcBatchText" class="calc-textarea-batch" placeholder="1	7400&#10;5	12500&#10;2	11699..." oninput="onBatchInput()"></textarea>
         <div id="calcBatchInfo" class="calc-batch-info"></div>
@@ -696,7 +696,7 @@
             <td class="col-text-cell"><textarea class="auto-grow col-name" placeholder="Впиши наименование" oninput="saveState()"></textarea></td>
             <td class="col-text-cell"><textarea class="auto-grow col-desc" placeholder="впиши характеристики" oninput="saveState()"></textarea></td>
             <td class="c col-num-cell"><input type="text" class="inp-text c col-country" placeholder="Китай" value="Китай" oninput="saveState()"></td>
-            <td class="c col-num-cell"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1" oninput="onTableRowChange()"></td>
+            <td class="c col-num-cell"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1" oninput="onTableRowChange(this)"></td>
             <td class="c col-num-cell">
               <input type="text" class="inp-text r col-price" placeholder="500,00" data-raw="0" value=""
                      onfocus="onPriceFocus(this)" 
@@ -866,7 +866,42 @@
       saveState();
     }
 
-    // ИСПРАВЛЕНО: точная синхронизация строк (добавление недостающих + удаление лишних строк)
+    // Обратная синхронизация: обновление количества в строке textarea
+    function syncQtyToBatchText(changedRow) {
+      if (!changedRow) return;
+      const rows = Array.from(document.querySelectorAll('#tableBody tr'));
+      const rowIndex = rows.indexOf(changedRow);
+      if (rowIndex === -1) return;
+
+      const qtyInput = changedRow.querySelector('.col-qty');
+      const newQty = qtyInput ? (parseFloat(qtyInput.value) || 1) : 1;
+
+      const batchElem = document.getElementById('calcBatchText');
+      if (!batchElem || !batchElem.value.trim()) return;
+
+      const lines = batchElem.value.split(/\r?\n/);
+      let validLineCount = 0;
+
+      for (let i = 0; i < lines.length; i++) {
+        let line = lines[i].trim();
+        if (!line) continue;
+
+        if (validLineCount === rowIndex) {
+          const parts = line.split(/[\t;]+|\s{2,}/).map(p => p.trim()).filter(p => p !== '');
+          if (parts.length >= 2) {
+            lines[i] = `${newQty}\t${parts[1]}`;
+          } else if (parts.length === 1) {
+            lines[i] = `${newQty}\t${parts[0]}`;
+          }
+          break;
+        }
+        validLineCount++;
+      }
+
+      batchElem.value = lines.join('\n');
+      onBatchInput();
+    }
+
     function applyBatchPricesToKp() {
       const batchItems = parseBatchLines();
       if (batchItems.length === 0) {
@@ -904,7 +939,7 @@
         addRow(false);
       }
 
-      // 2. УДАЛЯЕМ ЛИШНИЕ СТРОКИ СНИЗУ (если было 10, а стало 9)
+      // 2. УДАЛЯЕМ ЛИШНИЕ СТРОКИ СНИЗУ
       while (tbody.children.length > batchItems.length) {
         tbody.lastElementChild.remove();
       }
@@ -914,15 +949,12 @@
       batchItems.forEach((item, i) => {
         const row = rows[i];
         
-        // Порядковый номер
         const idxElem = row.querySelector('.row-idx');
         if (idxElem) idxElem.textContent = i + 1;
 
-        // Количество
         const qtyInput = row.querySelector('.col-qty');
         if (qtyInput) qtyInput.value = item.qty;
 
-        // Расчет цены с округлением до целых ДЕСЯТОК
         const exactPrice = item.cost * finalMultiplier;
         const roundedPrice = Math.round(exactPrice / 10) * 10;
 
@@ -944,7 +976,10 @@
       setTimeout(() => btn.innerHTML = orig, 1800);
     }
 
-    function onTableRowChange() {
+    function onTableRowChange(changedInput) {
+      if (changedInput && changedInput.classList.contains('col-qty')) {
+        syncQtyToBatchText(changedInput.closest('tr'));
+      }
       recalc();
       syncKpToCalculator();
       saveState();
@@ -1129,14 +1164,14 @@
     function onPriceInput(input) {
       const num = parseNum(input.value);
       input.setAttribute('data-raw', num);
-      onTableRowChange();
+      onTableRowChange(input);
     }
 
     function onPriceBlur(input) {
       const num = parseNum(input.value || input.getAttribute('data-raw'));
       input.setAttribute('data-raw', num);
       input.value = num > 0 ? fmt(num) : '';
-      onTableRowChange();
+      onTableRowChange(input);
     }
 
     function onPriceKeyDown(event, input) {
@@ -1156,7 +1191,7 @@
         <td class="col-text-cell"><textarea class="auto-grow col-name" placeholder="Впиши наименование" oninput="saveState()"></textarea></td>
         <td class="col-text-cell"><textarea class="auto-grow col-desc" placeholder="впиши характеристики" oninput="saveState()"></textarea></td>
         <td class="c col-num-cell"><input type="text" class="inp-text c col-country" placeholder="Китай" value="Китай" oninput="saveState()"></td>
-        <td class="c col-num-cell"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1" oninput="onTableRowChange()"></td>
+        <td class="c col-num-cell"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1" oninput="onTableRowChange(this)"></td>
         <td class="c col-num-cell">
           <input type="text" class="inp-text r col-price" placeholder="500,00" data-raw="0" value=""
                  onfocus="onPriceFocus(this)" 
@@ -1169,7 +1204,7 @@
       `;
       tbody.appendChild(tr);
       initAutoResize();
-      onTableRowChange();
+      onTableRowChange(null);
 
       if (focusNew) {
         const nameField = tr.querySelector('.col-name');
@@ -1190,7 +1225,7 @@
       document.querySelectorAll('#tableBody tr').forEach((row, i) => {
         row.querySelector('.row-idx').textContent = i + 1;
       });
-      onTableRowChange();
+      onTableRowChange(null);
     }
 
     function recalc() {
@@ -1344,10 +1379,10 @@
             const pNum = parseNum(rData.price);
             tr.innerHTML = `
               <td class="c col-num-cell row-idx">${i + 1}</td>
-              <td class="col-text-cell"><textarea class="auto-grow col-name" placeholder="Впиши наименование" oninput="saveState()">${rData.name || ''}</textarea></td>
-              <td class="col-text-cell"><textarea class="auto-grow col-desc" placeholder="впиши характеристики" oninput="saveState()">${rData.desc || ''}</textarea></td>
+              <td><textarea class="auto-grow col-name" placeholder="Впиши наименование" oninput="saveState()">${rData.name || ''}</textarea></td>
+              <td><textarea class="auto-grow col-desc" placeholder="впиши характеристики" oninput="saveState()">${rData.desc || ''}</textarea></td>
               <td class="c col-num-cell"><input type="text" class="inp-text c col-country" placeholder="Китай" value="${rData.country || 'Китай'}" oninput="saveState()"></td>
-              <td class="c col-num-cell"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1" value="${rData.qty || ''}" oninput="onTableRowChange()"></td>
+              <td class="c col-num-cell"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1" value="${rData.qty || ''}" oninput="onTableRowChange(this)"></td>
               <td class="c col-num-cell">
                 <input type="text" class="inp-text r col-price" placeholder="500,00" data-raw="${pNum}" value="${pNum > 0 ? fmt(pNum) : ''}"
                        onfocus="onPriceFocus(this)" 
@@ -1391,10 +1426,10 @@
       tbody.innerHTML = `
         <tr>
           <td class="c col-num-cell row-idx">1</td>
-          <td class="col-text-cell"><textarea class="auto-grow col-name" placeholder="Впиши наименование" oninput="saveState()"></textarea></td>
-          <td class="col-text-cell"><textarea class="auto-grow col-desc" placeholder="впиши характеристики" oninput="saveState()"></textarea></td>
+          <td><textarea class="auto-grow col-name" placeholder="Впиши наименование" oninput="saveState()"></textarea></td>
+          <td><textarea class="auto-grow col-desc" placeholder="впиши характеристики" oninput="saveState()"></textarea></td>
           <td class="c col-num-cell"><input type="text" class="inp-text c col-country" placeholder="Китай" value="Китай" oninput="saveState()"></td>
-          <td class="c col-num-cell"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1" oninput="onTableRowChange()"></td>
+          <td class="c col-num-cell"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1" oninput="onTableRowChange(this)"></td>
           <td class="c col-num-cell">
             <input type="text" class="inp-text r col-price" placeholder="500,00" data-raw="0" value=""
                    onfocus="onPriceFocus(this)" 
@@ -1408,7 +1443,7 @@
       `;
       initAutoResize();
       onDeliveryChange();
-      onTableRowChange();
+      onTableRowChange(null);
       updateDocumentTitle();
     }
 
@@ -1426,7 +1461,7 @@
       }
       initAutoResize();
       onDeliveryChange();
-      onTableRowChange();
+      onTableRowChange(null);
       updateDocumentTitle();
     });
 
