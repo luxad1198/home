@@ -439,7 +439,7 @@
     .title { text-align: center; font-size: 12pt; font-weight: bold; margin: 12px 0 6px; }
     .intro { text-align: justify; text-indent: 10mm; font-size: 11pt; margin-bottom: 8px; line-height: 1.15; }
 
-    /* Таблица спецификации: строгие одинаковые пропорции для обеих компаний */
+    /* Таблица спецификации: 100% одинаковые пропорции столбцов */
     table.spec { 
       width: 100%; 
       border-collapse: collapse; 
@@ -795,24 +795,24 @@
         </table>
       </div>
 
-      <!-- ШАПКА 2: ИП Захаров М.С. (по документу)[cite: 5] -->
+      <!-- ШАПКА 2: ИП Захаров М.С. -->
       <div id="headerIp" style="display: none;" class="head-ip-block">
         <div class="head-ip-title">
-          Индивидуальный предприниматель Захаров Михаил Сергеевич ОГРНИП: 325110000002538 / ИНН: 110214010407[cite: 5]
+          Индивидуальный предприниматель Захаров Михаил Сергеевич ОГРНИП: 325110000002538 / ИНН: 110214010407
         </div>
         <div class="head-ip-contacts">
           Телефон +7 981 208-62-36<br>
-          e-mail: <a href="mailto:m.zakharov0811@gmail.com">m.zakharov0811@gmail.com</a>[cite: 5]
+          e-mail: <a href="mailto:m.zakharov0811@gmail.com">m.zakharov0811@gmail.com</a>
         </div>
         <table class="head-ip-meta-table">
           <tr>
             <td style="width: 50%;">
-              <b>Исх. № <input type="text" class="meta-input" id="kpNumInputIp" style="width: 55px; font-weight: bold;" value="289" oninput="saveState(); updateDocumentTitle();"></b>[cite: 5]
+              <b>Исх. № <input type="text" class="meta-input" id="kpNumInputIp" style="width: 55px; font-weight: bold;" value="289" oninput="saveState(); updateDocumentTitle();"></b>
               от «<input type="text" class="meta-input" id="docDateIpDay" style="width: 25px; text-align: center;" value="10" oninput="saveState()">» 
-              <input type="text" class="meta-input" id="docDateIpMonth" style="width: 90px;" value="октября" oninput="saveState()"> 2026 года[cite: 5]
+              <input type="text" class="meta-input" id="docDateIpMonth" style="width: 90px;" value="октября" oninput="saveState()"> 2026 года
             </td>
             <td style="width: 50%; padding-left: 15px;">
-              <b>Заказчику:</b>[cite: 5]
+              <b>Заказчику:</b>
               <textarea rows="2" class="auto-grow client-textarea" id="clientBoxIp" placeholder="можете вписать сюда наименование заказчика" oninput="syncClientInputs(this); saveState(); updateDocumentTitle();"></textarea>
             </td>
           </tr>
@@ -826,7 +826,7 @@
         Общество с ограниченной ответственностью «РТСтандарт», в лице генерального директора Маркова Дмитрия Евгеньевича, действующего на основании Устава, предлагает рассмотреть возможность поставки следующего оборудования:
       </div>
 
-      <!-- Таблица спецификации: 100% одинаковые пропорции столбцов[cite: 5] -->
+      <!-- Таблица спецификации -->
       <table class="spec" id="itemsTable">
         <thead>
           <tr>
@@ -926,15 +926,15 @@
           </div>
         </div>
 
-        <!-- Подвал ИП Захаров М.С.[cite: 5] -->
+        <!-- Подвал ИП Захаров М.С. -->
         <div id="footerIp" style="display: none;">
           <div class="sign-row" style="margin-top: 25px;">
             <div>
-              Индивидуальный предприниматель[cite: 5]
+              Индивидуальный предприниматель
             </div>
             <div style="position: relative; width: 320px; text-align: right; padding-top: 10px;">
               <span style="border-bottom: 1px solid #000; display: inline-block; width: 140px;"></span>
-              &nbsp;/ Захаров М.С.[cite: 5]
+              &nbsp;/ Захаров М.С.
               <div class="stamp-box" style="top: -45px; right: 40px; width: 220px;">
                 <img src="stamp-ip.png" alt="Печать ИП" width="220" onerror="this.style.display='none'">
               </div>
@@ -1458,7 +1458,6 @@
 
     function updateDocumentTitle() {
       const clientVal = (document.getElementById(currentCompany === 'rt' ? 'clientBox' : 'clientBoxIp')?.value || '').trim();
-      let companyName = COMPANY_DATA[currentCompany].name;
       
       let client = 'Клиент';
       if (clientVal) {
