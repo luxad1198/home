@@ -57,7 +57,7 @@
 
     /* Калькулятор слева */
     .calc-sidebar {
-      width: 310px;
+      width: 320px;
       background: #ffffff;
       border-radius: 8px;
       padding: 16px;
@@ -101,6 +101,7 @@
       position: relative;
       display: flex;
       align-items: center;
+      gap: 4px;
     }
     .calc-input {
       width: 100%;
@@ -114,6 +115,11 @@
     }
     .calc-input:focus {
       border-color: #2563eb;
+    }
+    .calc-input-readonly {
+      background: #f8fafc;
+      font-weight: 600;
+      color: #0f172a;
     }
     .calc-toggle {
       display: inline-flex;
@@ -137,6 +143,20 @@
       background: #2563eb;
       color: #fff;
     }
+
+    .btn-step {
+      padding: 6px 10px;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 11px;
+      color: #334155;
+      white-space: nowrap;
+    }
+    .btn-step:hover { background: #e2e8f0; }
+
     .calc-result-box {
       background: #f8fafc;
       border: 1px solid #e2e8f0;
@@ -572,6 +592,30 @@
         </div>
       </div>
 
+      <!-- Пользование деньгами (28% годовых) -->
+      <div class="calc-field">
+        <div class="calc-label">
+          <span>Финансирование (28% год.)</span>
+          <div class="calc-toggle">
+            <button type="button" class="calc-toggle-btn active" id="btnFinanceDays" onclick="setFinanceMode('days')">Дни</button>
+            <button type="button" class="calc-toggle-btn" id="btnFinanceWeeks" onclick="setFinanceMode('weeks')">Недели</button>
+          </div>
+        </div>
+
+        <!-- Режим 1: прямой ввод дней -->
+        <div class="calc-input-wrap" id="wrapFinanceDays">
+          <input type="number" id="calcFinanceDaysInput" class="calc-input" style="width: 85px; text-align: center;" min="0" step="1" placeholder="0 дн." oninput="onFinanceDaysChange()">
+          <input type="text" id="calcFinanceCostDisplay" class="calc-input calc-input-readonly" readonly value="0,00 ₽" title="Стоимость пользования денежными средствами">
+        </div>
+
+        <!-- Режим 2: шаг в неделю -->
+        <div class="calc-input-wrap" id="wrapFinanceWeeks" style="display: none;">
+          <button type="button" class="btn-step" onclick="stepFinanceWeeks(-1)">-1 нед</button>
+          <button type="button" class="btn-step" onclick="stepFinanceWeeks(1)">+1 нед</button>
+          <input type="text" id="calcFinanceWeeksDisplay" class="calc-input calc-input-readonly" readonly value="0,00 ₽ (0 нед)">
+        </div>
+      </div>
+
       <!-- Поле доставки -->
       <div class="calc-field" id="calcDeliveryRow">
         <label class="calc-label" for="calcDeliveryCost">Доставка до клиента с НДС 22%, ₽</label>
@@ -597,6 +641,10 @@
         <div class="calc-res-row">
           <span>Себестоимость без НДС:</span>
           <span id="resCostNet">0,00 ₽</span>
+        </div>
+        <div class="calc-res-row">
+          <span>Финансирование сделки:</span>
+          <span id="resFinanceCost" style="color: #d97706;">0,00 ₽</span>
         </div>
         <div class="calc-res-row">
           <span>Чистая прибыль (факт):</span>
@@ -631,7 +679,7 @@
           <span>📥 Закупки (2 столбца из Excel)</span>
         </div>
         <div class="calc-batch-hint">
-          Вставьте 2 столбца (<b>Количество</b> и <b>Цена</b>). При изменении кол-ва в КП поле синхронизируется!
+          Вставьте 2 столбца (<b>Количество</b> и <b>Цена</b>). Синхронизируется на лету!
         </div>
         <textarea id="calcBatchText" class="calc-textarea-batch" placeholder="1	7400&#10;5	12500&#10;2	11699..." oninput="onBatchInput()"></textarea>
         <div id="calcBatchInfo" class="calc-batch-info"></div>
@@ -778,6 +826,8 @@
   <script>
     const STORAGE_KEY = 'rtstandard_kp_draft_v1';
     let currentMarginMode = 'rub';
+    let currentFinanceMode = 'days'; // 'days' или 'weeks'
+    let financeDays = 0;
     let isCalcCollapsed = false;
 
     function toggleCalcSidebar() {
@@ -808,6 +858,64 @@
       input.placeholder = mode === 'rub' ? '15 000' : '15';
       calculateMargin();
       saveState();
+    }
+
+    function setFinanceMode(mode) {
+      currentFinanceMode = mode;
+      document.getElementById('btnFinanceDays').classList.toggle('active', mode === 'days');
+      document.getElementById('btnFinanceWeeks').classList.toggle('active', mode === 'weeks');
+
+      document.getElementById('wrapFinanceDays').style.display = mode === 'days' ? 'flex' : 'none';
+      document.getElementById('wrapFinanceWeeks').style.display = mode === 'weeks' ? 'flex' : 'none';
+
+      updateFinanceInputs();
+      calculateMargin();
+      saveState();
+    }
+
+    function onFinanceDaysChange() {
+      const val = parseFloat(document.getElementById('calcFinanceDaysInput').value);
+      financeDays = (!isNaN(val) && val >= 0) ? val : 0;
+      updateFinanceInputs();
+      calculateMargin();
+      saveState();
+    }
+
+    function stepFinanceWeeks(step) {
+      financeDays = Math.max(0, financeDays + (step * 7));
+      updateFinanceInputs();
+      calculateMargin();
+      saveState();
+    }
+
+    function getFinanceCost() {
+      const cVat = parseNum(document.getElementById('calcCostVat').value);
+      if (cVat <= 0 || financeDays <= 0) return 0;
+      // 28% годовых от суммы закупки с НДС
+      return cVat * 0.28 * (financeDays / 365);
+    }
+
+    function updateFinanceInputs() {
+      const cost = getFinanceCost();
+      const weeks = Math.round(financeDays / 7 * 10) / 10;
+
+      // Обновление полей в интерфейсе
+      const daysInput = document.getElementById('calcFinanceDaysInput');
+      if (daysInput && document.activeElement !== daysInput) {
+        daysInput.value = financeDays > 0 ? financeDays : '';
+      }
+
+      const costDisp = document.getElementById('calcFinanceCostDisplay');
+      if (costDisp) {
+        costDisp.value = `${fmt(cost)} ₽`;
+      }
+
+      const weeksDisp = document.getElementById('calcFinanceWeeksDisplay');
+      if (weeksDisp) {
+        weeksDisp.value = `${fmt(cost)} ₽ (${weeks} нед / ${financeDays} дн)`;
+      }
+
+      document.getElementById('resFinanceCost').textContent = `${fmt(cost)} ₽`;
     }
 
     function onDeliveryChange() {
@@ -858,6 +966,7 @@
         const costInput = document.getElementById('calcCostVat');
         if (costInput) {
           costInput.value = fmt(totalCost);
+          updateFinanceInputs();
           calculateMargin();
         }
       } else {
@@ -866,7 +975,6 @@
       saveState();
     }
 
-    // Обратная синхронизация: обновление количества в строке textarea
     function syncQtyToBatchText(changedRow) {
       if (!changedRow) return;
       const rows = Array.from(document.querySelectorAll('#tableBody tr'));
@@ -917,7 +1025,10 @@
       const select = document.getElementById('deliverySelect');
       const isDeliveryIncluded = select && select.value.indexOf('Доставка товара') !== -1;
       const deliveryCostVat = isDeliveryIncluded ? parseNum(document.getElementById('calcDeliveryCost')?.value) : 0;
-      const totalCostVat = sumBatch + deliveryCostVat;
+      
+      // Закупка + доставка + стоимость финансирования
+      const financeCost = getFinanceCost();
+      const totalCostVat = sumBatch + deliveryCostVat + financeCost;
 
       let totalSaleVat = totalCostVat;
       if (totalCostVat > 0) {
@@ -934,17 +1045,14 @@
       const finalMultiplier = sumBatch > 0 ? (totalSaleVat / sumBatch) : 1;
       const tbody = document.getElementById('tableBody');
 
-      // 1. Добавляем недостающие строки
       while (tbody.children.length < batchItems.length) {
         addRow(false);
       }
 
-      // 2. УДАЛЯЕМ ЛИШНИЕ СТРОКИ СНИЗУ
       while (tbody.children.length > batchItems.length) {
         tbody.lastElementChild.remove();
       }
 
-      // 3. Заполняем строки и перенумеровываем
       const rows = tbody.querySelectorAll('tr');
       batchItems.forEach((item, i) => {
         const row = rows[i];
@@ -990,7 +1098,8 @@
       const select = document.getElementById('deliverySelect');
       const isDeliveryIncluded = select && select.value.indexOf('Доставка товара') !== -1;
       const deliveryCostVat = isDeliveryIncluded ? parseNum(document.getElementById('calcDeliveryCost')?.value) : 0;
-      const totalCostVat = cVat + deliveryCostVat;
+      const financeCost = getFinanceCost();
+      const totalCostVat = cVat + deliveryCostVat + financeCost;
 
       if (totalCostVat <= 0) return;
 
@@ -1014,6 +1123,7 @@
       const vatPayable = Math.max(0, (saleNet - totalCostNet) * vatRate);
 
       document.getElementById('resCostNet').textContent = fmt(totalCostNet) + ' ₽';
+      document.getElementById('resFinanceCost').textContent = fmt(financeCost) + ' ₽';
       document.getElementById('resNetProfit').textContent = fmt(netProfit) + ' ₽';
       document.getElementById('resProfitTax').textContent = fmt(profitTax) + ' ₽';
       document.getElementById('resVatPayable').textContent = fmt(vatPayable) + ' ₽';
@@ -1028,11 +1138,15 @@
       const select = document.getElementById('deliverySelect');
       const isDeliveryIncluded = select && select.value.indexOf('Доставка товара') !== -1;
       const deliveryCostVat = isDeliveryIncluded ? parseNum(document.getElementById('calcDeliveryCost')?.value) : 0;
+      
+      const financeCost = getFinanceCost();
+      const totalCostVat = cVat + deliveryCostVat + financeCost;
 
-      const totalCostVat = cVat + deliveryCostVat;
+      updateFinanceInputs();
 
       if (totalCostVat <= 0) {
         document.getElementById('resCostNet').textContent = '0,00 ₽';
+        document.getElementById('resFinanceCost').textContent = '0,00 ₽';
         document.getElementById('resNetProfit').textContent = '0,00 ₽';
         document.getElementById('resProfitTax').textContent = '0,00 ₽';
         document.getElementById('resVatPayable').textContent = '0,00 ₽';
@@ -1064,6 +1178,7 @@
       const saleVat = saleNet * (1 + vatRate);
 
       document.getElementById('resCostNet').textContent = fmt(totalCostNet) + ' ₽';
+      document.getElementById('resFinanceCost').textContent = fmt(financeCost) + ' ₽';
       document.getElementById('resNetProfit').textContent = fmt(netProfit) + ' ₽';
       document.getElementById('resProfitTax').textContent = fmt(profitTax) + ' ₽';
       document.getElementById('resVatPayable').textContent = fmt(vatPayable) + ' ₽';
@@ -1334,6 +1449,8 @@
           calcDeliveryCost: document.getElementById('calcDeliveryCost')?.value || '',
           calcProfitTarget: document.getElementById('calcProfitTarget')?.value || '',
           calcMarginMode: currentMarginMode,
+          calcFinanceMode: currentFinanceMode,
+          financeDays: financeDays,
           calcBatchText: document.getElementById('calcBatchText')?.value || '',
           isCalcCollapsed: isCalcCollapsed
         };
@@ -1363,6 +1480,14 @@
         if (state.calcDeliveryCost) document.getElementById('calcDeliveryCost').value = state.calcDeliveryCost;
         if (state.calcProfitTarget) document.getElementById('calcProfitTarget').value = state.calcProfitTarget;
         if (state.calcMarginMode) setMarginMode(state.calcMarginMode);
+        
+        if (state.financeDays !== undefined) {
+          financeDays = state.financeDays;
+        }
+        if (state.calcFinanceMode) {
+          setFinanceMode(state.calcFinanceMode);
+        }
+
         if (state.calcBatchText) {
           document.getElementById('calcBatchText').value = state.calcBatchText;
           onBatchInput();
@@ -1379,8 +1504,8 @@
             const pNum = parseNum(rData.price);
             tr.innerHTML = `
               <td class="c col-num-cell row-idx">${i + 1}</td>
-              <td><textarea class="auto-grow col-name" placeholder="Впиши наименование" oninput="saveState()">${rData.name || ''}</textarea></td>
-              <td><textarea class="auto-grow col-desc" placeholder="впиши характеристики" oninput="saveState()">${rData.desc || ''}</textarea></td>
+              <td class="col-text-cell"><textarea class="auto-grow col-name" placeholder="Впиши наименование" oninput="saveState()">${rData.name || ''}</textarea></td>
+              <td class="col-text-cell"><textarea class="auto-grow col-desc" placeholder="впиши характеристики" oninput="saveState()">${rData.desc || ''}</textarea></td>
               <td class="c col-num-cell"><input type="text" class="inp-text c col-country" placeholder="Китай" value="${rData.country || 'Китай'}" oninput="saveState()"></td>
               <td class="c col-num-cell"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1" value="${rData.qty || ''}" oninput="onTableRowChange(this)"></td>
               <td class="c col-num-cell">
@@ -1418,6 +1543,9 @@
       if (delCost) delCost.value = '';
       if (targetP) targetP.value = '';
       if (batchT) batchT.value = '';
+      
+      financeDays = 0;
+      updateFinanceInputs();
       onBatchInput();
       
       setDateAndKpPrefix();
@@ -1426,8 +1554,8 @@
       tbody.innerHTML = `
         <tr>
           <td class="c col-num-cell row-idx">1</td>
-          <td><textarea class="auto-grow col-name" placeholder="Впиши наименование" oninput="saveState()"></textarea></td>
-          <td><textarea class="auto-grow col-desc" placeholder="впиши характеристики" oninput="saveState()"></textarea></td>
+          <td class="col-text-cell"><textarea class="auto-grow col-name" placeholder="Впиши наименование" oninput="saveState()"></textarea></td>
+          <td class="col-text-cell"><textarea class="auto-grow col-desc" placeholder="впиши характеристики" oninput="saveState()"></textarea></td>
           <td class="c col-num-cell"><input type="text" class="inp-text c col-country" placeholder="Китай" value="Китай" oninput="saveState()"></td>
           <td class="c col-num-cell"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1" oninput="onTableRowChange(this)"></td>
           <td class="c col-num-cell">
