@@ -362,7 +362,7 @@
       padding-top: 10px !important;
     }
 
-    /* Шапка ИП Захаров М.С. по бланку */
+    /* Шапка ИП Захаров М.С. */
     .head-ip-block {
       margin-bottom: 12px;
     }
@@ -439,7 +439,7 @@
     .title { text-align: center; font-size: 12pt; font-weight: bold; margin: 12px 0 6px; }
     .intro { text-align: justify; text-indent: 10mm; font-size: 11pt; margin-bottom: 8px; line-height: 1.15; }
 
-    /* Таблица спецификации */
+    /* Таблица спецификации: строгие одинаковые пропорции для обеих компаний */
     table.spec { 
       width: 100%; 
       border-collapse: collapse; 
@@ -468,19 +468,12 @@
       font-weight: bold; 
       padding: 4px 2px;
       vertical-align: middle;
-    }
-    /* Для ИП шапка таблицы белая по бланку */
-    body.theme-ip table.spec th {
-      background-color: #ffffff !important;
-      font-size: 10pt;
+      font-size: 9.5pt;
     }
     .t-tot { 
       background-color: #ACB9CA !important; 
       font-weight: bold; 
       vertical-align: middle;
-    }
-    body.theme-ip .t-tot {
-      background-color: #ffffff !important;
     }
 
     .auto-grow {
@@ -549,9 +542,6 @@
       background-color: #ACB9CA !important; 
       font-weight: bold; 
     }
-    body.theme-ip .cond-lbl {
-      background-color: #f1f5f9 !important;
-    }
     
     select.cond-val {
       cursor: pointer;
@@ -616,9 +606,6 @@
       }
       table.spec th, .t-tot, .cond-lbl {
         background-color: #ACB9CA !important;
-      }
-      body.theme-ip table.spec th, body.theme-ip .t-tot {
-        background-color: #ffffff !important;
       }
       .keep-together-block, table.spec tr, table.cond tr {
         page-break-inside: avoid !important;
@@ -808,24 +795,24 @@
         </table>
       </div>
 
-      <!-- ШАПКА 2: ИП Захаров М.С. (по документу) -->
+      <!-- ШАПКА 2: ИП Захаров М.С. (по документу)[cite: 5] -->
       <div id="headerIp" style="display: none;" class="head-ip-block">
         <div class="head-ip-title">
-          Индивидуальный предприниматель Захаров Михаил Сергеевич ОГРНИП: 325110000002538 / ИНН: 110214010407
+          Индивидуальный предприниматель Захаров Михаил Сергеевич ОГРНИП: 325110000002538 / ИНН: 110214010407[cite: 5]
         </div>
         <div class="head-ip-contacts">
           Телефон +7 981 208-62-36<br>
-          e-mail: <a href="mailto:m.zakharov0811@gmail.com">m.zakharov0811@gmail.com</a>
+          e-mail: <a href="mailto:m.zakharov0811@gmail.com">m.zakharov0811@gmail.com</a>[cite: 5]
         </div>
         <table class="head-ip-meta-table">
           <tr>
             <td style="width: 50%;">
-              <b>Исх. № <input type="text" class="meta-input" id="kpNumInputIp" style="width: 55px; font-weight: bold;" value="289" oninput="saveState(); updateDocumentTitle();"></b>
+              <b>Исх. № <input type="text" class="meta-input" id="kpNumInputIp" style="width: 55px; font-weight: bold;" value="289" oninput="saveState(); updateDocumentTitle();"></b>[cite: 5]
               от «<input type="text" class="meta-input" id="docDateIpDay" style="width: 25px; text-align: center;" value="10" oninput="saveState()">» 
-              <input type="text" class="meta-input" id="docDateIpMonth" style="width: 90px;" value="октября" oninput="saveState()"> 2026 года
+              <input type="text" class="meta-input" id="docDateIpMonth" style="width: 90px;" value="октября" oninput="saveState()"> 2026 года[cite: 5]
             </td>
             <td style="width: 50%; padding-left: 15px;">
-              <b>Заказчику:</b>
+              <b>Заказчику:</b>[cite: 5]
               <textarea rows="2" class="auto-grow client-textarea" id="clientBoxIp" placeholder="можете вписать сюда наименование заказчика" oninput="syncClientInputs(this); saveState(); updateDocumentTitle();"></textarea>
             </td>
           </tr>
@@ -839,7 +826,7 @@
         Общество с ограниченной ответственностью «РТСтандарт», в лице генерального директора Маркова Дмитрия Евгеньевича, действующего на основании Устава, предлагает рассмотреть возможность поставки следующего оборудования:
       </div>
 
-      <!-- Таблица спецификации -->
+      <!-- Таблица спецификации: 100% одинаковые пропорции столбцов[cite: 5] -->
       <table class="spec" id="itemsTable">
         <thead>
           <tr>
@@ -939,15 +926,15 @@
           </div>
         </div>
 
-        <!-- Подвал ИП Захаров М.С. -->
+        <!-- Подвал ИП Захаров М.С.[cite: 5] -->
         <div id="footerIp" style="display: none;">
           <div class="sign-row" style="margin-top: 25px;">
             <div>
-              Индивидуальный предприниматель
+              Индивидуальный предприниматель[cite: 5]
             </div>
             <div style="position: relative; width: 320px; text-align: right; padding-top: 10px;">
               <span style="border-bottom: 1px solid #000; display: inline-block; width: 140px;"></span>
-              &nbsp;/ Захаров М.С.
+              &nbsp;/ Захаров М.С.[cite: 5]
               <div class="stamp-box" style="top: -45px; right: 40px; width: 220px;">
                 <img src="stamp-ip.png" alt="Печать ИП" width="220" onerror="this.style.display='none'">
               </div>
@@ -961,7 +948,7 @@
 
   <script>
     const STORAGE_KEY = 'rtstandard_kp_draft_v1';
-    let currentCompany = 'rt'; // 'rt' (ООО РТСтандарт) или 'ip' (ИП Захаров М.С.)
+    let currentCompany = 'rt';
     let currentMarginMode = 'rub';
     let currentFinanceMode = 'days';
     let financeDays = 0;
@@ -988,9 +975,9 @@
         name: 'ИП Захаров М.С.',
         thPrice: 'Цена за ед. руб., включая НДС 5%',
         thTotal: 'Сумма руб., включая НДС 5%',
-        thDesc: 'Технические характеристики',
-        thCountry: 'Страна происхождения',
-        thQty: 'Количество',
+        thDesc: 'Основные характеристики предложенного товара и прочие условия',
+        thCountry: 'Страна',
+        thQty: 'Кол-во, шт.',
         intro: 'Индивидуальный предприниматель Захаров Михаил Сергеевич, (ОГРНИП: 325110000002538 от 27.01.2025, ИНН: 110214010407, зарегистрирован по адресу Российская Федерация, 169300, Республика Коми, гор. Ухта, ул. Юбилейная, д. 13, кв. 62) предлагает к поставке следующее компьютерное оборудование:',
         deliveryTerm: '1-2 недели',
         paymentTerm: '100% постоплата',
@@ -1224,7 +1211,6 @@
       onBatchInput();
     }
 
-    // Расчет продажной стоимости в калькуляторе под выбранную компанию
     function getCalculatedEconomics() {
       const cVat = parseNum(document.getElementById('calcCostVat').value);
       const targetVal = parseNum(document.getElementById('calcProfitTarget').value);
@@ -1240,7 +1226,6 @@
       let netProfit = (currentMarginMode === 'rub') ? targetVal : (totalCostVat * targetVal / 100);
 
       if (currentCompany === 'rt') {
-        // ОСНО: НДС 22%, налог на прибыль 25%
         const vatRate = 0.22;
         const taxRate = 0.25;
         const totalCostNet = totalCostVat / (1 + vatRate);
@@ -1264,9 +1249,7 @@
           totalCostVat
         };
       } else {
-        // ИП: УСН Доходы 6%+1% = 7%, НДС 5% (без вычета входящего НДС)
-        const totalExpenses = totalCostVat; // Входящий НДС не вычитается, идет в себестоимость
-        // База выручки без НДС: saleNet * (1 - 0.07) = totalExpenses + netProfit
+        const totalExpenses = totalCostVat;
         const saleNet = (totalExpenses + netProfit) / 0.93;
         const usnTax = saleNet * 0.07;
         const vat5 = saleNet * 0.05;
@@ -1410,7 +1393,6 @@
         document.getElementById('resSaleNet').textContent = fmt(saleNet) + ' ₽';
         document.getElementById('resSaleVat').textContent = fmt(grandTotalKp) + ' ₽';
       } else {
-        // ИП на УСН 7% + НДС 5%
         const saleNet = grandTotalKp / 1.05;
         const vat5 = grandTotalKp - saleNet;
         const usnTax = saleNet * 0.07;
