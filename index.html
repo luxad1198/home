@@ -23,9 +23,11 @@
       justify-content: space-between;
       align-items: center;
       font-family: Arial, sans-serif;
+      gap: 8px;
     }
+    .panel-left { display: flex; gap: 8px; align-items: center; }
     .btn {
-      padding: 8px 16px;
+      padding: 8px 14px;
       border-radius: 4px;
       cursor: pointer;
       font-weight: 600;
@@ -34,11 +36,14 @@
       border: 1px solid #1d4ed8;
       background: #1d4ed8;
       color: #fff;
+      transition: opacity 0.15s;
     }
+    .btn:hover { opacity: 0.9; }
     .btn-add { background: #f3f4f6; color: #111; border-color: #cbd5e1; }
-    .btn-del { background: #fee2e2; color: #b91c1c; border: 1px solid #f87171; padding: 2px 5px; font-size: 11px; cursor: pointer; border-radius: 3px; }
+    .btn-clear { background: #fff1f2; color: #e11d48; border-color: #fecdd3; }
+    .btn-del { background: #fee2e2; color: #b91c1c; border: 1px solid #f87171; padding: 2px 6px; font-size: 11px; cursor: pointer; border-radius: 3px; }
 
-    /* Лист А4 */
+    /* Лист документа */
     .page {
       width: 210mm;
       min-height: 297mm;
@@ -101,7 +106,6 @@
       outline: none;
     }
 
-    /* Блок номера КП */
     .kp-num-wrapper {
       display: inline-flex;
       align-items: baseline;
@@ -152,6 +156,10 @@
       padding: 3px 4px; 
       vertical-align: middle; 
       line-height: 1.15; 
+    }
+    table.spec tr {
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
     }
     table.spec th { 
       background-color: #ACB9CA !important; 
@@ -208,7 +216,6 @@
 
     .tot-phrase { font-size: 11pt; line-height: 1.25; margin: 6px 0 10px; }
 
-    /* Таблица условий поставки */
     table.cond { 
       width: 100%; 
       border-collapse: collapse; 
@@ -221,13 +228,17 @@
       vertical-align: middle; 
       line-height: 1.15; 
     }
+    table.cond tr {
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
+    }
     .cond-lbl { 
       width: 140px; 
       background-color: #ACB9CA !important; 
       font-weight: bold; 
     }
 
-    /* Неразрывный блок подписи, печати и контактов */
+    /* Неразрывный подвал: подпись + контакты */
     .keep-together-block {
       page-break-inside: avoid !important;
       break-inside: avoid !important;
@@ -253,7 +264,7 @@
 
     .contacts { margin-top: 18px; font-size: 10pt; line-height: 1.25; }
 
-    /* Стили печати */
+    /* Печать */
     @page { 
       size: A4 portrait; 
       margin: 8mm 12mm 8mm 12mm; 
@@ -282,7 +293,7 @@
       table.spec th, .t-tot, .cond-lbl {
         background-color: #ACB9CA !important;
       }
-      .keep-together-block {
+      .keep-together-block, table.spec tr, table.cond tr {
         page-break-inside: avoid !important;
         break-inside: avoid !important;
       }
@@ -306,16 +317,19 @@
 <body>
 
   <div class="panel no-print">
-    <button class="btn btn-add" onclick="addRow()">+ Добавить позицию</button>
-    <span style="font-size: 13px; color: #4b5563;">ООО «РТСтандарт» — Генератор коммерческих предложений</span>
-    <button class="btn" onclick="window.print()">🖨️ Сохранить в PDF / Печать</button>
+    <div class="panel-left">
+      <button class="btn btn-add" onclick="addRow()">+ Добавить позицию</button>
+      <button class="btn btn-clear" onclick="clearForm()">🗑️ Очистить бланк</button>
+      <span style="font-size: 12px; color: #64748b; margin-left: 6px;">Автосохранение активно</span>
+    </div>
+    <button class="btn" onclick="prepareAndPrint()">🖨️ Сохранить в PDF / Печать</button>
   </div>
 
   <div class="page">
     <table class="head-grid">
       <tr>
         <td class="head-logo-cell">
-          <img src="logo.png" alt="РТСТАНДАРТ" class="logo" onerror="this.outerHTML='<b style=\'font-size:16pt;\'>РТСТАНДАРТ</b>'">
+          <img src="logo.png" alt="РТСТАНДАРТ" class="logo" width="310" height="104" onerror="this.outerHTML='<b style=\'font-size:16pt;\'>РТСТАНДАРТ</b>'">
         </td>
         <td class="head-req-cell">
           <b>ООО "РТСТАНДАРТ"</b><br>
@@ -328,13 +342,13 @@
         <td class="head-meta-cell">
           <div class="kp-num-wrapper">
             КП № <span class="kp-prefix" id="kpPrefix">10-08/</span>
-            <input type="text" class="kp-user-input" placeholder="1" value="1">
+            <input type="text" class="kp-user-input" id="kpNumInput" placeholder="1" value="1" oninput="saveState()">
           </div><br>
-          От <input type="text" id="docDate" class="meta-input" style="width: 155px;">
+          От <input type="text" id="docDate" class="meta-input" style="width: 155px;" oninput="saveState()">
         </td>
         <td class="head-client-cell">
           Заказчику:
-          <textarea rows="2" class="auto-grow client-textarea" placeholder="можете вписать сюда наименование заказчика"></textarea>
+          <textarea rows="2" class="auto-grow client-textarea" id="clientBox" placeholder="можете вписать сюда наименование заказчика" oninput="saveState()"></textarea>
         </td>
       </tr>
     </table>
@@ -361,16 +375,16 @@
       <tbody id="tableBody">
         <tr>
           <td class="c row-idx">1</td>
-          <td><textarea class="auto-grow" placeholder="Впиши наименование"></textarea></td>
-          <td><textarea class="auto-grow" placeholder="впиши характеристики"></textarea></td>
-          <td class="c"><input type="text" class="inp-text c" placeholder="Китай" value="Китай"></td>
-          <td class="c"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1" oninput="recalc()"></td>
+          <td><textarea class="auto-grow col-name" placeholder="Впиши наименование" oninput="saveState()"></textarea></td>
+          <td><textarea class="auto-grow col-desc" placeholder="впиши характеристики" oninput="saveState()"></textarea></td>
+          <td class="c"><input type="text" class="inp-text c col-country" placeholder="Китай" value="Китай" oninput="saveState()"></td>
+          <td class="c"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1" oninput="recalc(); saveState();"></td>
           <td class="c">
-            <input type="text" class="inp-text r col-price" placeholder="500,00" 
-                   data-raw="0" value=""
+            <input type="text" class="inp-text r col-price" placeholder="500,00" data-raw="0" value=""
                    onfocus="onPriceFocus(this)" 
                    onblur="onPriceBlur(this)" 
-                   oninput="onPriceInput(this)">
+                   oninput="onPriceInput(this)"
+                   onkeydown="onPriceKeyDown(event, this)">
           </td>
           <td class="r col-total" style="font-weight:bold;">0,00</td>
           <td class="no-print c" style="border:none;"><button class="btn-del" onclick="deleteRow(this)">✕</button></td>
@@ -393,23 +407,23 @@
     <table class="cond">
       <tr>
         <td class="cond-lbl">Срок поставки</td>
-        <td><textarea class="auto-grow">5-10(пять-десять) рабочих дней</textarea></td>
+        <td><textarea class="auto-grow cond-val" oninput="saveState()">5-10(пять-десять) рабочих дней</textarea></td>
       </tr>
       <tr>
         <td class="cond-lbl">Условия оплаты</td>
-        <td><textarea class="auto-grow">100% постоплата</textarea></td>
+        <td><textarea class="auto-grow cond-val" oninput="saveState()">100% постоплата</textarea></td>
       </tr>
       <tr>
         <td class="cond-lbl">Доставка</td>
-        <td><textarea class="auto-grow">Доставка товара до адреса заказчика включена</textarea></td>
+        <td><textarea class="auto-grow cond-val" oninput="saveState()">Доставка товара до адреса заказчика включена</textarea></td>
       </tr>
       <tr>
         <td class="cond-lbl">Гарантия</td>
-        <td><textarea class="auto-grow">12 месяцев с возможностью расширения до 5 лет. Выезд инженера в рамках гарантийного ремонта по адресу Заказчика – опционально. Обслуживание On-site (на месте) / Keep Your Drive (KYD) ремонт с сохранением жестких дисков у клиента – опционально..</textarea></td>
+        <td><textarea class="auto-grow cond-val" oninput="saveState()">12 месяцев с возможностью расширения до 5 лет. Выезд инженера в рамках гарантийного ремонта по адресу Заказчика – опционально. Обслуживание On-site (на месте) / Keep Your Drive (KYD) ремонт с сохранением жестких дисков у клиента – опционально..</textarea></td>
       </tr>
     </table>
 
-    <!-- Блок подписи и печать -->
+    <!-- Неразрывный подвал -->
     <div class="keep-together-block">
       <div class="sign-row">
         <div>
@@ -420,7 +434,7 @@
           <span style="border-bottom: 1px solid #000; display: inline-block; width: 140px;"></span>
           &nbsp;/ Марков Д.Е.
           <div class="stamp-box">
-            <img src="stamp.png" alt="Печать" onerror="this.style.display='none'">
+            <img src="stamp.png" alt="Печать" width="170" onerror="this.style.display='none'">
           </div>
         </div>
       </div>
@@ -438,6 +452,8 @@
   </div>
 
   <script>
+    const STORAGE_KEY = 'rtstandard_kp_draft_v1';
+
     function autoResizeTextarea(el) {
       el.style.height = 'auto';
       el.style.height = el.scrollHeight + 'px';
@@ -467,21 +483,30 @@
 
       const months = ["января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"];
       const dateElem = document.getElementById('docDate');
-      if (dateElem) {
+      if (dateElem && !dateElem.value) {
         dateElem.value = `${dayNum} ${months[now.getMonth()]} ${now.getFullYear()} года`;
       }
     }
 
     function parseNum(val) {
-      if (!val) return 0;
-      val = String(val).replace(/\s+/g, '').replace(',', '.');
-      return parseFloat(val) || 0;
+      if (val === null || val === undefined) return 0;
+      let clean = String(val).replace(/\s+/g, '').replace(',', '.');
+      clean = clean.replace(/[^0-9.]/g, '');
+      const parts = clean.split('.');
+      if (parts.length > 2) {
+        clean = parts[0] + '.' + parts.slice(1).join('');
+      }
+      return parseFloat(clean) || 0;
+    }
+
+    function fmt(n) {
+      return n.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
     function onPriceFocus(input) {
       const raw = input.getAttribute('data-raw');
       if (raw && parseNum(raw) > 0) {
-        input.value = raw;
+        input.value = String(raw).replace('.', ',');
       }
     }
 
@@ -489,6 +514,7 @@
       const num = parseNum(input.value);
       input.setAttribute('data-raw', num);
       recalc();
+      saveState();
     }
 
     function onPriceBlur(input) {
@@ -496,23 +522,33 @@
       input.setAttribute('data-raw', num);
       input.value = num > 0 ? fmt(num) : '';
       recalc();
+      saveState();
     }
 
-    function addRow() {
+    function onPriceKeyDown(event, input) {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        input.blur();
+        addRow(true);
+      }
+    }
+
+    function addRow(focusNew = false) {
       const tbody = document.getElementById('tableBody');
       const idx = tbody.children.length + 1;
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td class="c row-idx">${idx}</td>
-        <td><textarea class="auto-grow" placeholder="Впиши наименование"></textarea></td>
-        <td><textarea class="auto-grow" placeholder="впиши характеристики"></textarea></td>
-        <td class="c"><input type="text" class="inp-text c" placeholder="Китай" value="Китай"></td>
-        <td class="c"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1" oninput="recalc()"></td>
+        <td><textarea class="auto-grow col-name" placeholder="Впиши наименование" oninput="saveState()"></textarea></td>
+        <td><textarea class="auto-grow col-desc" placeholder="впиши характеристики" oninput="saveState()"></textarea></td>
+        <td class="c"><input type="text" class="inp-text c col-country" placeholder="Китай" value="Китай" oninput="saveState()"></td>
+        <td class="c"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1" oninput="recalc(); saveState();"></td>
         <td class="c">
-          <input type="text" class="inp-text r col-price" placeholder="500,00" data-raw="0" 
+          <input type="text" class="inp-text r col-price" placeholder="500,00" data-raw="0" value=""
                  onfocus="onPriceFocus(this)" 
                  onblur="onPriceBlur(this)" 
-                 oninput="onPriceInput(this)">
+                 oninput="onPriceInput(this)"
+                 onkeydown="onPriceKeyDown(event, this)">
         </td>
         <td class="r col-total" style="font-weight:bold;">0,00</td>
         <td class="no-print c" style="border:none;"><button class="btn-del" onclick="deleteRow(this)">✕</button></td>
@@ -520,6 +556,12 @@
       tbody.appendChild(tr);
       initAutoResize();
       recalc();
+      saveState();
+
+      if (focusNew) {
+        const nameField = tr.querySelector('.col-name');
+        if (nameField) nameField.focus();
+      }
     }
 
     function deleteRow(btn) {
@@ -529,22 +571,21 @@
       } else {
         const row = tbody.children[0];
         row.querySelectorAll('textarea, input').forEach(input => input.value = '');
-        row.querySelector('.col-price').setAttribute('data-raw', 0);
+        const p = row.querySelector('.col-price');
+        if (p) p.setAttribute('data-raw', 0);
       }
       document.querySelectorAll('#tableBody tr').forEach((row, i) => {
         row.querySelector('.row-idx').textContent = i + 1;
       });
       recalc();
-    }
-
-    function fmt(n) {
-      return n.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      saveState();
     }
 
     function recalc() {
       let grandTotal = 0;
       document.querySelectorAll('#tableBody tr').forEach(row => {
-        const q = parseFloat(row.querySelector('.col-qty').value) || 0;
+        const qVal = row.querySelector('.col-qty').value;
+        const q = qVal !== '' ? (parseFloat(qVal) || 0) : 1;
         const priceInput = row.querySelector('.col-price');
         const p = parseNum(priceInput.getAttribute('data-raw') || priceInput.value);
         const tot = q * p;
@@ -562,12 +603,14 @@
 
       const tRubW = num2words(tRub);
       const tRubDecl = decl(tRub, ['рубль', 'рубля', 'рублей']);
+      const tKopDecl = decl(tKop, ['копейка', 'копейки', 'копеек']);
+
       const vRubW = num2words(vRub);
       const vRubDecl = decl(vRub, ['рубль', 'рубля', 'рублей']);
       const vKopDecl = decl(vKop, ['копейка', 'копейки', 'копеек']);
 
       document.getElementById('textTotalBlock').innerHTML = 
-        `ИТОГО: <b>${tRub} (${tRubW}) ${tRubDecl} ${String(tKop).padStart(2, '0')} копеек</b>, в том числе НДС 22% <b>${vRub} (${vRubW}) ${vRubDecl} ${String(vKop).padStart(2, '0')} ${vKopDecl}</b>.`;
+        `ИТОГО: <b>${tRub} (${tRubW}) ${tRubDecl} ${String(tKop).padStart(2, '0')} ${tKopDecl}</b>, в том числе НДС 22% <b>${vRub} (${vRubW}) ${vRubDecl} ${String(vKop).padStart(2, '0')} ${vKopDecl}</b>.`;
     }
 
     function decl(n, forms) {
@@ -618,8 +661,125 @@
       return res.join(' ');
     }
 
-    window.addEventListener('DOMContentLoaded', () => {
+    function saveState() {
+      try {
+        const rows = [];
+        document.querySelectorAll('#tableBody tr').forEach(row => {
+          rows.push({
+            name: row.querySelector('.col-name').value,
+            desc: row.querySelector('.col-desc').value,
+            country: row.querySelector('.col-country').value,
+            qty: row.querySelector('.col-qty').value,
+            price: row.querySelector('.col-price').getAttribute('data-raw') || 0
+          });
+        });
+
+        const condVals = [];
+        document.querySelectorAll('.cond-val').forEach(el => condVals.push(el.value));
+
+        const state = {
+          kpNum: document.getElementById('kpNumInput').value,
+          docDate: document.getElementById('docDate').value,
+          client: document.getElementById('clientBox').value,
+          cond: condVals,
+          rows: rows
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (e) {
+        console.warn('LocalStorage save failed', e);
+      }
+    }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return false;
+        const state = JSON.parse(raw);
+
+        if (state.kpNum) document.getElementById('kpNumInput').value = state.kpNum;
+        if (state.docDate) document.getElementById('docDate').value = state.docDate;
+        if (state.client) document.getElementById('clientBox').value = state.client;
+
+        if (state.cond && Array.isArray(state.cond)) {
+          document.querySelectorAll('.cond-val').forEach((el, i) => {
+            if (state.cond[i] !== undefined) el.value = state.cond[i];
+          });
+        }
+
+        if (state.rows && state.rows.length > 0) {
+          const tbody = document.getElementById('tableBody');
+          tbody.innerHTML = '';
+          state.rows.forEach((rData, i) => {
+            const tr = document.createElement('tr');
+            const pNum = parseNum(rData.price);
+            tr.innerHTML = `
+              <td class="c row-idx">${i + 1}</td>
+              <td><textarea class="auto-grow col-name" placeholder="Впиши наименование" oninput="saveState()">${rData.name || ''}</textarea></td>
+              <td><textarea class="auto-grow col-desc" placeholder="впиши характеристики" oninput="saveState()">${rData.desc || ''}</textarea></td>
+              <td class="c"><input type="text" class="inp-text c col-country" placeholder="Китай" value="${rData.country || 'Китай'}" oninput="saveState()"></td>
+              <td class="c"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1" value="${rData.qty || ''}" oninput="recalc(); saveState();"></td>
+              <td class="c">
+                <input type="text" class="inp-text r col-price" placeholder="500,00" data-raw="${pNum}" value="${pNum > 0 ? fmt(pNum) : ''}"
+                       onfocus="onPriceFocus(this)" 
+                       onblur="onPriceBlur(this)" 
+                       oninput="onPriceInput(this)"
+                       onkeydown="onPriceKeyDown(event, this)">
+              </td>
+              <td class="r col-total" style="font-weight:bold;">0,00</td>
+              <td class="no-print c" style="border:none;"><button class="btn-del" onclick="deleteRow(this)">✕</button></td>
+            `;
+            tbody.appendChild(tr);
+          });
+        }
+        return true;
+      } catch (e) {
+        console.warn('LocalStorage load failed', e);
+        return false;
+      }
+    }
+
+    function clearForm() {
+      if (!confirm('Вы уверены, что хотите очистить весь бланк?')) return;
+      localStorage.removeItem(STORAGE_KEY);
+      document.getElementById('clientBox').value = '';
+      document.getElementById('kpNumInput').value = '1';
+      document.getElementById('docDate').value = '';
       setDateAndKpPrefix();
+
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = `
+        <tr>
+          <td class="c row-idx">1</td>
+          <td><textarea class="auto-grow col-name" placeholder="Впиши наименование" oninput="saveState()"></textarea></td>
+          <td><textarea class="auto-grow col-desc" placeholder="впиши характеристики" oninput="saveState()"></textarea></td>
+          <td class="c"><input type="text" class="inp-text c col-country" placeholder="Китай" value="Китай" oninput="saveState()"></td>
+          <td class="c"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1" oninput="recalc(); saveState();"></td>
+          <td class="c">
+            <input type="text" class="inp-text r col-price" placeholder="500,00" data-raw="0" value=""
+                   onfocus="onPriceFocus(this)" 
+                   onblur="onPriceBlur(this)" 
+                   oninput="onPriceInput(this)"
+                   onkeydown="onPriceKeyDown(event, this)">
+          </td>
+          <td class="r col-total" style="font-weight:bold;">0,00</td>
+          <td class="no-print c" style="border:none;"><button class="btn-del" onclick="deleteRow(this)">✕</button></td>
+        </tr>
+      `;
+      initAutoResize();
+      recalc();
+    }
+
+    function prepareAndPrint() {
+      initAutoResize();
+      recalc();
+      window.print();
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const restored = loadState();
+      if (!restored) {
+        setDateAndKpPrefix();
+      }
       initAutoResize();
       recalc();
     });
