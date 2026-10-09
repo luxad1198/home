@@ -55,7 +55,7 @@
 
     /* Калькулятор слева */
     .calc-sidebar {
-      width: 300px;
+      width: 310px;
       background: #ffffff;
       border-radius: 8px;
       padding: 16px;
@@ -186,7 +186,7 @@
     }
     .btn-copy-calc:hover { background: #1d4ed8; }
 
-    /* Блок вставки столбца цен из Excel */
+    /* Блок вставки данных из Excel (Кол-во + Цена) */
     .calc-batch-box {
       margin-top: 16px;
       padding-top: 14px;
@@ -205,10 +205,11 @@
       font-size: 11px;
       color: #64748b;
       margin-bottom: 6px;
+      line-height: 1.3;
     }
     .calc-textarea-batch {
       width: 100%;
-      height: 110px;
+      height: 115px;
       padding: 8px;
       border: 1px solid #cbd5e1;
       border-radius: 5px;
@@ -614,21 +615,21 @@
       </div>
 
       <button type="button" class="btn-copy-calc" onclick="copyCalcPrice()">
-        📋 Скопировать цену в буфер
+        📋 Скопировать общую цену в буфер
       </button>
 
-      <!-- БЛОК ВСТАВКИ ЦЕН ИЗ EXCEL СО СТОЛБЦОМ И ПЕРЕНОСОМ СТРОК -->
+      <!-- БЛОК ВСТАВКИ ДАННЫХ ИЗ EXCEL (2 СТОЛБЦА: КОЛ-ВО И ЦЕНА) -->
       <div class="calc-batch-box">
         <div class="calc-batch-title">
-          <span>📥 Закупки позиций (из Excel)</span>
+          <span>📥 Закупки (2 столбца из Excel)</span>
         </div>
         <div class="calc-batch-hint">
-          Вставьте сюда скопированный столбец цен (по одной на строку):
+          Скопируйте 2 столбца из Excel (<b>Количество</b> и <b>Цена</b>) и вставьте сюда:
         </div>
-        <textarea id="calcBatchText" class="calc-textarea-batch" placeholder="7400&#10;12500&#10;11699&#10;14670..." oninput="onBatchInput()"></textarea>
+        <textarea id="calcBatchText" class="calc-textarea-batch" placeholder="1	7400&#10;5	12500&#10;2	11699..." oninput="onBatchInput()"></textarea>
         <div id="calcBatchInfo" class="calc-batch-info"></div>
         <button type="button" class="btn-apply-batch" onclick="applyBatchPricesToKp()">
-          ⚡ Заполнить цены в таблицу КП
+          ⚡ Заполнить количество и цены в КП
         </button>
       </div>
 
@@ -794,33 +795,46 @@
       saveState();
     }
 
-    // Обработка вставленного столбца из Excel
+    // Разбор 2 столбцов из Excel (Кол-во и Цена)
     function parseBatchLines() {
       const text = document.getElementById('calcBatchText').value || '';
       const lines = text.split(/\r?\n/);
-      const prices = [];
+      const items = [];
       for (let line of lines) {
         line = line.trim();
         if (!line) continue;
-        const val = parseNum(line);
-        if (val > 0) {
-          prices.push(val);
+        
+        // Разделяем строку по табуляции, точке с запятой или последовательности пробелов
+        const parts = line.split(/[\t;]+|\s{2,}/).map(p => p.trim()).filter(p => p !== '');
+        
+        if (parts.length >= 2) {
+          const qty = parseNum(parts[0]) || 1;
+          const cost = parseNum(parts[1]);
+          if (cost > 0) {
+            items.push({ qty: qty, cost: cost });
+          }
+        } else if (parts.length === 1) {
+          // Если скопирован только один столбец с ценой, принимаем количество за 1
+          const cost = parseNum(parts[0]);
+          if (cost > 0) {
+            items.push({ qty: 1, cost: cost });
+          }
         }
       }
-      return prices;
+      return items;
     }
 
     function onBatchInput() {
-      const prices = parseBatchLines();
+      const items = parseBatchLines();
       const infoElem = document.getElementById('calcBatchInfo');
-      if (prices.length > 0) {
-        const sum = prices.reduce((a, b) => a + b, 0);
-        infoElem.textContent = `✓ Найдено: ${prices.length} поз. на сумму ${fmt(sum)} ₽`;
+      if (items.length > 0) {
+        // Общая сумма = сумма (кол-во * цена)
+        const totalCost = items.reduce((sum, it) => sum + (it.qty * it.cost), 0);
+        infoElem.textContent = `✓ Найдено: ${items.length} поз. на сумму ${fmt(totalCost)} ₽`;
         
-        // Автоматически передаем сумму в закупку калькулятора
         const costInput = document.getElementById('calcCostVat');
         if (costInput) {
-          costInput.value = fmt(sum);
+          costInput.value = fmt(totalCost);
           calculateMargin();
         }
       } else {
@@ -829,11 +843,11 @@
       saveState();
     }
 
-    // Применение цен к таблице КП с учетом наценки и налогов
+    // Применение количества и цен к таблице КП
     function applyBatchPricesToKp() {
-      const batchPrices = parseBatchLines();
-      if (batchPrices.length === 0) {
-        alert('Пожалуйста, сначала вставьте столбец с ценами закупки в поле ввода.');
+      const batchItems = parseBatchLines();
+      if (batchItems.length === 0) {
+        alert('Пожалуйста, сначала вставьте скопированные из Excel данные (Количество и Цена).');
         return;
       }
 
@@ -841,15 +855,13 @@
       const taxRate = 0.25;
       const targetVal = parseNum(document.getElementById('calcProfitTarget').value);
 
-      // Коэффициент наценки для каждой единицы
-      let markupMultiplier = 1;
-
-      const sumBatch = batchPrices.reduce((a, b) => a + b, 0);
+      const sumBatch = batchItems.reduce((sum, it) => sum + (it.qty * it.cost), 0);
       const select = document.getElementById('deliverySelect');
       const isDeliveryIncluded = select && select.value.indexOf('Доставка товара') !== -1;
       const deliveryCostVat = isDeliveryIncluded ? parseNum(document.getElementById('calcDeliveryCost')?.value) : 0;
       const totalCostVat = sumBatch + deliveryCostVat;
 
+      let markupMultiplier = 1;
       if (totalCostVat > 0) {
         let netProfit = 0;
         if (currentMarginMode === 'rub') {
@@ -862,17 +874,25 @@
         markupMultiplier = totalSaleVat / totalCostVat;
       }
 
-      // Дополняем строки в таблице КП при необходимости
+      // Дополняем строки в КП при необходимости
       const tbody = document.getElementById('tableBody');
-      while (tbody.children.length < batchPrices.length) {
+      while (tbody.children.length < batchItems.length) {
         addRow(false);
       }
 
       const rows = tbody.querySelectorAll('tr');
-      batchPrices.forEach((cost, i) => {
+      batchItems.forEach((item, i) => {
         if (i < rows.length) {
           const row = rows[i];
-          const calculatedSalePrice = cost * markupMultiplier;
+          
+          // 1. Устанавливаем количество
+          const qtyInput = row.querySelector('.col-qty');
+          if (qtyInput) {
+            qtyInput.value = item.qty;
+          }
+
+          // 2. Рассчитываем и устанавливаем цену продажи за единицу
+          const calculatedSalePrice = item.cost * markupMultiplier;
           const priceInput = row.querySelector('.col-price');
           if (priceInput) {
             priceInput.setAttribute('data-raw', calculatedSalePrice.toFixed(2));
@@ -887,7 +907,7 @@
 
       const btn = document.querySelector('.btn-apply-batch');
       const orig = btn.innerHTML;
-      btn.innerHTML = '✅ Цены перенесены в КП!';
+      btn.innerHTML = '✅ Количество и цены перенесены!';
       setTimeout(() => btn.innerHTML = orig, 1800);
     }
 
