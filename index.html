@@ -26,6 +26,7 @@
       gap: 8px;
     }
     .panel-left { display: flex; gap: 8px; align-items: center; }
+    .panel-right { display: flex; gap: 8px; align-items: center; }
     .btn {
       padding: 8px 14px;
       border-radius: 4px;
@@ -43,6 +44,33 @@
     .btn-toggle-calc { background: #e0f2fe; color: #0369a1; border-color: #bae6fd; }
     .btn-clear { background: #fff1f2; color: #e11d48; border-color: #fecdd3; }
     .btn-del { background: #fee2e2; color: #b91c1c; border: 1px solid #f87171; padding: 2px 6px; font-size: 11px; cursor: pointer; border-radius: 3px; }
+
+    /* Переключатель компаний */
+    .company-switcher {
+      display: inline-flex;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 2px;
+      gap: 2px;
+    }
+    .company-btn {
+      border: none;
+      background: transparent;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      border-radius: 4px;
+      color: #475569;
+      font-family: Arial, sans-serif;
+      transition: all 0.15s;
+    }
+    .company-btn.active {
+      background: #1e293b;
+      color: #fff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    }
 
     /* Оболочка калькулятора и КП */
     .app-layout {
@@ -81,9 +109,17 @@
       margin-bottom: 12px;
       display: flex;
       align-items: center;
-      gap: 6px;
+      justify-content: space-between;
       border-bottom: 2px solid #e2e8f0;
       padding-bottom: 8px;
+    }
+    .calc-badge {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: #e2e8f0;
+      color: #334155;
+      font-weight: 700;
     }
     .calc-field {
       margin-bottom: 12px;
@@ -213,7 +249,6 @@
     }
     .btn-copy-calc:hover { background: #1d4ed8; }
 
-    /* Блок вставки данных из Excel (2 столбца) */
     .calc-batch-box {
       margin-top: 16px;
       padding-top: 14px;
@@ -288,7 +323,7 @@
       flex-shrink: 0;
     }
 
-    /* Шапка документа */
+    /* Шапка ООО РТСтандарт */
     .head-grid {
       width: 100%;
       border-collapse: collapse;
@@ -299,9 +334,7 @@
       padding: 0 0 8px 0;
       vertical-align: top;
     }
-    .head-logo-cell {
-      width: 50%;
-    }
+    .head-logo-cell { width: 50%; }
     .logo {
       height: 104px;
       width: auto;
@@ -327,6 +360,37 @@
       font-size: 11pt;
       line-height: 1.25;
       padding-top: 10px !important;
+    }
+
+    /* Шапка ИП Захаров М.С. по бланку */
+    .head-ip-block {
+      margin-bottom: 12px;
+    }
+    .head-ip-title {
+      font-size: 12pt;
+      font-weight: bold;
+      line-height: 1.25;
+      margin-bottom: 4px;
+    }
+    .head-ip-contacts {
+      font-size: 10pt;
+      line-height: 1.3;
+      margin-bottom: 10px;
+    }
+    .head-ip-contacts a {
+      color: #000;
+      text-decoration: underline;
+    }
+    .head-ip-meta-table {
+      width: 100%;
+      border-collapse: collapse;
+      border-top: 1px solid #000;
+      margin-top: 6px;
+    }
+    .head-ip-meta-table td {
+      border: none;
+      padding: 8px 4px 6px;
+      vertical-align: top;
     }
 
     .meta-input {
@@ -405,10 +469,18 @@
       padding: 4px 2px;
       vertical-align: middle;
     }
+    /* Для ИП шапка таблицы белая по бланку */
+    body.theme-ip table.spec th {
+      background-color: #ffffff !important;
+      font-size: 10pt;
+    }
     .t-tot { 
       background-color: #ACB9CA !important; 
       font-weight: bold; 
       vertical-align: middle;
+    }
+    body.theme-ip .t-tot {
+      background-color: #ffffff !important;
     }
 
     .auto-grow {
@@ -477,6 +549,9 @@
       background-color: #ACB9CA !important; 
       font-weight: bold; 
     }
+    body.theme-ip .cond-lbl {
+      background-color: #f1f5f9 !important;
+    }
     
     select.cond-val {
       cursor: pointer;
@@ -542,6 +617,9 @@
       table.spec th, .t-tot, .cond-lbl {
         background-color: #ACB9CA !important;
       }
+      body.theme-ip table.spec th, body.theme-ip .t-tot {
+        background-color: #ffffff !important;
+      }
       .keep-together-block, table.spec tr, table.cond tr {
         page-break-inside: avoid !important;
         break-inside: avoid !important;
@@ -566,7 +644,7 @@
     }
   </style>
 </head>
-<body>
+<body class="theme-rt">
 
   <div class="panel no-print">
     <div class="panel-left">
@@ -574,7 +652,15 @@
       <button class="btn btn-toggle-calc" id="btnToggleCalc" onclick="toggleCalcSidebar()">◀ Скрыть калькулятор</button>
       <button class="btn btn-clear" onclick="clearForm()">🗑️ Очистить бланк</button>
     </div>
-    <button class="btn" onclick="prepareAndPrint()">🖨️ Сохранить в PDF / Печать</button>
+    
+    <!-- Переключатель компании справа -->
+    <div class="panel-right">
+      <div class="company-switcher">
+        <button type="button" class="company-btn active" id="btnCompRt" onclick="setCompany('rt')">ООО "РТСтандарт" (НДС 22%)</button>
+        <button type="button" class="company-btn" id="btnCompIp" onclick="setCompany('ip')">ИП Захаров М.С. (УСН 6%+1%, НДС 5%)</button>
+      </div>
+      <button class="btn" onclick="prepareAndPrint()">🖨️ Сохранить в PDF / Печать</button>
+    </div>
   </div>
 
   <div class="app-layout">
@@ -583,6 +669,7 @@
     <div class="calc-sidebar no-print" id="calcSidebar">
       <div class="calc-title">
         <span>📊 Расчет цены и налогов</span>
+        <span class="calc-badge" id="calcTaxBadge">ОСНО: НДС 22%</span>
       </div>
 
       <div class="calc-field">
@@ -616,7 +703,7 @@
 
       <!-- Поле доставки -->
       <div class="calc-field" id="calcDeliveryRow">
-        <label class="calc-label" for="calcDeliveryCost">Доставка до клиента с НДС 22%, ₽</label>
+        <label class="calc-label" for="calcDeliveryCost">Доставка до клиента с НДС, ₽</label>
         <div class="calc-input-wrap">
           <input type="text" id="calcDeliveryCost" class="calc-input" placeholder="например 3 500" oninput="calculateMargin(); saveState();">
         </div>
@@ -637,7 +724,7 @@
 
       <div class="calc-result-box">
         <div class="calc-res-row">
-          <span>Себестоимость без НДС:</span>
+          <span>Себестоимость затрат:</span>
           <span id="resCostNet">0,00 ₽</span>
         </div>
         <div class="calc-res-row">
@@ -649,11 +736,11 @@
           <span id="resNetProfit" style="color: #16a34a;">0,00 ₽</span>
         </div>
         <div class="calc-res-row">
-          <span>Налог на прибыль (25%):</span>
+          <span id="lblProfitTax">Налог на прибыль (25%):</span>
           <span id="resProfitTax">0,00 ₽</span>
         </div>
         <div class="calc-res-row">
-          <span>НДС к уплате (22%):</span>
+          <span id="lblVatPayable">НДС к уплате (22%):</span>
           <span id="resVatPayable">0,00 ₽</span>
         </div>
         <div class="calc-res-row">
@@ -662,7 +749,7 @@
         </div>
 
         <div class="calc-highlight">
-          <span class="calc-highlight-lbl">Итого для клиента (с НДС 22%):</span>
+          <span class="calc-highlight-lbl" id="lblSaleTotalVat">Итого для клиента (с НДС 22%):</span>
           <span class="calc-highlight-val" id="resSaleVat">0,00 ₽</span>
         </div>
       </div>
@@ -690,35 +777,65 @@
 
     <!-- Лист Коммерческого предложения -->
     <div class="page">
-      <table class="head-grid">
-        <tr>
-          <td class="head-logo-cell">
-            <img src="logo.png" alt="РТСТАНДАРТ" class="logo" width="310" height="104" onerror="this.outerHTML='<b style=\'font-size:16pt;\'>РТСТАНДАРТ</b>'">
-          </td>
-          <td class="head-req-cell">
-            <b>ООО "РТСТАНДАРТ"</b><br>
-            г. Санкт-Петербург, наб. Обводного канала, д. 23, лит. Г<br>
-            ИНН 7842228552<br>
-            +7 (812) 983-44-33
-          </td>
-        </tr>
-        <tr>
-          <td class="head-meta-cell">
-            <div class="kp-num-wrapper">
-              КП № <span class="kp-prefix" id="kpPrefix">10-09/</span>
-              <input type="text" class="kp-user-input" id="kpNumInput" placeholder="1" value="1" oninput="saveState(); updateDocumentTitle();">
-            </div><br>
-            От <input type="text" id="docDate" class="meta-input" style="width: 155px;" oninput="saveState()">
-          </td>
-          <td class="head-client-cell">
-            Заказчику:
-            <textarea rows="2" class="auto-grow client-textarea" id="clientBox" placeholder="можете вписать сюда наименование заказчика" oninput="saveState(); updateDocumentTitle();"></textarea>
-          </td>
-        </tr>
-      </table>
+      
+      <!-- ШАПКА 1: ООО "РТСТАНДАРТ" -->
+      <div id="headerRt">
+        <table class="head-grid">
+          <tr>
+            <td class="head-logo-cell">
+              <img src="logo.png" alt="РТСТАНДАРТ" class="logo" width="310" height="104" onerror="this.outerHTML='<b style=\'font-size:16pt;\'>РТСТАНДАРТ</b>'">
+            </td>
+            <td class="head-req-cell">
+              <b>ООО "РТСТАНДАРТ"</b><br>
+              г. Санкт-Петербург, наб. Обводного канала, д. 23, лит. Г<br>
+              ИНН 7842228552<br>
+              +7 (812) 983-44-33
+            </td>
+          </tr>
+          <tr>
+            <td class="head-meta-cell">
+              <div class="kp-num-wrapper">
+                КП № <span class="kp-prefix" id="kpPrefix">10-09/</span>
+                <input type="text" class="kp-user-input" id="kpNumInput" placeholder="1" value="1" oninput="saveState(); updateDocumentTitle();">
+              </div><br>
+              От <input type="text" id="docDate" class="meta-input" style="width: 155px;" oninput="saveState()">
+            </td>
+            <td class="head-client-cell">
+              Заказчику:
+              <textarea rows="2" class="auto-grow client-textarea" id="clientBox" placeholder="можете вписать сюда наименование заказчика" oninput="saveState(); updateDocumentTitle();"></textarea>
+            </td>
+          </tr>
+        </table>
+      </div>
 
-      <div class="title">КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ</div>
-      <div class="intro">
+      <!-- ШАПКА 2: ИП Захаров М.С. (по документу) -->
+      <div id="headerIp" style="display: none;" class="head-ip-block">
+        <div class="head-ip-title">
+          Индивидуальный предприниматель Захаров Михаил Сергеевич ОГРНИП: 325110000002538 / ИНН: 110214010407
+        </div>
+        <div class="head-ip-contacts">
+          Телефон +7 981 208-62-36<br>
+          e-mail: <a href="mailto:m.zakharov0811@gmail.com">m.zakharov0811@gmail.com</a>
+        </div>
+        <table class="head-ip-meta-table">
+          <tr>
+            <td style="width: 50%;">
+              <b>Исх. № <input type="text" class="meta-input" id="kpNumInputIp" style="width: 55px; font-weight: bold;" value="289" oninput="saveState(); updateDocumentTitle();"></b>
+              от «<input type="text" class="meta-input" id="docDateIpDay" style="width: 25px; text-align: center;" value="10" oninput="saveState()">» 
+              <input type="text" class="meta-input" id="docDateIpMonth" style="width: 90px;" value="октября" oninput="saveState()"> 2026 года
+            </td>
+            <td style="width: 50%; padding-left: 15px;">
+              <b>Заказчику:</b>
+              <textarea rows="2" class="auto-grow client-textarea" id="clientBoxIp" placeholder="можете вписать сюда наименование заказчика" oninput="syncClientInputs(this); saveState(); updateDocumentTitle();"></textarea>
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="title" id="docTitle">КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ</div>
+      
+      <!-- Вводный текст -->
+      <div class="intro" id="docIntro">
         Общество с ограниченной ответственностью «РТСтандарт», в лице генерального директора Маркова Дмитрия Евгеньевича, действующего на основании Устава, предлагает рассмотреть возможность поставки следующего оборудования:
       </div>
 
@@ -728,11 +845,11 @@
           <tr>
             <th style="width: 4%;">№</th>
             <th style="width: 25%;">Наименование товара</th>
-            <th style="width: 30%;">Основные характеристики предложенного товара и прочие условия</th>
-            <th style="width: 8%;">Страна</th>
-            <th style="width: 7%;">Кол-во, шт.</th>
-            <th style="width: 12%;">Цена за ед. руб., включая НДС 22%</th>
-            <th style="width: 14%;">Сумма руб., включая НДС 22%</th>
+            <th style="width: 30%;" id="thDesc">Основные характеристики предложенного товара и прочие условия</th>
+            <th style="width: 8%;" id="thCountry">Страна</th>
+            <th style="width: 7%;" id="thQty">Кол-во, шт.</th>
+            <th style="width: 12%;" id="thPrice">Цена за ед. руб., включая НДС 22%</th>
+            <th style="width: 14%;" id="thTotal">Сумма руб., включая НДС 22%</th>
             <th class="no-print" style="width: 25px; border: none; background: #fff;"></th>
           </tr>
         </thead>
@@ -786,7 +903,7 @@
             </select>
           </td>
         </tr>
-        <tr>
+        <tr id="rowCondWarranty">
           <td class="cond-lbl">Гарантия</td>
           <td><textarea class="auto-grow cond-val" id="condWarranty" oninput="saveState()">12 месяцев с возможностью расширения до 5 лет. Выезд инженера в рамках гарантийного ремонта по адресу Заказчика – опционально. Обслуживание On-site (на месте) / Keep Your Drive (KYD) ремонт с сохранением жестких дисков у клиента – опционально..</textarea></td>
         </tr>
@@ -794,47 +911,140 @@
 
       <!-- Неразрывный подвал -->
       <div class="keep-together-block">
-        <div class="sign-row">
-          <div>
-            Генеральный директор<br>
-            ООО «РТСтандарт»
+        
+        <!-- Подвал ООО РТСтандарт -->
+        <div id="footerRt">
+          <div class="sign-row">
+            <div>
+              Генеральный директор<br>
+              ООО «РТСтандарт»
+            </div>
+            <div style="position: relative; width: 320px; text-align: right; padding-top: 10px;">
+              <span style="border-bottom: 1px solid #000; display: inline-block; width: 140px;"></span>
+              &nbsp;/ Марков Д.Е.
+              <div class="stamp-box">
+                <img src="stamp.png" alt="Печать" width="170" onerror="this.style.display='none'">
+              </div>
+            </div>
           </div>
-          <div style="position: relative; width: 320px; text-align: right; padding-top: 10px;">
-            <span style="border-bottom: 1px solid #000; display: inline-block; width: 140px;"></span>
-            &nbsp;/ Марков Д.Е.
-            <div class="stamp-box">
-              <img src="stamp.png" alt="Печать" width="170" onerror="this.style.display='none'">
+
+          <div class="contacts">
+            Исп.<br>
+            Коммерческий департамент<br>
+            ООО «РТСтандарт»<br>
+            E-mail: info@liscorp.ru<br>
+            +7 (981) 040-10-70<br>
+            +7 (812) 983-44-33<br>
+            https://liscorp.ru/
+          </div>
+        </div>
+
+        <!-- Подвал ИП Захаров М.С. -->
+        <div id="footerIp" style="display: none;">
+          <div class="sign-row" style="margin-top: 25px;">
+            <div>
+              Индивидуальный предприниматель
+            </div>
+            <div style="position: relative; width: 320px; text-align: right; padding-top: 10px;">
+              <span style="border-bottom: 1px solid #000; display: inline-block; width: 140px;"></span>
+              &nbsp;/ Захаров М.С.
+              <div class="stamp-box" style="top: -45px; right: 40px; width: 220px;">
+                <img src="stamp-ip.png" alt="Печать ИП" width="220" onerror="this.style.display='none'">
+              </div>
             </div>
           </div>
         </div>
 
-        <div class="contacts">
-          Исп.<br>
-          Коммерческий департамент<br>
-          ООО «РТСтандарт»<br>
-          E-mail: info@liscorp.ru<br>
-          +7 (981) 040-10-70<br>
-          +7 (812) 983-44-33<br>
-          https://liscorp.ru/
-        </div>
       </div>
     </div>
   </div>
 
   <script>
     const STORAGE_KEY = 'rtstandard_kp_draft_v1';
+    let currentCompany = 'rt'; // 'rt' (ООО РТСтандарт) или 'ip' (ИП Захаров М.С.)
     let currentMarginMode = 'rub';
     let currentFinanceMode = 'days';
     let financeDays = 0;
     let isCalcCollapsed = false;
 
-    // Стандартные заводские условия
-    const DEFAULT_CONDITIONS = {
-      deliveryTerm: '5-10(пять-десять) рабочих дней',
-      paymentTerm: '100% постоплата',
-      deliveryType: 'Доставка товара до адреса заказчика включена',
-      warranty: '12 месяцев с возможностью расширения до 5 лет. Выезд инженера в рамках гарантийного ремонта по адресу Заказчика – опционально. Обслуживание On-site (на месте) / Keep Your Drive (KYD) ремонт с сохранением жестких дисков у клиента – опционально..'
+    const COMPANY_DATA = {
+      rt: {
+        vatRate: 0.22,
+        name: 'ООО "РТСтандарт"',
+        thPrice: 'Цена за ед. руб., включая НДС 22%',
+        thTotal: 'Сумма руб., включая НДС 22%',
+        thDesc: 'Основные характеристики предложенного товара и прочие условия',
+        thCountry: 'Страна',
+        thQty: 'Кол-во, шт.',
+        intro: 'Общество с ограниченной ответственностью «РТСтандарт», в лице генерального директора Маркова Дмитрия Евгеньевича, действующего на основании Устава, предлагает рассмотреть возможность поставки следующего оборудования:',
+        deliveryTerm: '5-10(пять-десять) рабочих дней',
+        paymentTerm: '100% постоплата',
+        deliveryType: 'Доставка товара до адреса заказчика включена',
+        warranty: '12 месяцев с возможностью расширения до 5 лет. Выезд инженера в рамках гарантийного ремонта по адресу Заказчика – опционально. Обслуживание On-site (на месте) / Keep Your Drive (KYD) ремонт с сохранением жестких дисков у клиента – опционально..',
+        badge: 'ОСНО: НДС 22%'
+      },
+      ip: {
+        vatRate: 0.05,
+        name: 'ИП Захаров М.С.',
+        thPrice: 'Цена за ед. руб., включая НДС 5%',
+        thTotal: 'Сумма руб., включая НДС 5%',
+        thDesc: 'Технические характеристики',
+        thCountry: 'Страна происхождения',
+        thQty: 'Количество',
+        intro: 'Индивидуальный предприниматель Захаров Михаил Сергеевич, (ОГРНИП: 325110000002538 от 27.01.2025, ИНН: 110214010407, зарегистрирован по адресу Российская Федерация, 169300, Республика Коми, гор. Ухта, ул. Юбилейная, д. 13, кв. 62) предлагает к поставке следующее компьютерное оборудование:',
+        deliveryTerm: '1-2 недели',
+        paymentTerm: '100% постоплата',
+        deliveryType: 'Доставка товара до адреса заказчика включена',
+        warranty: '12 месяцев с возможностью расширения до 5 лет.',
+        badge: 'УСН 6%+1% | НДС 5%'
+      }
     };
+
+    function setCompany(comp) {
+      currentCompany = comp;
+      document.body.classList.toggle('theme-rt', comp === 'rt');
+      document.body.classList.toggle('theme-ip', comp === 'ip');
+
+      document.getElementById('btnCompRt').classList.toggle('active', comp === 'rt');
+      document.getElementById('btnCompIp').classList.toggle('active', comp === 'ip');
+
+      document.getElementById('headerRt').style.display = comp === 'rt' ? 'block' : 'none';
+      document.getElementById('headerIp').style.display = comp === 'ip' ? 'block' : 'none';
+      document.getElementById('footerRt').style.display = comp === 'rt' ? 'block' : 'none';
+      document.getElementById('footerIp').style.display = comp === 'ip' ? 'block' : 'none';
+
+      const data = COMPANY_DATA[comp];
+      document.getElementById('docIntro').textContent = data.intro;
+      document.getElementById('thPrice').textContent = data.thPrice;
+      document.getElementById('thTotal').textContent = data.thTotal;
+      document.getElementById('thDesc').textContent = data.thDesc;
+      document.getElementById('thCountry').textContent = data.thCountry;
+      document.getElementById('thQty').textContent = data.thQty;
+      document.getElementById('calcTaxBadge').textContent = data.badge;
+
+      if (comp === 'rt') {
+        document.getElementById('lblProfitTax').textContent = 'Налог на прибыль (25%):';
+        document.getElementById('lblVatPayable').textContent = 'НДС к уплате (22%):';
+        document.getElementById('lblSaleTotalVat').textContent = 'Итого для клиента (с НДС 22%):';
+      } else {
+        document.getElementById('lblProfitTax').textContent = 'Налог УСН (7% = 6%+1%):';
+        document.getElementById('lblVatPayable').textContent = 'Исходящий НДС (5%):';
+        document.getElementById('lblSaleTotalVat').textContent = 'Итого для клиента (с НДС 5%):';
+      }
+
+      calculateMargin();
+      recalc();
+      updateDocumentTitle();
+      saveState();
+    }
+
+    function syncClientInputs(source) {
+      const val = source.value;
+      const c1 = document.getElementById('clientBox');
+      const c2 = document.getElementById('clientBoxIp');
+      if (c1 && c1 !== source) c1.value = val;
+      if (c2 && c2 !== source) c2.value = val;
+    }
 
     function toggleCalcSidebar() {
       const sidebar = document.getElementById('calcSidebar');
@@ -1014,6 +1224,93 @@
       onBatchInput();
     }
 
+    // Расчет продажной стоимости в калькуляторе под выбранную компанию
+    function getCalculatedEconomics() {
+      const cVat = parseNum(document.getElementById('calcCostVat').value);
+      const targetVal = parseNum(document.getElementById('calcProfitTarget').value);
+
+      const select = document.getElementById('deliverySelect');
+      const isDeliveryIncluded = select && select.value.indexOf('Доставка товара') !== -1;
+      const deliveryCostVat = isDeliveryIncluded ? parseNum(document.getElementById('calcDeliveryCost')?.value) : 0;
+      const financeCost = getFinanceCost();
+
+      const totalCostVat = cVat + deliveryCostVat + financeCost;
+      if (totalCostVat <= 0) return null;
+
+      let netProfit = (currentMarginMode === 'rub') ? targetVal : (totalCostVat * targetVal / 100);
+
+      if (currentCompany === 'rt') {
+        // ОСНО: НДС 22%, налог на прибыль 25%
+        const vatRate = 0.22;
+        const taxRate = 0.25;
+        const totalCostNet = totalCostVat / (1 + vatRate);
+        const vatIn = totalCostVat - totalCostNet;
+
+        const ebt = netProfit / (1 - taxRate);
+        const profitTax = ebt * taxRate;
+        const saleNet = totalCostNet + ebt;
+        const vatOut = saleNet * vatRate;
+        const vatPayable = vatOut - vatIn;
+        const saleVat = saleNet * (1 + vatRate);
+
+        return {
+          totalCostNet,
+          financeCost,
+          netProfit,
+          profitTax,
+          vatPayable,
+          saleNet,
+          saleVat,
+          totalCostVat
+        };
+      } else {
+        // ИП: УСН Доходы 6%+1% = 7%, НДС 5% (без вычета входящего НДС)
+        const totalExpenses = totalCostVat; // Входящий НДС не вычитается, идет в себестоимость
+        // База выручки без НДС: saleNet * (1 - 0.07) = totalExpenses + netProfit
+        const saleNet = (totalExpenses + netProfit) / 0.93;
+        const usnTax = saleNet * 0.07;
+        const vat5 = saleNet * 0.05;
+        const saleVat = saleNet * 1.05;
+
+        return {
+          totalCostNet: totalExpenses,
+          financeCost,
+          netProfit,
+          profitTax: usnTax,
+          vatPayable: vat5,
+          saleNet,
+          saleVat,
+          totalCostVat
+        };
+      }
+    }
+
+    function calculateMargin() {
+      updateFinanceInputs();
+      const econ = getCalculatedEconomics();
+
+      if (!econ) {
+        document.getElementById('resCostNet').textContent = '0,00 ₽';
+        document.getElementById('resFinanceCost').textContent = '0,00 ₽';
+        document.getElementById('resNetProfit').textContent = '0,00 ₽';
+        document.getElementById('resProfitTax').textContent = '0,00 ₽';
+        document.getElementById('resVatPayable').textContent = '0,00 ₽';
+        document.getElementById('resSaleNet').textContent = '0,00 ₽';
+        document.getElementById('resSaleVat').textContent = '0,00 ₽';
+        document.getElementById('resSaleVat').removeAttribute('data-val');
+        return;
+      }
+
+      document.getElementById('resCostNet').textContent = fmt(econ.totalCostNet) + ' ₽';
+      document.getElementById('resFinanceCost').textContent = fmt(econ.financeCost) + ' ₽';
+      document.getElementById('resNetProfit').textContent = fmt(econ.netProfit) + ' ₽';
+      document.getElementById('resProfitTax').textContent = fmt(econ.profitTax) + ' ₽';
+      document.getElementById('resVatPayable').textContent = fmt(econ.vatPayable) + ' ₽';
+      document.getElementById('resSaleNet').textContent = fmt(econ.saleNet) + ' ₽';
+      document.getElementById('resSaleVat').textContent = fmt(econ.saleVat) + ' ₽';
+      document.getElementById('resSaleVat').setAttribute('data-val', econ.saleVat.toFixed(2));
+    }
+
     function applyBatchPricesToKp() {
       const batchItems = parseBatchLines();
       if (batchItems.length === 0) {
@@ -1021,29 +1318,9 @@
         return;
       }
 
-      const vatRate = 0.22;
-      const taxRate = 0.25;
-      const targetVal = parseNum(document.getElementById('calcProfitTarget').value);
-
+      const econ = getCalculatedEconomics();
       const sumBatch = batchItems.reduce((sum, it) => sum + (it.qty * it.cost), 0);
-      const select = document.getElementById('deliverySelect');
-      const isDeliveryIncluded = select && select.value.indexOf('Доставка товара') !== -1;
-      const deliveryCostVat = isDeliveryIncluded ? parseNum(document.getElementById('calcDeliveryCost')?.value) : 0;
-      
-      const financeCost = getFinanceCost();
-      const totalCostVat = sumBatch + deliveryCostVat + financeCost;
-
-      let totalSaleVat = totalCostVat;
-      if (totalCostVat > 0) {
-        let netProfit = 0;
-        if (currentMarginMode === 'rub') {
-          netProfit = targetVal;
-        } else {
-          netProfit = totalCostVat * (targetVal / 100);
-        }
-        const ebt = netProfit / (1 - taxRate);
-        totalSaleVat = ( (totalCostVat / (1 + vatRate)) + ebt ) * (1 + vatRate);
-      }
+      const totalSaleVat = econ ? econ.saleVat : sumBatch;
 
       const finalMultiplier = sumBatch > 0 ? (totalSaleVat / sumBatch) : 1;
       const tbody = document.getElementById('tableBody');
@@ -1051,7 +1328,6 @@
       while (tbody.children.length < batchItems.length) {
         addRow(false);
       }
-
       while (tbody.children.length > batchItems.length) {
         tbody.lastElementChild.remove();
       }
@@ -1115,79 +1391,40 @@
         grandTotalKp += q * p;
       });
 
-      const vatRate = 0.22;
-      const taxRate = 0.25;
+      if (currentCompany === 'rt') {
+        const vatRate = 0.22;
+        const taxRate = 0.25;
 
-      const saleNet = grandTotalKp / (1 + vatRate);
-      const totalCostNet = totalCostVat / (1 + vatRate);
-      const ebt = Math.max(0, saleNet - totalCostNet);
-      const profitTax = ebt * taxRate;
-      const netProfit = ebt * (1 - taxRate);
-      const vatPayable = Math.max(0, (saleNet - totalCostNet) * vatRate);
+        const saleNet = grandTotalKp / (1 + vatRate);
+        const totalCostNet = totalCostVat / (1 + vatRate);
+        const ebt = Math.max(0, saleNet - totalCostNet);
+        const profitTax = ebt * taxRate;
+        const netProfit = ebt * (1 - taxRate);
+        const vatPayable = Math.max(0, (saleNet - totalCostNet) * vatRate);
 
-      document.getElementById('resCostNet').textContent = fmt(totalCostNet) + ' ₽';
-      document.getElementById('resFinanceCost').textContent = fmt(financeCost) + ' ₽';
-      document.getElementById('resNetProfit').textContent = fmt(netProfit) + ' ₽';
-      document.getElementById('resProfitTax').textContent = fmt(profitTax) + ' ₽';
-      document.getElementById('resVatPayable').textContent = fmt(vatPayable) + ' ₽';
-      document.getElementById('resSaleNet').textContent = fmt(saleNet) + ' ₽';
-      document.getElementById('resSaleVat').textContent = fmt(grandTotalKp) + ' ₽';
-    }
-
-    function calculateMargin() {
-      const cVat = parseNum(document.getElementById('calcCostVat').value);
-      const targetVal = parseNum(document.getElementById('calcProfitTarget').value);
-
-      const select = document.getElementById('deliverySelect');
-      const isDeliveryIncluded = select && select.value.indexOf('Доставка товара') !== -1;
-      const deliveryCostVat = isDeliveryIncluded ? parseNum(document.getElementById('calcDeliveryCost')?.value) : 0;
-      
-      const financeCost = getFinanceCost();
-      const totalCostVat = cVat + deliveryCostVat + financeCost;
-
-      updateFinanceInputs();
-
-      if (totalCostVat <= 0) {
-        document.getElementById('resCostNet').textContent = '0,00 ₽';
-        document.getElementById('resFinanceCost').textContent = '0,00 ₽';
-        document.getElementById('resNetProfit').textContent = '0,00 ₽';
-        document.getElementById('resProfitTax').textContent = '0,00 ₽';
-        document.getElementById('resVatPayable').textContent = '0,00 ₽';
-        document.getElementById('resSaleNet').textContent = '0,00 ₽';
-        document.getElementById('resSaleVat').textContent = '0,00 ₽';
-        document.getElementById('resSaleVat').removeAttribute('data-val');
-        return;
-      }
-
-      const vatRate = 0.22;
-      const taxRate = 0.25;
-
-      const totalCostNet = totalCostVat / (1 + vatRate);
-      const vatIn = totalCostVat - totalCostNet;
-
-      let netProfit = 0;
-      if (currentMarginMode === 'rub') {
-        netProfit = targetVal;
+        document.getElementById('resCostNet').textContent = fmt(totalCostNet) + ' ₽';
+        document.getElementById('resFinanceCost').textContent = fmt(financeCost) + ' ₽';
+        document.getElementById('resNetProfit').textContent = fmt(netProfit) + ' ₽';
+        document.getElementById('resProfitTax').textContent = fmt(profitTax) + ' ₽';
+        document.getElementById('resVatPayable').textContent = fmt(vatPayable) + ' ₽';
+        document.getElementById('resSaleNet').textContent = fmt(saleNet) + ' ₽';
+        document.getElementById('resSaleVat').textContent = fmt(grandTotalKp) + ' ₽';
       } else {
-        netProfit = totalCostVat * (targetVal / 100);
+        // ИП на УСН 7% + НДС 5%
+        const saleNet = grandTotalKp / 1.05;
+        const vat5 = grandTotalKp - saleNet;
+        const usnTax = saleNet * 0.07;
+        const totalExpenses = totalCostVat;
+        const netProfit = Math.max(0, saleNet - usnTax - totalExpenses);
+
+        document.getElementById('resCostNet').textContent = fmt(totalExpenses) + ' ₽';
+        document.getElementById('resFinanceCost').textContent = fmt(financeCost) + ' ₽';
+        document.getElementById('resNetProfit').textContent = fmt(netProfit) + ' ₽';
+        document.getElementById('resProfitTax').textContent = fmt(usnTax) + ' ₽';
+        document.getElementById('resVatPayable').textContent = fmt(vat5) + ' ₽';
+        document.getElementById('resSaleNet').textContent = fmt(saleNet) + ' ₽';
+        document.getElementById('resSaleVat').textContent = fmt(grandTotalKp) + ' ₽';
       }
-
-      const ebt = netProfit / (1 - taxRate);
-      const profitTax = ebt * taxRate;
-
-      const saleNet = totalCostNet + ebt;
-      const vatOut = saleNet * vatRate;
-      const vatPayable = vatOut - vatIn;
-      const saleVat = saleNet * (1 + vatRate);
-
-      document.getElementById('resCostNet').textContent = fmt(totalCostNet) + ' ₽';
-      document.getElementById('resFinanceCost').textContent = fmt(financeCost) + ' ₽';
-      document.getElementById('resNetProfit').textContent = fmt(netProfit) + ' ₽';
-      document.getElementById('resProfitTax').textContent = fmt(profitTax) + ' ₽';
-      document.getElementById('resVatPayable').textContent = fmt(vatPayable) + ' ₽';
-      document.getElementById('resSaleNet').textContent = fmt(saleNet) + ' ₽';
-      document.getElementById('resSaleVat').textContent = fmt(saleVat) + ' ₽';
-      document.getElementById('resSaleVat').setAttribute('data-val', saleVat.toFixed(2));
     }
 
     function copyCalcPrice() {
@@ -1238,19 +1475,27 @@
     }
 
     function updateDocumentTitle() {
-      const clientVal = (document.getElementById('clientBox')?.value || '').trim();
-      let company = 'РТСтандарт';
+      const clientVal = (document.getElementById(currentCompany === 'rt' ? 'clientBox' : 'clientBoxIp')?.value || '').trim();
+      let companyName = COMPANY_DATA[currentCompany].name;
+      
+      let client = 'Клиент';
       if (clientVal) {
         const firstLine = clientVal.split('\n')[0].trim();
-        if (firstLine) company = firstLine;
+        if (firstLine) client = firstLine;
       }
-      company = company.replace(/["'«»\\/:*?<>|]+/g, ' ').replace(/\s+/g, ' ').trim();
+      client = client.replace(/["'«»\\/:*?<>|]+/g, ' ').replace(/\s+/g, ' ').trim();
 
-      const prefix = (document.getElementById('kpPrefix')?.textContent || '').replace(/[\/\\]/g, '-');
-      const numVal = (document.getElementById('kpNumInput')?.value || '1').trim().replace(/[\/\\]/g, '-');
-      const fullNum = (prefix + numVal).replace(/-+$/, '');
+      let fullNum = '1';
+      if (currentCompany === 'rt') {
+        const prefix = (document.getElementById('kpPrefix')?.textContent || '').replace(/[\/\\]/g, '-');
+        const numVal = (document.getElementById('kpNumInput')?.value || '1').trim().replace(/[\/\\]/g, '-');
+        fullNum = (prefix + numVal).replace(/-+$/, '');
+      } else {
+        fullNum = (document.getElementById('kpNumInputIp')?.value || '289').trim();
+      }
 
-      document.title = `КП-${company}-${fullNum}`;
+      const prefixDoc = currentCompany === 'rt' ? 'КП-РТСтандарт' : 'КП-ИП Захаров';
+      document.title = `${prefixDoc}-${client}-${fullNum}`;
     }
 
     function parseNum(val) {
@@ -1360,7 +1605,11 @@
 
       document.getElementById('grandTotal').textContent = fmt(grandTotal);
 
-      const vat = grandTotal > 0 ? (grandTotal * 22 / 122) : 0;
+      const isRt = (currentCompany === 'rt');
+      const vatRate = isRt ? 0.22 : 0.05;
+      const vatDiv = isRt ? 122 : 105;
+
+      const vat = grandTotal > 0 ? (grandTotal * (vatRate * 100) / vatDiv) : 0;
       const tRub = Math.floor(grandTotal);
       const vRub = Math.floor(vat);
       const tKop = Math.round((grandTotal - tRub) * 100);
@@ -1374,8 +1623,12 @@
       const vRubDecl = decl(vRub, ['рубль', 'рубля', 'рублей']);
       const vKopDecl = decl(vKop, ['копейка', 'копейки', 'копеек']);
 
+      const vatText = isRt 
+        ? `, в том числе НДС 22% <b>${fmtInt(vRub)} (${vRubW}) ${vRubDecl} ${String(vKop).padStart(2, '0')} ${vKopDecl}</b>`
+        : `, включая НДС 5%`;
+
       document.getElementById('textTotalBlock').innerHTML = 
-        `ИТОГО: <b>${fmtInt(tRub)} (${tRubW}) ${tRubDecl} ${String(tKop).padStart(2, '0')} ${tKopDecl}</b>, в том числе НДС 22% <b>${fmtInt(vRub)} (${vRubW}) ${vRubDecl} ${String(vKop).padStart(2, '0')} ${vKopDecl}</b>.`;
+        `ИТОГО: <b>${fmtInt(tRub)} (${tRubW}) ${tRubDecl} ${String(tKop).padStart(2, '0')} ${tKopDecl}</b>${vatText}.`;
     }
 
     function decl(n, forms) {
@@ -1443,9 +1696,14 @@
         document.querySelectorAll('.cond-val').forEach(el => condVals.push(el.value));
 
         const state = {
+          currentCompany: currentCompany,
           kpNum: document.getElementById('kpNumInput').value,
+          kpNumIp: document.getElementById('kpNumInputIp').value,
           docDate: document.getElementById('docDate').value,
+          docDateIpDay: document.getElementById('docDateIpDay').value,
+          docDateIpMonth: document.getElementById('docDateIpMonth').value,
           client: document.getElementById('clientBox').value,
+          clientIp: document.getElementById('clientBoxIp').value,
           cond: condVals,
           rows: rows,
           calcCostVat: document.getElementById('calcCostVat')?.value || '',
@@ -1469,9 +1727,16 @@
         if (!raw) return false;
         const state = JSON.parse(raw);
 
+        if (state.currentCompany) setCompany(state.currentCompany);
         if (state.kpNum) document.getElementById('kpNumInput').value = state.kpNum;
+        if (state.kpNumIp) document.getElementById('kpNumInputIp').value = state.kpNumIp;
         if (state.docDate) document.getElementById('docDate').value = state.docDate;
-        if (state.client) document.getElementById('clientBox').value = state.client;
+        if (state.docDateIpDay) document.getElementById('docDateIpDay').value = state.docDateIpDay;
+        if (state.docDateIpMonth) document.getElementById('docDateIpMonth').value = state.docDateIpMonth;
+        if (state.client) {
+          document.getElementById('clientBox').value = state.client;
+          document.getElementById('clientBoxIp').value = state.client;
+        }
 
         if (state.cond && Array.isArray(state.cond)) {
           document.querySelectorAll('.cond-val').forEach((el, i) => {
@@ -1484,12 +1749,8 @@
         if (state.calcProfitTarget) document.getElementById('calcProfitTarget').value = state.calcProfitTarget;
         if (state.calcMarginMode) setMarginMode(state.calcMarginMode);
         
-        if (state.financeDays !== undefined) {
-          financeDays = state.financeDays;
-        }
-        if (state.calcFinanceMode) {
-          setFinanceMode(state.calcFinanceMode);
-        }
+        if (state.financeDays !== undefined) financeDays = state.financeDays;
+        if (state.calcFinanceMode) setFinanceMode(state.calcFinanceMode);
 
         if (state.calcBatchText) {
           document.getElementById('calcBatchText').value = state.calcBatchText;
@@ -1531,13 +1792,14 @@
       }
     }
 
-    // Восстановление заводских условий при очистке формы
     function clearForm() {
       if (!confirm('Вы уверены, что хотите очистить весь бланк?')) return;
       localStorage.removeItem(STORAGE_KEY);
       
       document.getElementById('clientBox').value = '';
+      document.getElementById('clientBoxIp').value = '';
       document.getElementById('kpNumInput').value = '1';
+      document.getElementById('kpNumInputIp').value = '289';
       document.getElementById('docDate').value = '';
       
       const costVat = document.getElementById('calcCostVat');
@@ -1555,16 +1817,16 @@
       
       setDateAndKpPrefix();
 
-      // Восстанавливаем все условия поставки
+      const def = COMPANY_DATA[currentCompany];
       const termEl = document.getElementById('condDeliveryTerm');
       const payEl = document.getElementById('condPaymentTerm');
       const delivEl = document.getElementById('deliverySelect');
       const warEl = document.getElementById('condWarranty');
 
-      if (termEl) termEl.value = DEFAULT_CONDITIONS.deliveryTerm;
-      if (payEl) payEl.value = DEFAULT_CONDITIONS.paymentTerm;
-      if (delivEl) delivEl.value = DEFAULT_CONDITIONS.deliveryType;
-      if (warEl) warEl.value = DEFAULT_CONDITIONS.warranty;
+      if (termEl) termEl.value = def.deliveryTerm;
+      if (payEl) payEl.value = def.paymentTerm;
+      if (delivEl) delivEl.value = def.deliveryType;
+      if (warEl) warEl.value = def.warranty;
 
       const tbody = document.getElementById('tableBody');
       tbody.innerHTML = `
@@ -1602,6 +1864,7 @@
       const restored = loadState();
       if (!restored) {
         setDateAndKpPrefix();
+        setCompany('rt');
       }
       initAutoResize();
       onDeliveryChange();
