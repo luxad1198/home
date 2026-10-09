@@ -43,17 +43,160 @@
     .btn-clear { background: #fff1f2; color: #e11d48; border-color: #fecdd3; }
     .btn-del { background: #fee2e2; color: #b91c1c; border: 1px solid #f87171; padding: 2px 6px; font-size: 11px; cursor: pointer; border-radius: 3px; }
 
+    /* Оболочка для размещения калькулятора слева и КП по центру */
+    .app-layout {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    /* Блок калькулятора прибыльности слева */
+    .calc-sidebar {
+      width: 290px;
+      background: #ffffff;
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 13px;
+      line-height: 1.4;
+      position: sticky;
+      top: 20px;
+      flex-shrink: 0;
+    }
+    .calc-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 8px;
+    }
+    .calc-field {
+      margin-bottom: 12px;
+    }
+    .calc-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #475569;
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .calc-input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .calc-input {
+      width: 100%;
+      padding: 7px 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 5px;
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .calc-input:focus {
+      border-color: #2563eb;
+    }
+    .calc-toggle {
+      display: inline-flex;
+      background: #e2e8f0;
+      border-radius: 4px;
+      padding: 2px;
+      gap: 2px;
+    }
+    .calc-toggle-btn {
+      border: none;
+      background: transparent;
+      padding: 2px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      border-radius: 3px;
+      color: #475569;
+      font-family: inherit;
+    }
+    .calc-toggle-btn.active {
+      background: #2563eb;
+      color: #fff;
+    }
+    .calc-result-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 10px;
+      margin-top: 14px;
+    }
+    .calc-res-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      font-size: 12px;
+      color: #64748b;
+    }
+    .calc-res-row span:last-child {
+      font-weight: 600;
+      color: #1e293b;
+    }
+    .calc-highlight {
+      border-top: 1px dashed #cbd5e1;
+      padding-top: 8px;
+      margin-top: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .calc-highlight-lbl {
+      font-size: 11px;
+      font-weight: 700;
+      color: #1e40af;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .calc-highlight-val {
+      font-size: 17px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+    .btn-copy-calc {
+      width: 100%;
+      margin-top: 10px;
+      padding: 7px;
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .btn-copy-calc:hover { background: #1d4ed8; }
+
     /* Лист А4 */
     .page {
       width: 210mm;
       min-height: 297mm;
       padding: 10mm 15mm 12mm 15mm;
-      margin: 0 auto;
       background: #fff;
       box-shadow: 0 4px 20px rgba(0,0,0,0.35);
       position: relative;
       font-size: 11.5pt;
       line-height: 1.15;
+      flex-shrink: 0;
     }
 
     /* Шапка документа */
@@ -288,8 +431,12 @@
         margin: 0 !important;
         padding: 0 !important;
       }
-      .panel, .no-print { 
+      .panel, .no-print, .calc-sidebar { 
         display: none !important; 
+      }
+      .app-layout {
+        display: block !important;
+        margin: 0 !important;
       }
       .page {
         box-shadow: none !important;
@@ -328,139 +475,277 @@
     <div class="panel-left">
       <button class="btn btn-add" onclick="addRow()">+ Добавить позицию</button>
       <button class="btn btn-clear" onclick="clearForm()">🗑️ Очистить бланк</button>
-      <span style="font-size: 12px; color: #64748b; margin-left: 6px;">Автосохранение активно</span>
+      <span style="font-size: 12px; color: #64748b; margin-left: 6px;">Слева доступен налоговый калькулятор</span>
     </div>
     <button class="btn" onclick="prepareAndPrint()">🖨️ Сохранить в PDF / Печать</button>
   </div>
 
-  <div class="page">
-    <table class="head-grid">
-      <tr>
-        <td class="head-logo-cell">
-          <img src="logo.png" alt="РТСТАНДАРТ" class="logo" width="310" height="104" onerror="this.outerHTML='<b style=\'font-size:16pt;\'>РТСТАНДАРТ</b>'">
-        </td>
-        <td class="head-req-cell">
-          <b>ООО "РТСТАНДАРТ"</b><br>
-          г. Санкт-Петербург, наб. Обводного канала, д. 23, лит. Г<br>
-          ИНН 7842228552<br>
-          +7 (812) 983-44-33
-        </td>
-      </tr>
-      <tr>
-        <td class="head-meta-cell">
-          <div class="kp-num-wrapper">
-            КП № <span class="kp-prefix" id="kpPrefix">10-09/</span>
-            <input type="text" class="kp-user-input" id="kpNumInput" placeholder="1" value="1" oninput="saveState(); updateDocumentTitle();">
-          </div><br>
-          От <input type="text" id="docDate" class="meta-input" style="width: 155px;" oninput="saveState()">
-        </td>
-        <td class="head-client-cell">
-          Заказчику:
-          <textarea rows="2" class="auto-grow client-textarea" id="clientBox" placeholder="можете вписать сюда наименование заказчика" oninput="saveState(); updateDocumentTitle();"></textarea>
-        </td>
-      </tr>
-    </table>
+  <div class="app-layout">
+    
+    <!-- Калькулятор прибыльности сделки -->
+    <div class="calc-sidebar no-print">
+      <div class="calc-title">
+        <span>📊 Расчет цены и налогов</span>
+      </div>
 
-    <div class="title">КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ</div>
-    <div class="intro">
-      Общество с ограниченной ответственностью «РТСтандарт», в лице генерального директора Маркова Дмитрия Евгеньевича, действующего на основании Устава, предлагает рассмотреть возможность поставки следующего оборудования:
-    </div>
-
-    <!-- Таблица спецификации -->
-    <table class="spec" id="itemsTable">
-      <thead>
-        <tr>
-          <th style="width: 4%;">№</th>
-          <th style="width: 25%;">Наименование товара</th>
-          <th style="width: 30%;">Основные характеристики предложенного товара и прочие условия</th>
-          <th style="width: 8%;">Страна</th>
-          <th style="width: 7%;">Кол-во, шт.</th>
-          <th style="width: 12%;">Цена за ед. руб., включая НДС 22%</th>
-          <th style="width: 14%;">Сумма руб., включая НДС 22%</th>
-          <th class="no-print" style="width: 25px; border: none; background: #fff;"></th>
-        </tr>
-      </thead>
-      <tbody id="tableBody">
-        <tr>
-          <td class="c col-num-cell row-idx">1</td>
-          <td class="col-text-cell"><textarea class="auto-grow col-name" placeholder="Впиши наименование" oninput="saveState()"></textarea></td>
-          <td class="col-text-cell"><textarea class="auto-grow col-desc" placeholder="впиши характеристики" oninput="saveState()"></textarea></td>
-          <td class="c col-num-cell"><input type="text" class="inp-text c col-country" placeholder="Китай" value="Китай" oninput="saveState()"></td>
-          <td class="c col-num-cell"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1" oninput="recalc(); saveState();"></td>
-          <td class="c col-num-cell">
-            <input type="text" class="inp-text r col-price" placeholder="500,00" data-raw="0" value=""
-                   onfocus="onPriceFocus(this)" 
-                   onblur="onPriceBlur(this)" 
-                   oninput="onPriceInput(this)"
-                   onkeydown="onPriceKeyDown(event, this)">
-          </td>
-          <td class="r col-num-cell col-total" style="font-weight:bold;">0,00</td>
-          <td class="no-print c" style="border:none;"><button class="btn-del" onclick="deleteRow(this)">✕</button></td>
-        </tr>
-      </tbody>
-      <tfoot>
-        <tr class="t-tot">
-          <td colspan="6" class="r" style="padding-right: 8px;">ИТОГО:</td>
-          <td id="grandTotal" class="r">0,00</td>
-          <td class="no-print" style="border:none; background:#fff;"></td>
-        </tr>
-      </tfoot>
-    </table>
-
-    <div class="tot-phrase" id="textTotalBlock">
-      ИТОГО: 0 (ноль) рублей 00 копеек, в том числе НДС 22% 0 (ноль) рублей 00 копеек.
-    </div>
-
-    <!-- Таблица условий -->
-    <table class="cond">
-      <tr>
-        <td class="cond-lbl">Срок поставки</td>
-        <td><textarea class="auto-grow cond-val" oninput="saveState()">5-10(пять-десять) рабочих дней</textarea></td>
-      </tr>
-      <tr>
-        <td class="cond-lbl">Условия оплаты</td>
-        <td><textarea class="auto-grow cond-val" oninput="saveState()">100% постоплата</textarea></td>
-      </tr>
-      <tr>
-        <td class="cond-lbl">Доставка</td>
-        <td><textarea class="auto-grow cond-val" oninput="saveState()">Доставка товара до адреса заказчика включена</textarea></td>
-      </tr>
-      <tr>
-        <td class="cond-lbl">Гарантия</td>
-        <td><textarea class="auto-grow cond-val" oninput="saveState()">12 месяцев с возможностью расширения до 5 лет. Выезд инженера в рамках гарантийного ремонта по адресу Заказчика – опционально. Обслуживание On-site (на месте) / Keep Your Drive (KYD) ремонт с сохранением жестких дисков у клиента – опционально..</textarea></td>
-      </tr>
-    </table>
-
-    <!-- Неразрывный подвал -->
-    <div class="keep-together-block">
-      <div class="sign-row">
-        <div>
-          Генеральный директор<br>
-          ООО «РТСтандарт»
-        </div>
-        <div style="position: relative; width: 320px; text-align: right; padding-top: 10px;">
-          <span style="border-bottom: 1px solid #000; display: inline-block; width: 140px;"></span>
-          &nbsp;/ Марков Д.Е.
-          <div class="stamp-box">
-            <img src="stamp.png" alt="Печать" width="170" onerror="this.style.display='none'">
-          </div>
+      <div class="calc-field">
+        <label class="calc-label" for="calcCostVat">Закупка с НДС 22%, ₽</label>
+        <div class="calc-input-wrap">
+          <input type="text" id="calcCostVat" class="calc-input" placeholder="например 100 000" oninput="calculateMargin()">
         </div>
       </div>
 
-      <div class="contacts">
-        Исп.<br>
-        Коммерческий департамент<br>
-        ООО «РТСтандарт»<br>
-        E-mail: info@liscorp.ru<br>
-        +7 (981) 040-10-70<br>
-        +7 (812) 983-44-33<br>
-        https://liscorp.ru/
+      <div class="calc-field">
+        <div class="calc-label">
+          <span>Желаемая прибыль</span>
+          <div class="calc-toggle">
+            <button type="button" class="calc-toggle-btn active" id="btnModeRub" onclick="setMarginMode('rub')">₽</button>
+            <button type="button" class="calc-toggle-btn" id="btnModePct" onclick="setMarginMode('pct')">%</button>
+          </div>
+        </div>
+        <div class="calc-input-wrap">
+          <input type="text" id="calcProfitTarget" class="calc-input" placeholder="15 000" oninput="calculateMargin()">
+        </div>
+      </div>
+
+      <div class="calc-result-box">
+        <div class="calc-res-row">
+          <span>Себестоимость без НДС:</span>
+          <span id="resCostNet">0,00 ₽</span>
+        </div>
+        <div class="calc-res-row">
+          <span>Чистая прибыль (факт):</span>
+          <span id="resNetProfit" style="color: #16a34a;">0,00 ₽</span>
+        </div>
+        <div class="calc-res-row">
+          <span>Налог на прибыль (25%):</span>
+          <span id="resProfitTax">0,00 ₽</span>
+        </div>
+        <div class="calc-res-row">
+          <span>НДС к уплате (22%):</span>
+          <span id="resVatPayable">0,00 ₽</span>
+        </div>
+        <div class="calc-res-row">
+          <span>Цена без НДС:</span>
+          <span id="resSaleNet">0,00 ₽</span>
+        </div>
+
+        <div class="calc-highlight">
+          <span class="calc-highlight-lbl">Итого для клиента (с НДС 22%):</span>
+          <span class="calc-highlight-val" id="resSaleVat">0,00 ₽</span>
+        </div>
+      </div>
+
+      <button type="button" class="btn-copy-calc" onclick="copyCalcPrice()">
+        📋 Скопировать цену в буфер
+      </button>
+    </div>
+
+    <!-- Лист Коммерческого предложения -->
+    <div class="page">
+      <table class="head-grid">
+        <tr>
+          <td class="head-logo-cell">
+            <img src="logo.png" alt="РТСТАНДАРТ" class="logo" width="310" height="104" onerror="this.outerHTML='<b style=\'font-size:16pt;\'>РТСТАНДАРТ</b>'">
+          </td>
+          <td class="head-req-cell">
+            <b>ООО "РТСТАНДАРТ"</b><br>
+            г. Санкт-Петербург, наб. Обводного канала, д. 23, лит. Г<br>
+            ИНН 7842228552<br>
+            +7 (812) 983-44-33
+          </td>
+        </tr>
+        <tr>
+          <td class="head-meta-cell">
+            <div class="kp-num-wrapper">
+              КП № <span class="kp-prefix" id="kpPrefix">10-09/</span>
+              <input type="text" class="kp-user-input" id="kpNumInput" placeholder="1" value="1" oninput="saveState(); updateDocumentTitle();">
+            </div><br>
+            От <input type="text" id="docDate" class="meta-input" style="width: 155px;" oninput="saveState()">
+          </td>
+          <td class="head-client-cell">
+            Заказчику:
+            <textarea rows="2" class="auto-grow client-textarea" id="clientBox" placeholder="можете вписать сюда наименование заказчика" oninput="saveState(); updateDocumentTitle();"></textarea>
+          </td>
+        </tr>
+      </table>
+
+      <div class="title">КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ</div>
+      <div class="intro">
+        Общество с ограниченной ответственностью «РТСтандарт», в лице генерального директора Маркова Дмитрия Евгеньевича, действующего на основании Устава, предлагает рассмотреть возможность поставки следующего оборудования:
+      </div>
+
+      <!-- Таблица спецификации -->
+      <table class="spec" id="itemsTable">
+        <thead>
+          <tr>
+            <th style="width: 4%;">№</th>
+            <th style="width: 25%;">Наименование товара</th>
+            <th style="width: 30%;">Основные характеристики предложенного товара и прочие условия</th>
+            <th style="width: 8%;">Страна</th>
+            <th style="width: 7%;">Кол-во, шт.</th>
+            <th style="width: 12%;">Цена за ед. руб., включая НДС 22%</th>
+            <th style="width: 14%;">Сумма руб., включая НДС 22%</th>
+            <th class="no-print" style="width: 25px; border: none; background: #fff;"></th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <tr>
+            <td class="c col-num-cell row-idx">1</td>
+            <td class="col-text-cell"><textarea class="auto-grow col-name" placeholder="Впиши наименование" oninput="saveState()"></textarea></td>
+            <td class="col-text-cell"><textarea class="auto-grow col-desc" placeholder="впиши характеристики" oninput="saveState()"></textarea></td>
+            <td class="c col-num-cell"><input type="text" class="inp-text c col-country" placeholder="Китай" value="Китай" oninput="saveState()"></td>
+            <td class="c col-num-cell"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1" oninput="recalc(); saveState();"></td>
+            <td class="c col-num-cell">
+              <input type="text" class="inp-text r col-price" placeholder="500,00" data-raw="0" value=""
+                     onfocus="onPriceFocus(this)" 
+                     onblur="onPriceBlur(this)" 
+                     oninput="onPriceInput(this)"
+                     onkeydown="onPriceKeyDown(event, this)">
+            </td>
+            <td class="r col-num-cell col-total" style="font-weight:bold;">0,00</td>
+            <td class="no-print c" style="border:none;"><button class="btn-del" onclick="deleteRow(this)">✕</button></td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr class="t-tot">
+            <td colspan="6" class="r" style="padding-right: 8px;">ИТОГО:</td>
+            <td id="grandTotal" class="r">0,00</td>
+            <td class="no-print" style="border:none; background:#fff;"></td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <div class="tot-phrase" id="textTotalBlock">
+        ИТОГО: 0 (ноль) рублей 00 копеек, в том числе НДС 22% 0 (ноль) рублей 00 копеек.
+      </div>
+
+      <!-- Таблица условий -->
+      <table class="cond">
+        <tr>
+          <td class="cond-lbl">Срок поставки</td>
+          <td><textarea class="auto-grow cond-val" oninput="saveState()">5-10(пять-десять) рабочих дней</textarea></td>
+        </tr>
+        <tr>
+          <td class="cond-lbl">Условия оплаты</td>
+          <td><textarea class="auto-grow cond-val" oninput="saveState()">100% постоплата</textarea></td>
+        </tr>
+        <tr>
+          <td class="cond-lbl">Доставка</td>
+          <td><textarea class="auto-grow cond-val" oninput="saveState()">Доставка товара до адреса заказчика включена</textarea></td>
+        </tr>
+        <tr>
+          <td class="cond-lbl">Гарантия</td>
+          <td><textarea class="auto-grow cond-val" oninput="saveState()">12 месяцев с возможностью расширения до 5 лет. Выезд инженера в рамках гарантийного ремонта по адресу Заказчика – опционально. Обслуживание On-site (на месте) / Keep Your Drive (KYD) ремонт с сохранением жестких дисков у клиента – опционально..</textarea></td>
+        </tr>
+      </table>
+
+      <!-- Неразрывный подвал -->
+      <div class="keep-together-block">
+        <div class="sign-row">
+          <div>
+            Генеральный директор<br>
+            ООО «РТСтандарт»
+          </div>
+          <div style="position: relative; width: 320px; text-align: right; padding-top: 10px;">
+            <span style="border-bottom: 1px solid #000; display: inline-block; width: 140px;"></span>
+            &nbsp;/ Марков Д.Е.
+            <div class="stamp-box">
+              <img src="stamp.png" alt="Печать" width="170" onerror="this.style.display='none'">
+            </div>
+          </div>
+        </div>
+
+        <div class="contacts">
+          Исп.<br>
+          Коммерческий департамент<br>
+          ООО «РТСтандарт»<br>
+          E-mail: info@liscorp.ru<br>
+          +7 (981) 040-10-70<br>
+          +7 (812) 983-44-33<br>
+          https://liscorp.ru/
+        </div>
       </div>
     </div>
   </div>
 
   <script>
     const STORAGE_KEY = 'rtstandard_kp_draft_v1';
+    let currentMarginMode = 'rub'; // 'rub' или 'pct'
+
+    function setMarginMode(mode) {
+      currentMarginMode = mode;
+      document.getElementById('btnModeRub').classList.toggle('active', mode === 'rub');
+      document.getElementById('btnModePct').classList.toggle('active', mode === 'pct');
+      
+      const input = document.getElementById('calcProfitTarget');
+      input.placeholder = mode === 'rub' ? '15 000' : '15';
+      calculateMargin();
+    }
+
+    function calculateMargin() {
+      const cVat = parseNum(document.getElementById('calcCostVat').value);
+      const targetVal = parseNum(document.getElementById('calcProfitTarget').value);
+
+      if (cVat <= 0) {
+        document.getElementById('resCostNet').textContent = '0,00 ₽';
+        document.getElementById('resNetProfit').textContent = '0,00 ₽';
+        document.getElementById('resProfitTax').textContent = '0,00 ₽';
+        document.getElementById('resVatPayable').textContent = '0,00 ₽';
+        document.getElementById('resSaleNet').textContent = '0,00 ₽';
+        document.getElementById('resSaleVat').textContent = '0,00 ₽';
+        return;
+      }
+
+      const vatRate = 0.22;
+      const taxRate = 0.25;
+
+      // 1. Себестоимость без НДС
+      const cNet = cVat / (1 + vatRate);
+      const vatIn = cVat - cNet;
+
+      // 2. Желаемая чистая прибыль
+      let netProfit = 0;
+      if (currentMarginMode === 'rub') {
+        netProfit = targetVal;
+      } else {
+        // В %: процент чистой прибыли от себестоимости закупки
+        netProfit = cVat * (targetVal / 100);
+      }
+
+      // 3. Доналоговая прибыль (EBT): с учетом налога на прибыль 25%
+      const ebt = netProfit / (1 - taxRate);
+      const profitTax = ebt * taxRate;
+
+      // 4. Продажа без НДС
+      const saleNet = cNet + ebt;
+
+      // 5. Исходящий НДС и НДС к доплате
+      const vatOut = saleNet * vatRate;
+      const vatPayable = vatOut - vatIn;
+
+      // 6. Итоговая цена для клиента с НДС 22%
+      const saleVat = saleNet * (1 + vatRate);
+
+      document.getElementById('resCostNet').textContent = fmt(cNet) + ' ₽';
+      document.getElementById('resNetProfit').textContent = fmt(netProfit) + ' ₽';
+      document.getElementById('resProfitTax').textContent = fmt(profitTax) + ' ₽';
+      document.getElementById('resVatPayable').textContent = fmt(vatPayable) + ' ₽';
+      document.getElementById('resSaleNet').textContent = fmt(saleNet) + ' ₽';
+      document.getElementById('resSaleVat').textContent = fmt(saleVat) + ' ₽';
+      document.getElementById('resSaleVat').setAttribute('data-val', saleVat.toFixed(2));
+    }
+
+    function copyCalcPrice() {
+      const val = document.getElementById('resSaleVat').getAttribute('data-val');
+      if (!val || parseFloat(val) <= 0) return;
+      navigator.clipboard.writeText(val).then(() => {
+        const btn = document.querySelector('.btn-copy-calc');
+        const orig = btn.innerHTML;
+        btn.innerHTML = '✅ Скопировано!';
+        setTimeout(() => btn.innerHTML = orig, 1500);
+      });
+    }
 
     function autoResizeTextarea(el) {
       el.style.height = 'auto';
@@ -496,16 +781,13 @@
       }
     }
 
-    // Автоматическая генерация имени файла: КП-Наименование компании-Номер
     function updateDocumentTitle() {
       const clientVal = (document.getElementById('clientBox')?.value || '').trim();
       let company = 'РТСтандарт';
       if (clientVal) {
-        // Берём первую строку наименования заказчика
         const firstLine = clientVal.split('\n')[0].trim();
         if (firstLine) company = firstLine;
       }
-      // Очищаем от недопустимых в именах файлов символов
       company = company.replace(/["'«»\\/:*?<>|]+/g, ' ').replace(/\s+/g, ' ').trim();
 
       const prefix = (document.getElementById('kpPrefix')?.textContent || '').replace(/[\/\\]/g, '-');
@@ -820,7 +1102,6 @@
 
     window.addEventListener('load', () => {
       initAutoResize();
-      updateDocumentTitle();
     });
   </script>
 </body>
