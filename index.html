@@ -602,13 +602,11 @@
           </div>
         </div>
 
-        <!-- Режим 1: прямой ввод дней -->
         <div class="calc-input-wrap" id="wrapFinanceDays">
           <input type="number" id="calcFinanceDaysInput" class="calc-input" style="width: 85px; text-align: center;" min="0" step="1" placeholder="0 дн." oninput="onFinanceDaysChange()">
           <input type="text" id="calcFinanceCostDisplay" class="calc-input calc-input-readonly" readonly value="0,00 ₽" title="Стоимость пользования денежными средствами">
         </div>
 
-        <!-- Режим 2: шаг в неделю -->
         <div class="calc-input-wrap" id="wrapFinanceWeeks" style="display: none;">
           <button type="button" class="btn-step" onclick="stepFinanceWeeks(-1)">-1 нед</button>
           <button type="button" class="btn-step" onclick="stepFinanceWeeks(1)">+1 нед</button>
@@ -773,11 +771,11 @@
       <table class="cond">
         <tr>
           <td class="cond-lbl">Срок поставки</td>
-          <td><textarea class="auto-grow cond-val" oninput="saveState()">5-10(пять-десять) рабочих дней</textarea></td>
+          <td><textarea class="auto-grow cond-val" id="condDeliveryTerm" oninput="saveState()">5-10(пять-десять) рабочих дней</textarea></td>
         </tr>
         <tr>
           <td class="cond-lbl">Условия оплаты</td>
-          <td><textarea class="auto-grow cond-val" oninput="saveState()">100% постоплата</textarea></td>
+          <td><textarea class="auto-grow cond-val" id="condPaymentTerm" oninput="saveState()">100% постоплата</textarea></td>
         </tr>
         <tr>
           <td class="cond-lbl">Доставка</td>
@@ -790,7 +788,7 @@
         </tr>
         <tr>
           <td class="cond-lbl">Гарантия</td>
-          <td><textarea class="auto-grow cond-val" oninput="saveState()">12 месяцев с возможностью расширения до 5 лет. Выезд инженера в рамках гарантийного ремонта по адресу Заказчика – опционально. Обслуживание On-site (на месте) / Keep Your Drive (KYD) ремонт с сохранением жестких дисков у клиента – опционально..</textarea></td>
+          <td><textarea class="auto-grow cond-val" id="condWarranty" oninput="saveState()">12 месяцев с возможностью расширения до 5 лет. Выезд инженера в рамках гарантийного ремонта по адресу Заказчика – опционально. Обслуживание On-site (на месте) / Keep Your Drive (KYD) ремонт с сохранением жестких дисков у клиента – опционально..</textarea></td>
         </tr>
       </table>
 
@@ -826,9 +824,17 @@
   <script>
     const STORAGE_KEY = 'rtstandard_kp_draft_v1';
     let currentMarginMode = 'rub';
-    let currentFinanceMode = 'days'; // 'days' или 'weeks'
+    let currentFinanceMode = 'days';
     let financeDays = 0;
     let isCalcCollapsed = false;
+
+    // Стандартные заводские условия
+    const DEFAULT_CONDITIONS = {
+      deliveryTerm: '5-10(пять-десять) рабочих дней',
+      paymentTerm: '100% постоплата',
+      deliveryType: 'Доставка товара до адреса заказчика включена',
+      warranty: '12 месяцев с возможностью расширения до 5 лет. Выезд инженера в рамках гарантийного ремонта по адресу Заказчика – опционально. Обслуживание On-site (на месте) / Keep Your Drive (KYD) ремонт с сохранением жестких дисков у клиента – опционально..'
+    };
 
     function toggleCalcSidebar() {
       const sidebar = document.getElementById('calcSidebar');
@@ -891,7 +897,6 @@
     function getFinanceCost() {
       const cVat = parseNum(document.getElementById('calcCostVat').value);
       if (cVat <= 0 || financeDays <= 0) return 0;
-      // 28% годовых от суммы закупки с НДС
       return cVat * 0.28 * (financeDays / 365);
     }
 
@@ -899,7 +904,6 @@
       const cost = getFinanceCost();
       const weeks = Math.round(financeDays / 7 * 10) / 10;
 
-      // Обновление полей в интерфейсе
       const daysInput = document.getElementById('calcFinanceDaysInput');
       if (daysInput && document.activeElement !== daysInput) {
         daysInput.value = financeDays > 0 ? financeDays : '';
@@ -1026,7 +1030,6 @@
       const isDeliveryIncluded = select && select.value.indexOf('Доставка товара') !== -1;
       const deliveryCostVat = isDeliveryIncluded ? parseNum(document.getElementById('calcDeliveryCost')?.value) : 0;
       
-      // Закупка + доставка + стоимость финансирования
       const financeCost = getFinanceCost();
       const totalCostVat = sumBatch + deliveryCostVat + financeCost;
 
@@ -1528,9 +1531,11 @@
       }
     }
 
+    // Восстановление заводских условий при очистке формы
     function clearForm() {
       if (!confirm('Вы уверены, что хотите очистить весь бланк?')) return;
       localStorage.removeItem(STORAGE_KEY);
+      
       document.getElementById('clientBox').value = '';
       document.getElementById('kpNumInput').value = '1';
       document.getElementById('docDate').value = '';
@@ -1549,6 +1554,17 @@
       onBatchInput();
       
       setDateAndKpPrefix();
+
+      // Восстанавливаем все условия поставки
+      const termEl = document.getElementById('condDeliveryTerm');
+      const payEl = document.getElementById('condPaymentTerm');
+      const delivEl = document.getElementById('deliverySelect');
+      const warEl = document.getElementById('condWarranty');
+
+      if (termEl) termEl.value = DEFAULT_CONDITIONS.deliveryTerm;
+      if (payEl) payEl.value = DEFAULT_CONDITIONS.paymentTerm;
+      if (delivEl) delivEl.value = DEFAULT_CONDITIONS.deliveryType;
+      if (warEl) warEl.value = DEFAULT_CONDITIONS.warranty;
 
       const tbody = document.getElementById('tableBody');
       tbody.innerHTML = `
