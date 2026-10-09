@@ -362,7 +362,7 @@
       padding-top: 10px !important;
     }
 
-    /* Шапка ИП Захаров М.С. (по документу) */
+    /* Шапка ИП Захаров М.С. */
     .head-ip-block {
       margin-bottom: 12px;
     }
@@ -440,7 +440,7 @@
     .title { text-align: center; font-size: 12pt; font-weight: bold; margin: 12px 0 6px; }
     .intro { text-align: justify; text-indent: 10mm; font-size: 11pt; margin-bottom: 8px; line-height: 1.2; }
 
-    /* Таблица спецификации */
+    /* Таблица спецификации: фиксация ширины и защита от вылезания текста */
     table.spec { 
       width: 100%; 
       border-collapse: collapse; 
@@ -450,8 +450,10 @@
     }
     table.spec th, table.spec td { 
       border: 1px solid #000; 
-      padding: 4px 4px; 
+      padding: 4px 3px; 
       line-height: 1.15; 
+      word-wrap: break-word;
+      overflow-wrap: break-word;
     }
     table.spec td.col-text-cell {
       vertical-align: top;
@@ -469,9 +471,11 @@
       background-color: #ACB9CA !important; 
       text-align: center; 
       font-weight: bold; 
-      padding: 4px 2px;
+      padding: 5px 2px;
       vertical-align: middle;
-      font-size: 9.5pt;
+      font-size: 9pt;
+      hyphens: auto;
+      -webkit-hyphens: auto;
     }
     
     /* Шапка таблицы для ИП - строгая белая без заливки */
@@ -481,8 +485,10 @@
       font-weight: normal; 
       padding: 5px 2px;
       vertical-align: middle;
-      font-size: 9.5pt;
+      font-size: 9pt;
       border: 1px solid #000 !important;
+      hyphens: auto;
+      -webkit-hyphens: auto;
     }
 
     .auto-grow {
@@ -552,11 +558,11 @@
       font-weight: bold; 
     }
 
-    /* Текстовые условия ИП (по бланку без цветной таблицы) */
+    /* Редактируемые текстовые условия ИП */
     .ip-terms-block {
       margin: 12px 0 35px;
       font-size: 11pt;
-      line-height: 1.4;
+      line-height: 1.35;
     }
     .ip-term-line {
       margin-bottom: 6px;
@@ -566,6 +572,7 @@
     }
     .ip-term-label {
       font-weight: bold;
+      white-space: nowrap;
     }
     .ip-term-input {
       font-family: inherit;
@@ -596,7 +603,9 @@
       margin-top: 10px; 
       font-size: 11pt; 
     }
-    .stamp-box { 
+    
+    /* Печать ООО */
+    .stamp-box-rt { 
       position: absolute; 
       top: -28px; 
       right: 105px; 
@@ -604,11 +613,22 @@
       pointer-events: none; 
       opacity: 0.95; 
     }
-    .stamp-box img { width: 100%; display: block; }
+    .stamp-box-rt img { width: 100%; display: block; }
+
+    /* Печать ИП: выровнена так, чтобы синяя роспись ложилась ровно на черту подписи */
+    .stamp-box-ip { 
+      position: absolute; 
+      top: -118px; 
+      right: 98px; 
+      width: 165px; 
+      pointer-events: none; 
+      opacity: 0.95; 
+    }
+    .stamp-box-ip img { width: 100%; display: block; }
 
     .contacts { margin-top: 18px; font-size: 10pt; line-height: 1.25; }
 
-    /* Печать */
+    /* Печать на принтер / PDF */
     @page { 
       size: A4 portrait; 
       margin: 8mm 12mm 8mm 12mm; 
@@ -832,24 +852,24 @@
         </table>
       </div>
 
-      <!-- ШАПКА 2: ИП Захаров М.С. (по документу)[cite: 5] -->
+      <!-- ШАПКА 2: ИП Захаров М.С. -->
       <div id="headerIp" style="display: none;" class="head-ip-block">
         <div class="head-ip-title">
-          Индивидуальный предприниматель Захаров Михаил Сергеевич ОГРНИП: 325110000002538 / ИНН: 110214010407
+          Индивидуальный предприниматель Захаров Михаил Сергеевич ОГРНИП: 325110000002538 / ИНН: 110214010407[cite: 5]
         </div>
         <div class="head-ip-contacts">
           Телефон +7 981 208-62-36<br>
-          e-mail: <a href="mailto:m.zakharov0811@gmail.com">m.zakharov0811@gmail.com</a>
+          e-mail: <a href="mailto:m.zakharov0811@gmail.com">m.zakharov0811@gmail.com</a>[cite: 5]
         </div>
         <table class="head-ip-meta-table">
           <tr>
             <td style="width: 50%;">
-              <b>Исх. № <input type="text" class="meta-input" id="kpNumInputIp" style="width: 55px; font-weight: bold;" value="289" oninput="saveState(); updateDocumentTitle();"></b>
+              <b>Исх. № <input type="text" class="meta-input" id="kpNumInputIp" style="width: 55px; font-weight: bold;" value="289" oninput="saveState(); updateDocumentTitle();"></b>[cite: 5]
               от «<input type="text" class="meta-input" id="docDateIpDay" style="width: 25px; text-align: center;" value="10" oninput="saveState()">» 
-              <input type="text" class="meta-input" id="docDateIpMonth" style="width: 90px;" value="октября" oninput="saveState()"> 2026 года
+              <input type="text" class="meta-input" id="docDateIpMonth" style="width: 90px;" value="октября" oninput="saveState()"> 2026 года[cite: 5]
             </td>
             <td style="width: 50%; padding-left: 15px;">
-              <b>Заказчику:</b>
+              <b>Заказчику:</b>[cite: 5]
               <textarea rows="2" class="auto-grow client-textarea" id="clientBoxIp" placeholder="можете вписать сюда наименование заказчика" oninput="syncClientInputs(this); saveState(); updateDocumentTitle();"></textarea>
             </td>
           </tr>
@@ -868,12 +888,12 @@
         <thead>
           <tr>
             <th style="width: 4%;">№</th>
-            <th style="width: 25%;">Наименование товара</th>
-            <th style="width: 30%;" id="thDesc">Основные характеристики предложенного товара и прочие условия</th>
-            <th style="width: 8%;" id="thCountry">Страна</th>
-            <th style="width: 7%;" id="thQty">Кол-во, шт.</th>
+            <th style="width: 24%;">Наименование товара</th>
+            <th style="width: 29%;" id="thDesc">Основные характеристики предложенного товара и прочие условия</th>
+            <th style="width: 10%;" id="thCountry">Страна</th>
+            <th style="width: 8%;" id="thQty">Кол-во, шт.</th>
             <th style="width: 12%;" id="thPrice">Цена за ед. руб., включая НДС 22%</th>
-            <th style="width: 14%;" id="thTotal">Сумма руб., включая НДС 22%</th>
+            <th style="width: 13%;" id="thTotal">Сумма руб., включая НДС 22%</th>
             <th class="no-print" style="width: 25px; border: none; background: #fff;"></th>
           </tr>
         </thead>
@@ -936,7 +956,7 @@
         </table>
       </div>
 
-      <!-- ВАРИАНТ 2: Условия ИП (лаконичный строгий текст по бланку без цветной таблицы)[cite: 5] -->
+      <!-- ВАРИАНТ 2: 4 редактируемых условия ИП[cite: 7] -->
       <div id="termsIp" style="display: none;" class="ip-terms-block">
         <div class="ip-term-line">
           <span class="ip-term-label">Срок поставки:</span>
@@ -948,6 +968,14 @@
             <option value="Доставка товара до адреса заказчика включена">включена в стоимость</option>
             <option value="Самовывоз со склада продавца">самовывоз со склада продавца</option>
           </select>
+        </div>
+        <div class="ip-term-line">
+          <span class="ip-term-label">Гарантия:</span>
+          <input type="text" class="ip-term-input" id="condWarrantyIp" value="12 (двенадцать) месяцев" oninput="saveState()">
+        </div>
+        <div class="ip-term-line">
+          <span class="ip-term-label">Условия оплаты:</span>
+          <input type="text" class="ip-term-input" id="condPaymentTermIp" value="100% постоплата" oninput="saveState()">
         </div>
       </div>
 
@@ -964,7 +992,7 @@
             <div style="position: relative; width: 320px; text-align: right; padding-top: 10px;">
               <span style="border-bottom: 1px solid #000; display: inline-block; width: 140px;"></span>
               &nbsp;/ Марков Д.Е.
-              <div class="stamp-box">
+              <div class="stamp-box-rt">
                 <img src="stamp.png" alt="Печать" width="170" onerror="this.style.display='none'">
               </div>
             </div>
@@ -981,17 +1009,17 @@
           </div>
         </div>
 
-        <!-- Подвал ИП Захаров М.С. (по документу)[cite: 5] -->
+        <!-- Подвал ИП Захаров М.С. (выровнен под росчерк на линии) -->
         <div id="footerIp" style="display: none;">
-          <div class="sign-row" style="margin-top: 25px; align-items: baseline;">
+          <div class="sign-row" style="margin-top: 35px; align-items: baseline;">
             <div>
               Индивидуальный предприниматель
             </div>
             <div style="position: relative; width: 340px; text-align: right;">
               <span style="border-bottom: 1px solid #000; display: inline-block; width: 150px;"></span>
               &nbsp;/ Захаров М.С.
-              <div class="stamp-box" style="top: -45px; right: 50px; width: 220px;">
-                <img src="stamp-ip.png" alt="Печать ИП" width="220" onerror="this.style.display='none'">
+              <div class="stamp-box-ip">
+                <img src="stamp-ip.png" alt="Печать ИП" width="165" onerror="this.style.display='none'">
               </div>
             </div>
           </div>
@@ -1028,7 +1056,7 @@
         thTotal: 'Сумма руб., включая НДС 5%',
         thDesc: 'Технические характеристики',
         thCountry: 'Страна происхождения',
-        thQty: 'Количество',
+        thQty: 'Кол-во',
         intro: 'Индивидуальный предприниматель Захаров Михаил Сергеевич, (ОГРНИП: 325110000002538 от 27.01.2025, ИНН: 110214010407, зарегистрирован по адресу Российская Федерация, 169300, Республика Коми, гор. Ухта, ул. Юбилейная, д. 13, кв. 62) предлагает к поставке следующее компьютерное оборудование:',
         badge: 'УСН 6%+1% | НДС 5%'
       }
@@ -1187,7 +1215,9 @@
       }
 
       const selIp = document.getElementById('deliverySelectIp');
-      if (selIp) selIp.value = select.value;
+      if (selIp && selIp.value !== select.value) {
+        selIp.value = select.value;
+      }
 
       calculateMargin();
       saveState();
@@ -1195,7 +1225,9 @@
 
     function onDeliveryChangeIp(selectIp) {
       const selectRt = document.getElementById('deliverySelect');
-      if (selectRt) selectRt.value = selectIp.value;
+      if (selectRt && selectRt.value !== selectIp.value) {
+        selectRt.value = selectIp.value;
+      }
       onDeliveryChange();
     }
 
@@ -1760,6 +1792,8 @@
           condWarranty: document.getElementById('condWarranty').value,
           condDeliveryTermIp: document.getElementById('condDeliveryTermIp').value,
           deliverySelectIp: document.getElementById('deliverySelectIp').value,
+          condWarrantyIp: document.getElementById('condWarrantyIp').value,
+          condPaymentTermIp: document.getElementById('condPaymentTermIp').value,
           rows: rows,
           calcCostVat: document.getElementById('calcCostVat')?.value || '',
           calcDeliveryCost: document.getElementById('calcDeliveryCost')?.value || '',
@@ -1799,6 +1833,8 @@
         if (state.condWarranty) document.getElementById('condWarranty').value = state.condWarranty;
         if (state.condDeliveryTermIp) document.getElementById('condDeliveryTermIp').value = state.condDeliveryTermIp;
         if (state.deliverySelectIp) document.getElementById('deliverySelectIp').value = state.deliverySelectIp;
+        if (state.condWarrantyIp) document.getElementById('condWarrantyIp').value = state.condWarrantyIp;
+        if (state.condPaymentTermIp) document.getElementById('condPaymentTermIp').value = state.condPaymentTermIp;
 
         if (state.calcCostVat) document.getElementById('calcCostVat').value = state.calcCostVat;
         if (state.calcDeliveryCost) document.getElementById('calcDeliveryCost').value = state.calcDeliveryCost;
@@ -1877,13 +1913,16 @@
       document.getElementById('condPaymentTerm').value = '100% постоплата';
       document.getElementById('deliverySelect').value = 'Доставка товара до адреса заказчика включена';
       document.getElementById('condWarranty').value = '12 месяцев с возможностью расширения до 5 лет. Выезд инженера в рамках гарантийного ремонта по адресу Заказчика – опционально. Обслуживание On-site (на месте) / Keep Your Drive (KYD) ремонт с сохранением жестких дисков у клиента – опционально..';
+      
       document.getElementById('condDeliveryTermIp').value = '1-2 недели';
       document.getElementById('deliverySelectIp').value = 'Доставка товара до адреса заказчика включена';
+      document.getElementById('condWarrantyIp').value = '12 (двенадцать) месяцев';
+      document.getElementById('condPaymentTermIp').value = '100% постоплата';
 
       const tbody = document.getElementById('tableBody');
       tbody.innerHTML = `
         <tr>
-          <td class="c col-num-cell row-idx">1</td>
+          <td class="c col-num-cell row-idx">${1}</td>
           <td class="col-text-cell"><textarea class="auto-grow col-name" placeholder="Впиши наименование" oninput="saveState()"></textarea></td>
           <td class="col-text-cell"><textarea class="auto-grow col-desc" placeholder="впиши характеристики" oninput="saveState()"></textarea></td>
           <td class="c col-num-cell"><input type="text" class="inp-text c col-country" placeholder="Китай" value="Китай" oninput="saveState()"></td>
