@@ -55,7 +55,7 @@
 
     /* Калькулятор слева */
     .calc-sidebar {
-      width: 290px;
+      width: 300px;
       background: #ffffff;
       border-radius: 8px;
       padding: 16px;
@@ -185,6 +185,67 @@
       gap: 6px;
     }
     .btn-copy-calc:hover { background: #1d4ed8; }
+
+    /* Блок вставки столбца цен из Excel */
+    .calc-batch-box {
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 2px dashed #e2e8f0;
+    }
+    .calc-batch-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .calc-batch-hint {
+      font-size: 11px;
+      color: #64748b;
+      margin-bottom: 6px;
+    }
+    .calc-textarea-batch {
+      width: 100%;
+      height: 110px;
+      padding: 8px;
+      border: 1px solid #cbd5e1;
+      border-radius: 5px;
+      font-family: monospace;
+      font-size: 12px;
+      line-height: 1.35;
+      resize: vertical;
+      outline: none;
+      white-space: pre;
+    }
+    .calc-textarea-batch:focus {
+      border-color: #2563eb;
+    }
+    .calc-batch-info {
+      font-size: 11px;
+      color: #0369a1;
+      margin-top: 4px;
+      font-weight: 600;
+      min-height: 16px;
+    }
+    .btn-apply-batch {
+      width: 100%;
+      margin-top: 8px;
+      padding: 7px;
+      background: #059669;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .btn-apply-batch:hover { background: #047857; }
 
     /* Лист А4 */
     .page {
@@ -503,7 +564,7 @@
         </div>
       </div>
 
-      <!-- Поле стоимости доставки (показывается только при включенной доставке) -->
+      <!-- Поле доставки -->
       <div class="calc-field" id="calcDeliveryRow">
         <label class="calc-label" for="calcDeliveryCost">Доставка до клиента с НДС 22%, ₽</label>
         <div class="calc-input-wrap">
@@ -555,6 +616,22 @@
       <button type="button" class="btn-copy-calc" onclick="copyCalcPrice()">
         📋 Скопировать цену в буфер
       </button>
+
+      <!-- БЛОК ВСТАВКИ ЦЕН ИЗ EXCEL СО СТОЛБЦОМ И ПЕРЕНОСОМ СТРОК -->
+      <div class="calc-batch-box">
+        <div class="calc-batch-title">
+          <span>📥 Закупки позиций (из Excel)</span>
+        </div>
+        <div class="calc-batch-hint">
+          Вставьте сюда скопированный столбец цен (по одной на строку):
+        </div>
+        <textarea id="calcBatchText" class="calc-textarea-batch" placeholder="7400&#10;12500&#10;11699&#10;14670..." oninput="onBatchInput()"></textarea>
+        <div id="calcBatchInfo" class="calc-batch-info"></div>
+        <button type="button" class="btn-apply-batch" onclick="applyBatchPricesToKp()">
+          ⚡ Заполнить цены в таблицу КП
+        </button>
+      </div>
+
     </div>
 
     <!-- Лист Коммерческого предложения -->
@@ -705,7 +782,6 @@
       saveState();
     }
 
-    // Обработчик смены способа доставки
     function onDeliveryChange() {
       const select = document.getElementById('deliverySelect');
       const deliveryRow = document.getElementById('calcDeliveryRow');
@@ -718,16 +794,111 @@
       saveState();
     }
 
+    // Обработка вставленного столбца из Excel
+    function parseBatchLines() {
+      const text = document.getElementById('calcBatchText').value || '';
+      const lines = text.split(/\r?\n/);
+      const prices = [];
+      for (let line of lines) {
+        line = line.trim();
+        if (!line) continue;
+        const val = parseNum(line);
+        if (val > 0) {
+          prices.push(val);
+        }
+      }
+      return prices;
+    }
+
+    function onBatchInput() {
+      const prices = parseBatchLines();
+      const infoElem = document.getElementById('calcBatchInfo');
+      if (prices.length > 0) {
+        const sum = prices.reduce((a, b) => a + b, 0);
+        infoElem.textContent = `✓ Найдено: ${prices.length} поз. на сумму ${fmt(sum)} ₽`;
+        
+        // Автоматически передаем сумму в закупку калькулятора
+        const costInput = document.getElementById('calcCostVat');
+        if (costInput) {
+          costInput.value = fmt(sum);
+          calculateMargin();
+        }
+      } else {
+        infoElem.textContent = '';
+      }
+      saveState();
+    }
+
+    // Применение цен к таблице КП с учетом наценки и налогов
+    function applyBatchPricesToKp() {
+      const batchPrices = parseBatchLines();
+      if (batchPrices.length === 0) {
+        alert('Пожалуйста, сначала вставьте столбец с ценами закупки в поле ввода.');
+        return;
+      }
+
+      const vatRate = 0.22;
+      const taxRate = 0.25;
+      const targetVal = parseNum(document.getElementById('calcProfitTarget').value);
+
+      // Коэффициент наценки для каждой единицы
+      let markupMultiplier = 1;
+
+      const sumBatch = batchPrices.reduce((a, b) => a + b, 0);
+      const select = document.getElementById('deliverySelect');
+      const isDeliveryIncluded = select && select.value.indexOf('Доставка товара') !== -1;
+      const deliveryCostVat = isDeliveryIncluded ? parseNum(document.getElementById('calcDeliveryCost')?.value) : 0;
+      const totalCostVat = sumBatch + deliveryCostVat;
+
+      if (totalCostVat > 0) {
+        let netProfit = 0;
+        if (currentMarginMode === 'rub') {
+          netProfit = targetVal;
+        } else {
+          netProfit = totalCostVat * (targetVal / 100);
+        }
+        const ebt = netProfit / (1 - taxRate);
+        const totalSaleVat = ( (totalCostVat / (1 + vatRate)) + ebt ) * (1 + vatRate);
+        markupMultiplier = totalSaleVat / totalCostVat;
+      }
+
+      // Дополняем строки в таблице КП при необходимости
+      const tbody = document.getElementById('tableBody');
+      while (tbody.children.length < batchPrices.length) {
+        addRow(false);
+      }
+
+      const rows = tbody.querySelectorAll('tr');
+      batchPrices.forEach((cost, i) => {
+        if (i < rows.length) {
+          const row = rows[i];
+          const calculatedSalePrice = cost * markupMultiplier;
+          const priceInput = row.querySelector('.col-price');
+          if (priceInput) {
+            priceInput.setAttribute('data-raw', calculatedSalePrice.toFixed(2));
+            priceInput.value = fmt(calculatedSalePrice);
+          }
+        }
+      });
+
+      initAutoResize();
+      recalc();
+      saveState();
+
+      const btn = document.querySelector('.btn-apply-batch');
+      const orig = btn.innerHTML;
+      btn.innerHTML = '✅ Цены перенесены в КП!';
+      setTimeout(() => btn.innerHTML = orig, 1800);
+    }
+
     function calculateMargin() {
       const cVat = parseNum(document.getElementById('calcCostVat').value);
       const targetVal = parseNum(document.getElementById('calcProfitTarget').value);
 
-      // Учет доставки только если выбрана доставка
       const select = document.getElementById('deliverySelect');
       const isDeliveryIncluded = select && select.value.indexOf('Доставка товара') !== -1;
       const deliveryCostVat = isDeliveryIncluded ? parseNum(document.getElementById('calcDeliveryCost')?.value) : 0;
 
-      // Общая закупка (товар + доставка)
       const totalCostVat = cVat + deliveryCostVat;
 
       if (totalCostVat <= 0) {
@@ -744,11 +915,9 @@
       const vatRate = 0.22;
       const taxRate = 0.25;
 
-      // Себестоимость без НДС
       const totalCostNet = totalCostVat / (1 + vatRate);
       const vatIn = totalCostVat - totalCostNet;
 
-      // Чистая прибыль
       let netProfit = 0;
       if (currentMarginMode === 'rub') {
         netProfit = targetVal;
@@ -756,11 +925,9 @@
         netProfit = totalCostVat * (targetVal / 100);
       }
 
-      // Доналоговая прибыль (EBT)
       const ebt = netProfit / (1 - taxRate);
       const profitTax = ebt * taxRate;
 
-      // Выручка
       const saleNet = totalCostNet + ebt;
       const vatOut = saleNet * vatRate;
       const vatPayable = vatOut - vatIn;
@@ -787,7 +954,7 @@
     }
 
     function autoResizeTextarea(el) {
-      if (el.tagName.toLowerCase() === 'textarea') {
+      if (el.tagName.toLowerCase() === 'textarea' && el.classList.contains('auto-grow')) {
         el.style.height = 'auto';
         el.style.height = el.scrollHeight + 'px';
       }
@@ -1040,7 +1207,8 @@
           calcCostVat: document.getElementById('calcCostVat')?.value || '',
           calcDeliveryCost: document.getElementById('calcDeliveryCost')?.value || '',
           calcProfitTarget: document.getElementById('calcProfitTarget')?.value || '',
-          calcMarginMode: currentMarginMode
+          calcMarginMode: currentMarginMode,
+          calcBatchText: document.getElementById('calcBatchText')?.value || ''
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
       } catch (e) {
@@ -1068,6 +1236,10 @@
         if (state.calcDeliveryCost) document.getElementById('calcDeliveryCost').value = state.calcDeliveryCost;
         if (state.calcProfitTarget) document.getElementById('calcProfitTarget').value = state.calcProfitTarget;
         if (state.calcMarginMode) setMarginMode(state.calcMarginMode);
+        if (state.calcBatchText) {
+          document.getElementById('calcBatchText').value = state.calcBatchText;
+          onBatchInput();
+        }
 
         if (state.rows && state.rows.length > 0) {
           const tbody = document.getElementById('tableBody');
@@ -1111,9 +1283,12 @@
       const costVat = document.getElementById('calcCostVat');
       const delCost = document.getElementById('calcDeliveryCost');
       const targetP = document.getElementById('calcProfitTarget');
+      const batchT = document.getElementById('calcBatchText');
       if (costVat) costVat.value = '';
       if (delCost) delCost.value = '';
       if (targetP) targetP.value = '';
+      if (batchT) batchT.value = '';
+      onBatchInput();
       
       setDateAndKpPrefix();
 
