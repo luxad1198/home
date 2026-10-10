@@ -11,11 +11,17 @@
       print-color-adjust: exact !important;
       color-adjust: exact !important;
     }
-    body { background: #3f3f46; margin: 0; padding: 20px 10px; color: #000; }
+    body { 
+      background: #3f3f46; 
+      margin: 0; 
+      padding: 20px 20px 40px; 
+      color: #000; 
+      overflow-x: auto;
+    }
     
     .panel {
       width: 210mm;
-      margin: 0 auto 14px;
+      margin: 0 0 16px 545px; /* Выравнивание панели ровно над центрированным листом А4 */
       background: #fff;
       padding: 10px 16px;
       border-radius: 6px;
@@ -24,7 +30,7 @@
       align-items: center;
       font-family: Arial, sans-serif;
       gap: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.3);
     }
     .panel-left { display: flex; gap: 8px; align-items: center; }
     .panel-right { display: flex; gap: 8px; align-items: center; }
@@ -73,43 +79,41 @@
       box-shadow: 0 1px 3px rgba(0,0,0,0.15);
     }
 
-    /* Оболочка макета страницы */
+    /* Оболочка макета, оптимизированная под 16:9 (1880px) */
     .app-layout {
       position: relative;
-      width: 100%;
-      max-width: 1720px;
-      margin: 0 auto;
+      width: 1880px;
+      margin: 0; /* Фиксировано слева, на широких мониторах пустое серое поле остаётся справа */
     }
 
-    /* Боковые колонки с картинками-комиксами */
+    /* Увеличенные боковые колонки комиксов */
     .side-comics-col {
       position: absolute;
-      width: 290px;
+      width: 515px; /* Заполняют почти всё серое пространство */
       display: flex;
       flex-direction: column;
-      gap: 18px;
+      gap: 20px;
       top: 0;
-      z-index: 10; /* Стоят ЗА калькулятором */
+      z-index: 10;
     }
     .side-comics-left {
-      left: 10px;
+      left: 0;
     }
     .side-comics-right {
-      right: 10px;
+      left: 1365px; /* 515px (левая колонка) + 30px + 794px (А4) + 26px отступ */
     }
     .comic-card {
       width: 100%;
-      border-radius: 8px;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+      border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.45);
       border: 2px solid #27272a;
       overflow: hidden;
       background: #18181b;
-      min-height: 120px;
       transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
     .comic-card:hover {
-      transform: scale(1.02);
-      box-shadow: 0 10px 24px rgba(0,0,0,0.5);
+      transform: scale(1.015);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.6);
     }
     .comic-card img {
       width: 100%;
@@ -117,20 +121,20 @@
       display: block;
     }
 
-    /* Калькулятор слева: поверх картинок */
+    /* Калькулятор слева: поверх комиксов */
     .calc-sidebar {
-      width: 320px;
+      width: 325px;
       background: #ffffff;
       border-radius: 8px;
       padding: 16px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.55);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       font-size: 13px;
       line-height: 1.4;
       position: absolute;
-      left: 0px;
-      top: 0;
-      z-index: 50; /* Поверх картинок */
+      left: 15px;
+      top: 15px;
+      z-index: 50;
       transition: opacity 0.2s ease, transform 0.2s ease;
     }
     .calc-sidebar.collapsed {
@@ -345,18 +349,18 @@
     }
     .btn-apply-batch:hover { background: #047857; }
 
-    /* Лист А4: СТРОГО ПО ЦЕНТРУ */
+    /* Лист А4 */
     .page {
       width: 210mm;
       min-height: 297mm;
       padding: 10mm 15mm 12mm 15mm;
       background: #fff;
-      box-shadow: 0 4px 25px rgba(0,0,0,0.45);
+      box-shadow: 0 6px 28px rgba(0,0,0,0.5);
       position: relative;
       font-size: 11.5pt;
       line-height: 1.15;
       flex-shrink: 0;
-      margin: 0 auto;
+      margin: 0 0 0 545px; /* Строгое положение между левой и правой колонками */
       z-index: 30;
     }
 
@@ -652,7 +656,7 @@
     }
     .stamp-box-rt img { width: 100%; display: block; }
 
-    /* Печать ИП */
+    /* Печать ИП: 220px */
     .stamp-box-ip { 
       position: absolute; 
       top: -65px; 
@@ -665,7 +669,7 @@
 
     .contacts { margin-top: 18px; font-size: 10pt; line-height: 1.25; }
 
-    /* Контакты составителя ИП */
+    /* Контакты составителя ИП внизу слева */
     .ip-author-contacts {
       font-size: 10pt;
       line-height: 1.35;
@@ -694,6 +698,7 @@
       }
       .app-layout {
         display: block !important;
+        width: 100% !important;
         margin: 0 !important;
       }
       .page {
@@ -753,7 +758,7 @@
 
   <div class="app-layout">
 
-    <!-- 3 КАРТИНКИ СЛЕВА: ФАЙЛЫ PNG, ИДУТ СВЕРХУ ЗА КАЛЬКУЛЯТОРОМ -->
+    <!-- 3 КАРТИНКИ СЛЕВА (ШИРИНА 515px) -->
     <div class="side-comics-col side-comics-left no-print">
       <div class="comic-card">
         <img src="bg-thumb1.png" alt="Выбор пути">
@@ -766,7 +771,7 @@
       </div>
     </div>
 
-    <!-- 3 КАРТИНКИ СПРАВА: ФАЙЛЫ PNG -->
+    <!-- 3 КАРТИНКИ СПРАВА (ШИРИНА 515px) -->
     <div class="side-comics-col side-comics-right no-print">
       <div class="comic-card">
         <img src="bg-thumb4.png" alt="Все нормально">
@@ -1147,12 +1152,15 @@
       document.getElementById('btnCompRt').classList.toggle('active', comp === 'rt');
       document.getElementById('btnCompIp').classList.toggle('active', comp === 'ip');
 
+      // Шапка
       document.getElementById('headerRt').style.display = comp === 'rt' ? 'block' : 'none';
       document.getElementById('headerIp').style.display = comp === 'ip' ? 'block' : 'none';
 
+      // Условия под таблицей
       document.getElementById('termsRt').style.display = comp === 'rt' ? 'block' : 'none';
       document.getElementById('termsIp').style.display = comp === 'ip' ? 'block' : 'none';
 
+      // Подвал
       document.getElementById('footerRt').style.display = comp === 'rt' ? 'block' : 'none';
       document.getElementById('footerIp').style.display = comp === 'ip' ? 'block' : 'none';
 
