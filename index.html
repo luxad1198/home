@@ -88,13 +88,13 @@
       display: flex;
       justify-content: center;
       align-items: flex-start;
-      gap: 24px;
+      gap: 25px; /* Зазор ровно 25px между колонками и КП */
       width: 100%;
       max-width: 2150px;
       margin: 0 auto;
     }
 
-    /* Боковые колонки картинок: размер как у нижней правой (620px) */
+    /* Боковые колонки картинок: 620px */
     .side-comics-col {
       width: 620px;
       flex-shrink: 0;
@@ -112,7 +112,7 @@
       border: 2px solid #27272a;
       overflow: hidden;
       background: #18181b;
-      aspect-ratio: 16 / 9.8; /* Единый пропорциональный размер для всех */
+      aspect-ratio: 16 / 9.8;
       transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
     .comic-card:hover {
@@ -126,7 +126,7 @@
       display: block;
     }
 
-    /* Калькулятор слева: поверх левых картинок */
+    /* Калькулятор слева: прижат к правому краю левой колонки с зазором 25px до КП */
     .calc-sidebar {
       width: 325px;
       background: #ffffff;
@@ -137,8 +137,8 @@
       font-size: 13px;
       line-height: 1.4;
       position: absolute;
-      left: 12px;
-      top: -60px;
+      right: 0px; /* Прижат к правому краю левой колонки (зазор до листа КП ровно 25px) */
+      top: 0px;
       z-index: 50;
       transition: opacity 0.2s ease, transform 0.2s ease;
     }
@@ -763,8 +763,118 @@
 
   <div class="app-layout">
 
-    <!-- 3 КАРТИНКИ СЛЕВА: РАЗМЕР 620px (КАК СПРАВА СНИЗУ) -->
+    <!-- 3 КАРТИНКИ СЛЕВА -->
     <div class="side-comics-col side-comics-left no-print">
+      <!-- Калькулятор теперь внутри левой колонки и прижат к её правому краю -->
+      <div class="calc-sidebar no-print" id="calcSidebar">
+        <div class="calc-title">
+          <span>📊 Расчет цены и налогов</span>
+          <span class="calc-badge" id="calcTaxBadge">ОСНО: НДС 22%</span>
+        </div>
+
+        <div class="calc-field">
+          <label class="calc-label" for="calcCostVat">Закупка товара с НДС 22%, ₽</label>
+          <div class="calc-input-wrap">
+            <input type="text" id="calcCostVat" class="calc-input" placeholder="например 100 000" oninput="calculateMargin(); saveState();">
+          </div>
+        </div>
+
+        <!-- Пользование деньгами -->
+        <div class="calc-field">
+          <div class="calc-label">
+            <span>Финансирование (28% год.)</span>
+            <div class="calc-toggle">
+              <button type="button" class="calc-toggle-btn active" id="btnFinanceDays" onclick="setFinanceMode('days')">Дни</button>
+              <button type="button" class="calc-toggle-btn" id="btnFinanceWeeks" onclick="setFinanceMode('weeks')">Недели</button>
+            </div>
+          </div>
+
+          <div class="calc-input-wrap" id="wrapFinanceDays">
+            <input type="number" id="calcFinanceDaysInput" class="calc-input" style="width: 85px; text-align: center;" min="0" step="1" placeholder="0 дн." oninput="onFinanceDaysChange()">
+            <input type="text" id="calcFinanceCostDisplay" class="calc-input calc-input-readonly" readonly value="0,00 ₽" title="Стоимость пользования денежными средствами">
+          </div>
+
+          <div class="calc-input-wrap" id="wrapFinanceWeeks" style="display: none;">
+            <button type="button" class="btn-step" onclick="stepFinanceWeeks(-1)">-1 нед</button>
+            <button type="button" class="btn-step" onclick="stepFinanceWeeks(1)">+1 нед</button>
+            <input type="text" id="calcFinanceWeeksDisplay" class="calc-input calc-input-readonly" readonly value="0,00 ₽ (0 нед)">
+          </div>
+        </div>
+
+        <!-- Поле доставки -->
+        <div class="calc-field" id="calcDeliveryRow">
+          <label class="calc-label" for="calcDeliveryCost">Доставка до клиента с НДС, ₽</label>
+          <div class="calc-input-wrap">
+            <input type="text" id="calcDeliveryCost" class="calc-input" placeholder="например 3 500" oninput="calculateMargin(); saveState();">
+          </div>
+        </div>
+
+        <div class="calc-field">
+          <div class="calc-label">
+            <span>Желаемая прибыль</span>
+            <div class="calc-toggle">
+              <button type="button" class="calc-toggle-btn active" id="btnModeRub" onclick="setMarginMode('rub')">₽</button>
+              <button type="button" class="calc-toggle-btn" id="btnModePct" onclick="setMarginMode('pct')">%</button>
+            </div>
+          </div>
+          <div class="calc-input-wrap">
+            <input type="text" id="calcProfitTarget" class="calc-input" placeholder="15 000" oninput="calculateMargin(); saveState();">
+          </div>
+        </div>
+
+        <div class="calc-result-box">
+          <div class="calc-res-row">
+            <span>Себестоимость затрат:</span>
+            <span id="resCostNet">0,00 ₽</span>
+          </div>
+          <div class="calc-res-row">
+            <span>Финансирование сделки:</span>
+            <span id="resFinanceCost" style="color: #d97706;">0,00 ₽</span>
+          </div>
+          <div class="calc-res-row">
+            <span>Чистая прибыль (факт):</span>
+            <span id="resNetProfit" style="color: #16a34a;">0,00 ₽</span>
+          </div>
+          <div class="calc-res-row">
+            <span id="lblProfitTax">Налог на прибыль (25%):</span>
+            <span id="resProfitTax">0,00 ₽</span>
+          </div>
+          <div class="calc-res-row">
+            <span id="lblVatPayable">НДС к уплате (22%):</span>
+            <span id="resVatPayable">0,00 ₽</span>
+          </div>
+          <div class="calc-res-row">
+            <span>Цена без НДС:</span>
+            <span id="resSaleNet">0,00 ₽</span>
+          </div>
+
+          <div class="calc-highlight">
+            <span class="calc-highlight-lbl" id="lblSaleTotalVat">Итого для клиента (с НДС 22%):</span>
+            <span class="calc-highlight-val" id="resSaleVat">0,00 ₽</span>
+          </div>
+        </div>
+
+        <button type="button" class="btn-copy-calc" onclick="copyCalcPrice()">
+          📋 Скопировать общую цену в буфер
+        </button>
+
+        <!-- БЛОК ВСТАВКИ ДАННЫХ ИЗ EXCEL -->
+        <div class="calc-batch-box">
+          <div class="calc-batch-title">
+            <span>📥 Закупки (2 столбца из Excel)</span>
+          </div>
+          <div class="calc-batch-hint">
+            Вставьте 2 столбца (<b>Количество</b> и <b>Цена</b>). Синхронизируется на лету!
+          </div>
+          <textarea id="calcBatchText" class="calc-textarea-batch" placeholder="1	7400&#10;5	12500&#10;2	11699..." oninput="onBatchInput()"></textarea>
+          <div id="calcBatchInfo" class="calc-batch-info"></div>
+          <button type="button" class="btn-apply-batch" onclick="applyBatchPricesToKp()">
+            ⚡ Заполнить количество и цены в КП
+          </button>
+        </div>
+
+      </div>
+
       <div class="comic-card">
         <img src="bg-thumb1.png" alt="Выбор пути">
       </div>
@@ -774,116 +884,6 @@
       <div class="comic-card">
         <img src="bg-thumb3.png" alt="Тимбилдинг">
       </div>
-    </div>
-
-    <!-- Калькулятор прибыльности сделки -->
-    <div class="calc-sidebar no-print" id="calcSidebar">
-      <div class="calc-title">
-        <span>📊 Расчет цены и налогов</span>
-        <span class="calc-badge" id="calcTaxBadge">ОСНО: НДС 22%</span>
-      </div>
-
-      <div class="calc-field">
-        <label class="calc-label" for="calcCostVat">Закупка товара с НДС 22%, ₽</label>
-        <div class="calc-input-wrap">
-          <input type="text" id="calcCostVat" class="calc-input" placeholder="например 100 000" oninput="calculateMargin(); saveState();">
-        </div>
-      </div>
-
-      <!-- Пользование деньгами -->
-      <div class="calc-field">
-        <div class="calc-label">
-          <span>Финансирование (28% год.)</span>
-          <div class="calc-toggle">
-            <button type="button" class="calc-toggle-btn active" id="btnFinanceDays" onclick="setFinanceMode('days')">Дни</button>
-            <button type="button" class="calc-toggle-btn" id="btnFinanceWeeks" onclick="setFinanceMode('weeks')">Недели</button>
-          </div>
-        </div>
-
-        <div class="calc-input-wrap" id="wrapFinanceDays">
-          <input type="number" id="calcFinanceDaysInput" class="calc-input" style="width: 85px; text-align: center;" min="0" step="1" placeholder="0 дн." oninput="onFinanceDaysChange()">
-          <input type="text" id="calcFinanceCostDisplay" class="calc-input calc-input-readonly" readonly value="0,00 ₽" title="Стоимость пользования денежными средствами">
-        </div>
-
-        <div class="calc-input-wrap" id="wrapFinanceWeeks" style="display: none;">
-          <button type="button" class="btn-step" onclick="stepFinanceWeeks(-1)">-1 нед</button>
-          <button type="button" class="btn-step" onclick="stepFinanceWeeks(1)">+1 нед</button>
-          <input type="text" id="calcFinanceWeeksDisplay" class="calc-input calc-input-readonly" readonly value="0,00 ₽ (0 нед)">
-        </div>
-      </div>
-
-      <!-- Поле доставки -->
-      <div class="calc-field" id="calcDeliveryRow">
-        <label class="calc-label" for="calcDeliveryCost">Доставка до клиента с НДС, ₽</label>
-        <div class="calc-input-wrap">
-          <input type="text" id="calcDeliveryCost" class="calc-input" placeholder="например 3 500" oninput="calculateMargin(); saveState();">
-        </div>
-      </div>
-
-      <div class="calc-field">
-        <div class="calc-label">
-          <span>Желаемая прибыль</span>
-          <div class="calc-toggle">
-            <button type="button" class="calc-toggle-btn active" id="btnModeRub" onclick="setMarginMode('rub')">₽</button>
-            <button type="button" class="calc-toggle-btn" id="btnModePct" onclick="setMarginMode('pct')">%</button>
-          </div>
-        </div>
-        <div class="calc-input-wrap">
-          <input type="text" id="calcProfitTarget" class="calc-input" placeholder="15 000" oninput="calculateMargin(); saveState();">
-        </div>
-      </div>
-
-      <div class="calc-result-box">
-        <div class="calc-res-row">
-          <span>Себестоимость затрат:</span>
-          <span id="resCostNet">0,00 ₽</span>
-        </div>
-        <div class="calc-res-row">
-          <span>Финансирование сделки:</span>
-          <span id="resFinanceCost" style="color: #d97706;">0,00 ₽</span>
-        </div>
-        <div class="calc-res-row">
-          <span>Чистая прибыль (факт):</span>
-          <span id="resNetProfit" style="color: #16a34a;">0,00 ₽</span>
-        </div>
-        <div class="calc-res-row">
-          <span id="lblProfitTax">Налог на прибыль (25%):</span>
-          <span id="resProfitTax">0,00 ₽</span>
-        </div>
-        <div class="calc-res-row">
-          <span id="lblVatPayable">НДС к уплате (22%):</span>
-          <span id="resVatPayable">0,00 ₽</span>
-        </div>
-        <div class="calc-res-row">
-          <span>Цена без НДС:</span>
-          <span id="resSaleNet">0,00 ₽</span>
-        </div>
-
-        <div class="calc-highlight">
-          <span class="calc-highlight-lbl" id="lblSaleTotalVat">Итого для клиента (с НДС 22%):</span>
-          <span class="calc-highlight-val" id="resSaleVat">0,00 ₽</span>
-        </div>
-      </div>
-
-      <button type="button" class="btn-copy-calc" onclick="copyCalcPrice()">
-        📋 Скопировать общую цену в буфер
-      </button>
-
-      <!-- БЛОК ВСТАВКИ ДАННЫХ ИЗ EXCEL -->
-      <div class="calc-batch-box">
-        <div class="calc-batch-title">
-          <span>📥 Закупки (2 столбца из Excel)</span>
-        </div>
-        <div class="calc-batch-hint">
-          Вставьте 2 столбца (<b>Количество</b> и <b>Цена</b>). Синхронизируется на лету!
-        </div>
-        <textarea id="calcBatchText" class="calc-textarea-batch" placeholder="1	7400&#10;5	12500&#10;2	11699..." oninput="onBatchInput()"></textarea>
-        <div id="calcBatchInfo" class="calc-batch-info"></div>
-        <button type="button" class="btn-apply-batch" onclick="applyBatchPricesToKp()">
-          ⚡ Заполнить количество и цены в КП
-        </button>
-      </div>
-
     </div>
 
     <!-- Лист Коммерческого предложения (по центру) -->
@@ -1102,7 +1102,7 @@
       </div>
     </div>
 
-    <!-- 3 КАРТИНКИ СПРАВА: РАЗМЕР 620px (КАК СПРАВА СНИЗУ) -->
+    <!-- 3 КАРТИНКИ СПРАВА -->
     <div class="side-comics-col side-comics-right no-print">
       <div class="comic-card">
         <img src="bg-thumb4.png" alt="Все нормально">
@@ -1475,7 +1475,7 @@
       document.getElementById('resNetProfit').textContent = fmt(econ.netProfit) + ' ₽';
       document.getElementById('resProfitTax').textContent = fmt(econ.profitTax) + ' ₽';
       document.getElementById('resVatPayable').textContent = fmt(econ.vatPayable) + ' ₽';
-      document.getElementById('resSaleNet').textContent = fmt(saleNet) + ' ₽';
+      document.getElementById('resSaleNet').textContent = fmt(econ.saleNet) + ' ₽';
       document.getElementById('resSaleVat').textContent = fmt(econ.saleVat) + ' ₽';
       document.getElementById('resSaleVat').setAttribute('data-val', econ.saleVat.toFixed(2));
     }
