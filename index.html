@@ -90,19 +90,19 @@
       align-items: flex-start;
       gap: 24px;
       width: 100%;
-      max-width: 2050px;
+      max-width: 2150px;
       margin: 0 auto;
     }
 
-    /* Боковые колонки картинок: подняты на уровень панели кнопок и равны по размеру */
+    /* Боковые колонки картинок: размер как у нижней правой (620px) */
     .side-comics-col {
-      width: 560px;
+      width: 620px;
       flex-shrink: 0;
       display: flex;
       flex-direction: column;
       gap: 20px;
       position: relative;
-      top: -72px; /* Поднимает картинки на одну линию с верхней панелью кнопок */
+      top: -72px; /* Начинаются вместе с блоком кнопок */
       z-index: 10;
     }
     .comic-card {
@@ -112,6 +112,7 @@
       border: 2px solid #27272a;
       overflow: hidden;
       background: #18181b;
+      aspect-ratio: 16 / 9.8; /* Единый пропорциональный размер для всех */
       transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
     .comic-card:hover {
@@ -120,7 +121,8 @@
     }
     .comic-card img {
       width: 100%;
-      height: auto;
+      height: 100%;
+      object-fit: cover;
       display: block;
     }
 
@@ -761,7 +763,7 @@
 
   <div class="app-layout">
 
-    <!-- 3 КАРТИНКИ СЛЕВА: НАЧИНАЮТСЯ ВМЕСТЕ С БЛОКОМ КНОПОК -->
+    <!-- 3 КАРТИНКИ СЛЕВА: РАЗМЕР 620px (КАК СПРАВА СНИЗУ) -->
     <div class="side-comics-col side-comics-left no-print">
       <div class="comic-card">
         <img src="bg-thumb1.png" alt="Выбор пути">
@@ -774,7 +776,7 @@
       </div>
     </div>
 
-    <!-- Калькулятор прибыльности сделки (поверх левых картинок) -->
+    <!-- Калькулятор прибыльности сделки -->
     <div class="calc-sidebar no-print" id="calcSidebar">
       <div class="calc-title">
         <span>📊 Расчет цены и налогов</span>
@@ -1100,7 +1102,7 @@
       </div>
     </div>
 
-    <!-- 3 КАРТИНКИ СПРАВА: НАЧИНАЮТСЯ ВМЕСТЕ С БЛОКОМ КНОПОК -->
+    <!-- 3 КАРТИНКИ СПРАВА: РАЗМЕР 620px (КАК СПРАВА СНИЗУ) -->
     <div class="side-comics-col side-comics-right no-print">
       <div class="comic-card">
         <img src="bg-thumb4.png" alt="Все нормально">
@@ -1473,7 +1475,7 @@
       document.getElementById('resNetProfit').textContent = fmt(econ.netProfit) + ' ₽';
       document.getElementById('resProfitTax').textContent = fmt(econ.profitTax) + ' ₽';
       document.getElementById('resVatPayable').textContent = fmt(econ.vatPayable) + ' ₽';
-      document.getElementById('resSaleNet').textContent = fmt(econ.saleNet) + ' ₽';
+      document.getElementById('resSaleNet').textContent = fmt(saleNet) + ' ₽';
       document.getElementById('resSaleVat').textContent = fmt(econ.saleVat) + ' ₽';
       document.getElementById('resSaleVat').setAttribute('data-val', econ.saleVat.toFixed(2));
     }
