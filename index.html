@@ -14,7 +14,7 @@
     body { 
       background: #3f3f46; 
       margin: 0; 
-      padding: 16px 20px 40px; 
+      padding: 20px 15px 40px; 
       color: #000; 
       overflow-x: auto;
     }
@@ -32,6 +32,8 @@
       font-family: Arial, sans-serif;
       gap: 8px;
       box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      position: relative;
+      z-index: 40;
     }
     .panel-left { display: flex; gap: 8px; align-items: center; }
     .panel-right { display: flex; gap: 8px; align-items: center; }
@@ -80,7 +82,7 @@
       box-shadow: 0 1px 3px rgba(0,0,0,0.15);
     }
 
-    /* Оболочка макета: гибкое заполнение всего экрана */
+    /* Оболочка макета: строго центрирована по КП */
     .app-layout {
       position: relative;
       display: flex;
@@ -88,18 +90,19 @@
       align-items: flex-start;
       gap: 24px;
       width: 100%;
-      max-width: 2400px;
+      max-width: 2050px;
       margin: 0 auto;
     }
 
-    /* Боковые колонки картинок: заполняют всё серое пространство */
+    /* Боковые колонки картинок: подняты на уровень панели кнопок и равны по размеру */
     .side-comics-col {
-      flex: 1 1 0%;
-      max-width: 720px;
+      width: 560px;
+      flex-shrink: 0;
       display: flex;
       flex-direction: column;
-      gap: 22px;
+      gap: 20px;
       position: relative;
+      top: -72px; /* Поднимает картинки на одну линию с верхней панелью кнопок */
       z-index: 10;
     }
     .comic-card {
@@ -133,7 +136,7 @@
       line-height: 1.4;
       position: absolute;
       left: 12px;
-      top: 12px;
+      top: -60px;
       z-index: 50;
       transition: opacity 0.2s ease, transform 0.2s ease;
     }
@@ -758,7 +761,7 @@
 
   <div class="app-layout">
 
-    <!-- 3 КАРТИНКИ СЛЕВА -->
+    <!-- 3 КАРТИНКИ СЛЕВА: НАЧИНАЮТСЯ ВМЕСТЕ С БЛОКОМ КНОПОК -->
     <div class="side-comics-col side-comics-left no-print">
       <div class="comic-card">
         <img src="bg-thumb1.png" alt="Выбор пути">
@@ -1097,7 +1100,7 @@
       </div>
     </div>
 
-    <!-- 3 КАРТИНКИ СПРАВА -->
+    <!-- 3 КАРТИНКИ СПРАВА: НАЧИНАЮТСЯ ВМЕСТЕ С БЛОКОМ КНОПОК -->
     <div class="side-comics-col side-comics-right no-print">
       <div class="comic-card">
         <img src="bg-thumb4.png" alt="Все нормально">
