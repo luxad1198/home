@@ -11,11 +11,11 @@
       print-color-adjust: exact !important;
       color-adjust: exact !important;
     }
-    body { background: #52525b; margin: 0; padding: 20px 10px; color: #000; }
+    body { background: #3f3f46; margin: 0; padding: 20px 10px; color: #000; }
     
     .panel {
       width: 210mm;
-      margin: 0 auto 12px;
+      margin: 0 auto 14px;
       background: #fff;
       padding: 10px 16px;
       border-radius: 6px;
@@ -24,6 +24,7 @@
       align-items: center;
       font-family: Arial, sans-serif;
       gap: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.25);
     }
     .panel-left { display: flex; gap: 8px; align-items: center; }
     .panel-right { display: flex; gap: 8px; align-items: center; }
@@ -72,26 +73,63 @@
       box-shadow: 0 1px 3px rgba(0,0,0,0.15);
     }
 
-    /* Оболочка калькулятора и КП: бланк ВСЕГДА по центру */
+    /* Оболочка макета страницы */
     .app-layout {
       position: relative;
       width: 100%;
-      max-width: 1450px;
+      max-width: 1720px;
       margin: 0 auto;
     }
 
-    /* Калькулятор слева: сдвинут левее на 50px */
+    /* Боковые колонки с картинками-комиксами */
+    .side-comics-col {
+      position: absolute;
+      width: 290px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      z-index: 20;
+    }
+    .side-comics-left {
+      left: 10px;
+      top: 0;
+      transition: top 0.2s ease;
+    }
+    .side-comics-right {
+      right: 10px;
+      top: 0;
+    }
+    .comic-card {
+      width: 100%;
+      border-radius: 8px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+      border: 2px solid #27272a;
+      overflow: hidden;
+      background: #18181b;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .comic-card:hover {
+      transform: scale(1.02);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.5);
+    }
+    .comic-card img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    /* Калькулятор слева */
     .calc-sidebar {
       width: 320px;
       background: #ffffff;
       border-radius: 8px;
       padding: 16px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+      box-shadow: 0 4px 18px rgba(0,0,0,0.35);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       font-size: 13px;
       line-height: 1.4;
       position: absolute;
-      left: -40px;
+      left: -20px;
       top: 0;
       z-index: 50;
       transition: opacity 0.2s ease, transform 0.2s ease;
@@ -308,18 +346,19 @@
     }
     .btn-apply-batch:hover { background: #047857; }
 
-    /* Лист А4 */
+    /* Лист А4: СТРОГО ПО ЦЕНТРУ */
     .page {
       width: 210mm;
       min-height: 297mm;
       padding: 10mm 15mm 12mm 15mm;
       background: #fff;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.35);
+      box-shadow: 0 4px 25px rgba(0,0,0,0.45);
       position: relative;
       font-size: 11.5pt;
       line-height: 1.15;
       flex-shrink: 0;
       margin: 0 auto;
+      z-index: 30;
     }
 
     /* Шапка ООО РТСтандарт */
@@ -477,7 +516,7 @@
       -webkit-hyphens: auto;
     }
     
-    /* Шапка таблицы для ИП - белая */
+    /* Шапка таблицы для ИП - строгая белая без заливки */
     body.theme-ip table.spec th, body.theme-ip .t-tot { 
       background-color: #ffffff !important; 
       text-align: center; 
@@ -557,7 +596,7 @@
       font-weight: bold; 
     }
 
-    /* Редактируемые условия ИП */
+    /* Редактируемые текстовые условия ИП */
     .ip-terms-block {
       margin: 12px 0 35px;
       font-size: 11pt;
@@ -614,7 +653,7 @@
     }
     .stamp-box-rt img { width: 100%; display: block; }
 
-    /* Печать ИП */
+    /* Печать ИП: 220px */
     .stamp-box-ip { 
       position: absolute; 
       top: -65px; 
@@ -651,7 +690,7 @@
         margin: 0 !important;
         padding: 0 !important;
       }
-      .panel, .no-print, .calc-sidebar { 
+      .panel, .no-print, .calc-sidebar, .side-comics-col { 
         display: none !important; 
       }
       .app-layout {
@@ -715,6 +754,32 @@
   </div>
 
   <div class="app-layout">
+
+    <!-- 3 КАРТИНКИ СЛЕВА ОТ БЛАНКА (ПОД КАЛЬКУЛЯТОРОМ) -->
+    <div class="side-comics-col side-comics-left no-print" id="leftComicsCol">
+      <div class="comic-card">
+        <img src="bg-thumb1.jpg" alt="Выбор пути" onerror="this.parentElement.style.display='none'">
+      </div>
+      <div class="comic-card">
+        <img src="bg-thumb2.jpg" alt="Я прав" onerror="this.parentElement.style.display='none'">
+      </div>
+      <div class="comic-card">
+        <img src="bg-thumb3.jpg" alt="Тимбилдинг" onerror="this.parentElement.style.display='none'">
+      </div>
+    </div>
+
+    <!-- 3 КАРТИНКИ СПРАВА ОТ БЛАНКА -->
+    <div class="side-comics-col side-comics-right no-print">
+      <div class="comic-card">
+        <img src="bg-thumb4.jpg" alt="Все нормально" onerror="this.parentElement.style.display='none'">
+      </div>
+      <div class="comic-card">
+        <img src="bg-thumb5.jpg" alt="Непонятная задача" onerror="this.parentElement.style.display='none'">
+      </div>
+      <div class="comic-card">
+        <img src="bg-thumb6.jpg" alt="Налоговая инспекция" onerror="this.parentElement.style.display='none'">
+      </div>
+    </div>
     
     <!-- Калькулятор прибыльности сделки -->
     <div class="calc-sidebar no-print" id="calcSidebar">
@@ -862,21 +927,21 @@
       <!-- ШАПКА 2: ИП Захаров М.С. -->
       <div id="headerIp" style="display: none;" class="head-ip-block">
         <div class="head-ip-title">
-          Индивидуальный предприниматель Захаров Михаил Сергеевич ОГРНИП: 325110000002538 / ИНН: 110214010407
+          Индивидуальный предприниматель Захаров Михаил Сергеевич ОГРНИП: 325110000002538 / ИНН: 110214010407[cite: 5]
         </div>
         <div class="head-ip-contacts">
           Телефон +7 981 208-62-36<br>
-          e-mail: <a href="mailto:m.zakharov0811@gmail.com">m.zakharov0811@gmail.com</a>
+          e-mail: <a href="mailto:m.zakharov0811@gmail.com">m.zakharov0811@gmail.com</a>[cite: 5]
         </div>
         <table class="head-ip-meta-table">
           <tr>
             <td style="width: 50%;">
-              <b>Исх. № <input type="text" class="meta-input" id="kpNumInputIp" style="width: 55px; font-weight: bold;" value="289" oninput="saveState(); updateDocumentTitle();"></b>
+              <b>Исх. № <input type="text" class="meta-input" id="kpNumInputIp" style="width: 55px; font-weight: bold;" value="289" oninput="saveState(); updateDocumentTitle();"></b>[cite: 5]
               от «<input type="text" class="meta-input" id="docDateIpDay" style="width: 25px; text-align: center;" value="10" oninput="saveState()">» 
-              <input type="text" class="meta-input" id="docDateIpMonth" style="width: 90px;" value="октября" oninput="saveState()"> 2026 года
+              <input type="text" class="meta-input" id="docDateIpMonth" style="width: 90px;" value="октября" oninput="saveState()"> 2026 года[cite: 5]
             </td>
             <td style="width: 50%; padding-left: 15px;">
-              <b>Заказчику:</b>
+              <b>Заказчику:</b>[cite: 5]
               <textarea rows="2" class="auto-grow client-textarea" id="clientBoxIp" placeholder="можете вписать сюда наименование заказчика" oninput="syncClientInputs(this); saveState(); updateDocumentTitle();"></textarea>
             </td>
           </tr>
@@ -1020,11 +1085,11 @@
         <div id="footerIp" style="display: none;">
           <div class="sign-row" style="margin-top: 35px; align-items: baseline;">
             <div>
-              Индивидуальный предприниматель
+              Индивидуальный предприниматель[cite: 5]
             </div>
             <div style="position: relative; width: 340px; text-align: right;">
               <span style="border-bottom: 1px solid #000; display: inline-block; width: 150px;"></span>
-              &nbsp;/ Захаров М.С.
+              &nbsp;/ Захаров М.С.[cite: 5]
               <div class="stamp-box-ip">
                 <img src="stamp-ip.png" alt="Печать ИП" width="220" onerror="this.style.display='none'">
               </div>
@@ -1132,6 +1197,7 @@
     function toggleCalcSidebar() {
       const sidebar = document.getElementById('calcSidebar');
       const btn = document.getElementById('btnToggleCalc');
+      const leftCol = document.getElementById('leftComicsCol');
       isCalcCollapsed = !isCalcCollapsed;
 
       if (isCalcCollapsed) {
@@ -1139,13 +1205,24 @@
         btn.textContent = '👁️ Показать калькулятор';
         btn.style.background = '#f3f4f6';
         btn.style.color = '#374151';
+        if (leftCol) leftCol.style.top = '0px';
       } else {
         sidebar.classList.remove('collapsed');
         btn.textContent = '◀ Скрыть калькулятор';
         btn.style.background = '#e0f2fe';
         btn.style.color = '#0369a1';
+        adjustLeftComicsPosition();
       }
       saveState();
+    }
+
+    function adjustLeftComicsPosition() {
+      const sidebar = document.getElementById('calcSidebar');
+      const leftCol = document.getElementById('leftComicsCol');
+      if (sidebar && leftCol && !isCalcCollapsed) {
+        const h = sidebar.offsetHeight;
+        leftCol.style.top = (h + 18) + 'px';
+      }
     }
 
     function setMarginMode(mode) {
@@ -1235,6 +1312,7 @@
 
       calculateMargin();
       saveState();
+      adjustLeftComicsPosition();
     }
 
     function onDeliveryChangeIp(selectIp) {
@@ -1284,6 +1362,7 @@
         infoElem.textContent = '';
       }
       saveState();
+      adjustLeftComicsPosition();
     }
 
     function syncQtyToBatchText(changedRow) {
@@ -1851,7 +1930,7 @@
         if (state.condPaymentTermIp) document.getElementById('condPaymentTermIp').value = state.condPaymentTermIp;
 
         if (state.calcCostVat) document.getElementById('calcCostVat').value = state.calcCostVat;
-        if (state.calcDeliveryCost) document.getElementById('calcDeliveryCost')?.value || '';
+        if (state.calcDeliveryCost) document.getElementById('calcDeliveryCost').value = state.calcDeliveryCost;
         if (state.calcProfitTarget) document.getElementById('calcProfitTarget').value = state.calcProfitTarget;
         if (state.calcMarginMode) setMarginMode(state.calcMarginMode);
         
@@ -1956,6 +2035,7 @@
       onDeliveryChange();
       onTableRowChange(null);
       updateDocumentTitle();
+      adjustLeftComicsPosition();
     }
 
     function prepareAndPrint() {
@@ -1975,10 +2055,16 @@
       onDeliveryChange();
       onTableRowChange(null);
       updateDocumentTitle();
+      adjustLeftComicsPosition();
     });
 
     window.addEventListener('load', () => {
       initAutoResize();
+      adjustLeftComicsPosition();
+    });
+
+    window.addEventListener('resize', () => {
+      adjustLeftComicsPosition();
     });
   </script>
 </body>
