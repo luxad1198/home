@@ -14,14 +14,15 @@
     body { 
       background: #3f3f46; 
       margin: 0; 
-      padding: 20px 20px 40px; 
+      padding: 20px 15px 40px; 
       color: #000; 
       overflow-x: auto;
     }
     
+    /* Верхняя панель: строго по центру над КП */
     .panel {
       width: 210mm;
-      margin: 0 0 16px 545px; /* Выравнивание панели ровно над центрированным листом А4 */
+      margin: 0 auto 16px;
       background: #fff;
       padding: 10px 16px;
       border-radius: 6px;
@@ -30,7 +31,7 @@
       align-items: center;
       font-family: Arial, sans-serif;
       gap: 8px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
     }
     .panel-left { display: flex; gap: 8px; align-items: center; }
     .panel-right { display: flex; gap: 8px; align-items: center; }
@@ -79,28 +80,27 @@
       box-shadow: 0 1px 3px rgba(0,0,0,0.15);
     }
 
-    /* Оболочка макета, оптимизированная под 16:9 (1880px) */
+    /* Оболочка макета: строго центрирована по КП */
     .app-layout {
       position: relative;
-      width: 1880px;
-      margin: 0; /* Фиксировано слева, на широких мониторах пустое серое поле остаётся справа */
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 24px;
+      width: 100%;
+      max-width: 1980px;
+      margin: 0 auto;
     }
 
-    /* Увеличенные боковые колонки комиксов */
+    /* Увеличенные боковые колонки картинок (560px) */
     .side-comics-col {
-      position: absolute;
-      width: 515px; /* Заполняют почти всё серое пространство */
+      width: 560px;
+      flex-shrink: 0;
       display: flex;
       flex-direction: column;
       gap: 20px;
-      top: 0;
+      position: relative;
       z-index: 10;
-    }
-    .side-comics-left {
-      left: 0;
-    }
-    .side-comics-right {
-      left: 1365px; /* 515px (левая колонка) + 30px + 794px (А4) + 26px отступ */
     }
     .comic-card {
       width: 100%;
@@ -121,7 +121,7 @@
       display: block;
     }
 
-    /* Калькулятор слева: поверх комиксов */
+    /* Калькулятор слева: поверх левых картинок */
     .calc-sidebar {
       width: 325px;
       background: #ffffff;
@@ -132,8 +132,8 @@
       font-size: 13px;
       line-height: 1.4;
       position: absolute;
-      left: 15px;
-      top: 15px;
+      left: 12px;
+      top: 12px;
       z-index: 50;
       transition: opacity 0.2s ease, transform 0.2s ease;
     }
@@ -360,7 +360,7 @@
       font-size: 11.5pt;
       line-height: 1.15;
       flex-shrink: 0;
-      margin: 0 0 0 545px; /* Строгое положение между левой и правой колонками */
+      margin: 0;
       z-index: 30;
     }
 
@@ -758,7 +758,7 @@
 
   <div class="app-layout">
 
-    <!-- 3 КАРТИНКИ СЛЕВА (ШИРИНА 515px) -->
+    <!-- 3 КАРТИНКИ СЛЕВА (ШИРИНА 560px) -->
     <div class="side-comics-col side-comics-left no-print">
       <div class="comic-card">
         <img src="bg-thumb1.png" alt="Выбор пути">
@@ -771,20 +771,7 @@
       </div>
     </div>
 
-    <!-- 3 КАРТИНКИ СПРАВА (ШИРИНА 515px) -->
-    <div class="side-comics-col side-comics-right no-print">
-      <div class="comic-card">
-        <img src="bg-thumb4.png" alt="Все нормально">
-      </div>
-      <div class="comic-card">
-        <img src="bg-thumb5.png" alt="Непонятная задача">
-      </div>
-      <div class="comic-card">
-        <img src="bg-thumb6.png" alt="Налоговая инспекция">
-      </div>
-    </div>
-    
-    <!-- Калькулятор прибыльности сделки -->
+    <!-- Калькулятор прибыльности сделки (поверх левых картинок) -->
     <div class="calc-sidebar no-print" id="calcSidebar">
       <div class="calc-title">
         <span>📊 Расчет цены и налогов</span>
@@ -894,7 +881,7 @@
 
     </div>
 
-    <!-- Лист Коммерческого предложения -->
+    <!-- Лист Коммерческого предложения (по центру) -->
     <div class="page">
       
       <!-- ШАПКА 1: ООО "РТСТАНДАРТ" -->
@@ -1109,6 +1096,20 @@
 
       </div>
     </div>
+
+    <!-- 3 КАРТИНКИ СПРАВА (ШИРИНА 560px) -->
+    <div class="side-comics-col side-comics-right no-print">
+      <div class="comic-card">
+        <img src="bg-thumb4.png" alt="Все нормально">
+      </div>
+      <div class="comic-card">
+        <img src="bg-thumb5.png" alt="Непонятная задача">
+      </div>
+      <div class="comic-card">
+        <img src="bg-thumb6.png" alt="Налоговая инспекция">
+      </div>
+    </div>
+
   </div>
 
   <script>
