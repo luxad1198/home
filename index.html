@@ -14,7 +14,7 @@
     body { 
       background: #3f3f46; 
       margin: 0; 
-      padding: 20px 15px 40px; 
+      padding: 16px 20px 40px; 
       color: #000; 
       overflow-x: auto;
     }
@@ -80,7 +80,7 @@
       box-shadow: 0 1px 3px rgba(0,0,0,0.15);
     }
 
-    /* Оболочка макета: строго центрирована по КП */
+    /* Оболочка макета: гибкое заполнение всего экрана */
     .app-layout {
       position: relative;
       display: flex;
@@ -88,17 +88,17 @@
       align-items: flex-start;
       gap: 24px;
       width: 100%;
-      max-width: 1980px;
+      max-width: 2400px;
       margin: 0 auto;
     }
 
-    /* Увеличенные боковые колонки картинок (560px) */
+    /* Боковые колонки картинок: заполняют всё серое пространство */
     .side-comics-col {
-      width: 560px;
-      flex-shrink: 0;
+      flex: 1 1 0%;
+      max-width: 720px;
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 22px;
       position: relative;
       z-index: 10;
     }
@@ -758,7 +758,7 @@
 
   <div class="app-layout">
 
-    <!-- 3 КАРТИНКИ СЛЕВА (ШИРИНА 560px) -->
+    <!-- 3 КАРТИНКИ СЛЕВА -->
     <div class="side-comics-col side-comics-left no-print">
       <div class="comic-card">
         <img src="bg-thumb1.png" alt="Выбор пути">
@@ -1097,7 +1097,7 @@
       </div>
     </div>
 
-    <!-- 3 КАРТИНКИ СПРАВА (ШИРИНА 560px) -->
+    <!-- 3 КАРТИНКИ СПРАВА -->
     <div class="side-comics-col side-comics-right no-print">
       <div class="comic-card">
         <img src="bg-thumb4.png" alt="Все нормально">
@@ -2007,7 +2007,7 @@
       const tbody = document.getElementById('tableBody');
       tbody.innerHTML = `
         <tr>
-          <td class="c col-num-cell row-idx">1</td>
+          <td class="c col-num-cell row-idx">${1}</td>
           <td class="col-text-cell"><textarea class="auto-grow col-name" placeholder="Впиши наименование" oninput="saveState()"></textarea></td>
           <td class="col-text-cell"><textarea class="auto-grow col-desc" placeholder="впиши характеристики" oninput="saveState()"></textarea></td>
           <td class="c col-num-cell"><input type="text" class="inp-text c col-country" placeholder="Китай" value="Китай" oninput="saveState()"></td>
