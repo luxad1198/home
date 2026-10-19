@@ -20,7 +20,7 @@
       position: relative;
     }
 
-    /* Боковые фоновые миниатюры */
+    /* Фоновые миниатюры по краям экрана */
     .bg-sidebar {
       position: fixed;
       top: 15px;
@@ -47,14 +47,13 @@
       background: #27272a;
     }
 
-    /* Класс для скрытия бокового фона */
     body.hide-bg-sidebar .bg-sidebar {
       opacity: 0 !important;
       pointer-events: none !important;
       transform: scale(0.96);
     }
 
-    /* Верхняя панель управления */
+    /* Верхняя панель управления над КП */
     .panel {
       width: 210mm;
       margin: 0 auto 12px;
@@ -106,10 +105,10 @@
       outline: none;
     }
 
-    /* Калькулятор прибыли */
+    /* Калькулятор: строго слева от бланка КП с зазором 20-25px */
     .calc-sidebar {
       position: fixed;
-      left: 15px;
+      left: calc(50% - 105mm - 330px);
       top: 60px;
       width: 310px;
       max-height: 88vh;
@@ -130,9 +129,10 @@
       pointer-events: none;
     }
 
+    /* Кнопка вызова калькулятора также позиционируется рядом с КП */
     .calc-toggle-panel-btn {
       position: fixed;
-      left: 15px;
+      left: calc(50% - 105mm - 330px);
       top: 18px;
       z-index: 35;
       padding: 6px 12px;
@@ -145,6 +145,12 @@
       font-weight: 600;
       cursor: pointer;
       box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    @media (max-width: 1460px) {
+      .calc-sidebar, .calc-toggle-panel-btn {
+        left: 12px;
+      }
     }
 
     .calc-title {
@@ -404,7 +410,7 @@
     .title { text-align: center; font-size: 12pt; font-weight: bold; margin: 10px 0 6px; }
     .intro { text-align: justify; text-indent: 10mm; font-size: 11pt; margin-bottom: 8px; line-height: 1.15; }
 
-    /* Спецификация */
+    /* Таблица спецификации */
     table.spec { 
       width: 100%; 
       border-collapse: collapse; 
@@ -565,10 +571,10 @@
 </head>
 <body>
 
-  <!-- Кнопка калькулятора -->
+  <!-- Кнопка вызова калькулятора -->
   <button class="calc-toggle-panel-btn no-print" onclick="toggleCalcPanel()">📊 Калькулятор</button>
 
-  <!-- Калькулятор слева -->
+  <!-- Калькулятор -->
   <div class="calc-sidebar no-print" id="calcSidebar">
     <div class="calc-title">
       <span>📊 Расчет цен и налогов</span>
@@ -647,7 +653,7 @@
     </div>
   </div>
 
-  <!-- Фоновые миниатюры слева и справа -->
+  <!-- Фоновые миниатюры -->
   <div class="bg-sidebar bg-left no-print" id="bgLeft">
     <img src="bg-thumb1.png" alt="">
     <img src="bg-thumb2.png" alt="">
@@ -659,7 +665,7 @@
     <img src="bg-thumb6.png" alt="">
   </div>
 
-  <!-- Верхняя панель действий -->
+  <!-- Панель управления -->
   <div class="panel no-print">
     <div class="panel-left">
       <select class="company-select" id="companySelect" onchange="onCompanyChange()">
@@ -775,7 +781,7 @@
       ИТОГО: 0 (ноль) рублей 00 копеек, в том числе НДС 22% 0 (ноль) рублей 00 копеек.
     </div>
 
-    <!-- Условия ООО (Таблица) -->
+    <!-- Условия ООО -->
     <table class="cond" id="condOooTable">
       <tr>
         <td class="cond-lbl">Срок поставки</td>
@@ -800,7 +806,7 @@
       </tr>
     </table>
 
-    <!-- Условия ИП (Список) -->
+    <!-- Условия ИП -->
     <div class="ip-cond-box" id="condIpBox">
       <div><b>Срок поставки:</b> <input type="text" id="ipDeliveryTime" class="meta-input" value="1-2 недели" style="width: 250px;" oninput="saveState()"></div>
       <div style="margin-top: 4px;"><b>Доставка:</b> 
@@ -826,7 +832,7 @@
       </div>
     </div>
 
-    <!-- Контакты составителя (ООО) -->
+    <!-- Контакты ООО -->
     <div class="contacts-ooo" id="contactsOoo">
       Исп.<br>
       Коммерческий департамент<br>
@@ -837,7 +843,7 @@
       https://liscorp.ru/
     </div>
 
-    <!-- Контакты составителя (ИП) -->
+    <!-- Контакты ИП -->
     <div class="contacts-ip" id="contactsIp">
       Захаров Михаил Сергеевич<br>
       Телефон: +7 981 208-62-36<br>
