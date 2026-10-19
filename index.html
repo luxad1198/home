@@ -20,29 +20,36 @@
       position: relative;
     }
 
-    /* Фоновые миниатюры по краям */
+    /* Боковые колонки: динамически занимают ВСЁ пространство от края окна до КП */
     .bg-sidebar {
       position: fixed;
       top: 15px;
       bottom: 15px;
-      width: calc((100vw - 235mm) / 2);
-      max-width: 280px;
+      width: calc((100vw - 210mm) / 2 - 25px);
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      align-items: center;
+      gap: 12px;
       z-index: 1;
       pointer-events: none;
       transition: opacity 0.2s ease, transform 0.2s ease;
     }
-    .bg-left { left: 15px; }
-    .bg-right { right: 15px; }
+    .bg-left { 
+      left: 12px; 
+    }
+    .bg-right { 
+      right: 12px; 
+    }
+    
+    /* Картинки заполняют всю ширину и высоту доступного пространства */
     .bg-sidebar img {
       width: 100%;
-      height: 31%;
+      flex: 1 1 0;
+      min-height: 0;
       object-fit: cover;
+      object-position: center;
       border-radius: 8px;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
       border: 1px solid rgba(255, 255, 255, 0.15);
       background: #27272a;
     }
@@ -53,7 +60,7 @@
       transform: scale(0.96);
     }
 
-    /* Верхняя панель */
+    /* Верхняя панель управления */
     .panel {
       width: 210mm;
       margin: 0 auto 12px;
@@ -105,7 +112,7 @@
       outline: none;
     }
 
-    /* Калькулятор слева от КП */
+    /* Калькулятор: строго слева от бланка КП */
     .calc-sidebar {
       position: fixed;
       left: calc(50% - 105mm - 330px);
@@ -429,8 +436,6 @@
       text-align: center; 
       font-weight: bold; 
       padding: 4px 2px;
-      word-break: break-word;
-      overflow-wrap: break-word;
     }
     .t-tot { 
       background-color: #ACB9CA !important; 
@@ -484,7 +489,7 @@
 
     .tot-phrase { font-size: 11pt; line-height: 1.25; margin: 6px 0 10px; }
 
-    /* Таблица условий (ООО) */
+    /* Таблица условий ООО */
     table.cond { 
       width: 100%; 
       border-collapse: collapse; 
@@ -503,7 +508,7 @@
       font-weight: bold; 
     }
 
-    /* Условия (ИП) */
+    /* Условия ИП */
     .ip-cond-box {
       margin-bottom: 25px;
       font-size: 11pt;
@@ -511,7 +516,7 @@
       display: none;
     }
 
-    /* Подписи и подвал */
+    /* Подписи */
     .sign-row { 
       display: flex; 
       justify-content: space-between; 
@@ -532,7 +537,8 @@
     .contacts-ooo { margin-top: 16px; font-size: 10pt; line-height: 1.25; }
     .contacts-ip { margin-top: 16px; font-size: 10.5pt; line-height: 1.25; display: none; }
 
-    @media (max-width: 1250px) {
+    /* Скрытие на узких экранах (менее ширины КП с минимальными полями) */
+    @media (max-width: 1000px) {
       .bg-sidebar { display: none !important; }
     }
 
@@ -575,7 +581,7 @@
   <!-- Кнопка вызова калькулятора -->
   <button class="calc-toggle-panel-btn no-print" onclick="toggleCalcPanel()">📊 Калькулятор</button>
 
-  <!-- Калькулятор слева -->
+  <!-- Калькулятор -->
   <div class="calc-sidebar no-print" id="calcSidebar">
     <div class="calc-title">
       <span>📊 Расчет цен и налогов</span>
@@ -654,12 +660,14 @@
     </div>
   </div>
 
-  <!-- Фоновые миниатюры -->
+  <!-- Фоновые миниатюры слева (авто-растягивание) -->
   <div class="bg-sidebar bg-left no-print" id="bgLeft">
     <img src="bg-thumb1.png" alt="">
     <img src="bg-thumb2.png" alt="">
     <img src="bg-thumb3.png" alt="">
   </div>
+
+  <!-- Фоновые миниатюры справа (авто-растягивание) -->
   <div class="bg-sidebar bg-right no-print" id="bgRight">
     <img src="bg-thumb4.png" alt="">
     <img src="bg-thumb5.png" alt="">
@@ -1092,7 +1100,6 @@
         saleVat = saleNet * 1.22;
       } else {
         costNet = totalCostBase;
-        // Исправленная налоговая база: налог УСН 7% начисляется на всю сумму с НДС
         const taxFactor = 1 - (5 / 105) - 0.07;
         saleVat = (costNet + netProfit) / taxFactor;
         profitTax = saleVat * 0.07;
