@@ -20,7 +20,7 @@
       position: relative;
     }
 
-    /* Боковые колонки картинок (заполняют все пространство) */
+    /* Боковые колонки картинок */
     .bg-sidebar {
       position: fixed;
       top: 15px;
@@ -107,7 +107,7 @@
       outline: none;
     }
 
-    /* Калькулятор */
+    /* Калькулятор слева от КП */
     .calc-sidebar {
       position: fixed;
       left: calc(50% - 105mm - 330px);
@@ -1015,7 +1015,6 @@
         infoElem.textContent = `✓ Найдено: ${items.length} поз. на сумму ${fmt(totalCost)} ₽`;
         document.getElementById('calcCostVat').value = fmt(totalCost);
         calculateMargin();
-        syncKpToCalculator();
       } else {
         infoElem.textContent = '';
       }
@@ -1023,14 +1022,48 @@
     }
 
     function applyBatchPricesToKp() {
+      calculateMargin();
+
       const batchItems = parseBatchLines();
+      let totalSaleTarget = parseNum(document.getElementById('resSaleVat').getAttribute('data-val'));
+
+      // Поддержка единичного расчёта: если в поле Excel пусто, но в калькуляторе есть расчёт
       if (batchItems.length === 0) {
-        alert('Пожалуйста, вставьте данные количества и цен из Excel в поле калькулятора.');
+        if (totalSaleTarget <= 0) {
+          alert('Заполните поле закупки в калькуляторе или вставьте данные из Excel.');
+          return;
+        }
+        const tbody = document.getElementById('tableBody');
+        if (tbody.children.length === 0) addRow(false);
+
+        const firstRow = tbody.children[0];
+        const qtyVal = parseNum(firstRow.querySelector('.col-qty').value) || 1;
+        firstRow.querySelector('.col-qty').value = qtyVal;
+
+        let unitPrice = totalSaleTarget / qtyVal;
+        if (unitPrice >= 100) {
+          unitPrice = Math.round(unitPrice / 10) * 10;
+        } else {
+          unitPrice = Math.round(unitPrice * 100) / 100;
+        }
+
+        const priceInp = firstRow.querySelector('.col-price');
+        priceInp.setAttribute('data-raw', unitPrice.toFixed(2));
+        priceInp.value = fmt(unitPrice);
+
+        initAutoResize();
+        recalc();
+        syncKpToCalculator();
+        saveState();
         return;
       }
 
+      // Расчёт для позиций из Excel
       const sumBatch = batchItems.reduce((sum, it) => sum + (it.qty * it.cost), 0);
-      const totalSaleTarget = parseNum(document.getElementById('resSaleVat').getAttribute('data-val')) || sumBatch;
+      if (!totalSaleTarget || totalSaleTarget < sumBatch) {
+        totalSaleTarget = sumBatch;
+      }
+
       const finalMultiplier = sumBatch > 0 ? (totalSaleTarget / sumBatch) : 1;
 
       const tbody = document.getElementById('tableBody');
@@ -1042,8 +1075,14 @@
         const row = rows[i];
         row.querySelector('.row-idx').textContent = i + 1;
         row.querySelector('.col-qty').value = item.qty;
-        const rawSalePrice = item.cost * finalMultiplier;
-        const salePrice = Math.round(rawSalePrice / 10) * 10;
+        
+        let salePrice = item.cost * finalMultiplier;
+        if (salePrice >= 100) {
+          salePrice = Math.round(salePrice / 10) * 10;
+        } else {
+          salePrice = Math.round(salePrice * 100) / 100;
+        }
+
         const priceInp = row.querySelector('.col-price');
         priceInp.setAttribute('data-raw', salePrice.toFixed(2));
         priceInp.value = fmt(salePrice);
@@ -1225,7 +1264,6 @@
 
     function onTextareaInput() { autoResizeTextarea(this); }
 
-    /* Синхронизация префикса с датой */
     const MONTHS_GENITIVE = ["января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"];
 
     function updatePrefixFromDateString(str) {
@@ -1601,7 +1639,6 @@
       initBackgroundVisibility();
       const restored = loadState();
       
-      // Всегда синхронизируем префикс с датой на бланке
       const curDateStr = document.getElementById('docDate')?.value;
       if (curDateStr) {
         updatePrefixFromDateString(curDateStr);
