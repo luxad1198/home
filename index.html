@@ -20,7 +20,7 @@
       position: relative;
     }
 
-    /* Боковые колонки: динамически занимают ВСЁ пространство от края окна до КП */
+    /* Боковые колонки картинок (заполняют все пространство) */
     .bg-sidebar {
       position: fixed;
       top: 15px;
@@ -34,14 +34,9 @@
       pointer-events: none;
       transition: opacity 0.2s ease, transform 0.2s ease;
     }
-    .bg-left { 
-      left: 12px; 
-    }
-    .bg-right { 
-      right: 12px; 
-    }
+    .bg-left { left: 12px; }
+    .bg-right { right: 12px; }
     
-    /* Картинки заполняют всю ширину и высоту доступного пространства */
     .bg-sidebar img {
       width: 100%;
       flex: 1 1 0;
@@ -60,7 +55,7 @@
       transform: scale(0.96);
     }
 
-    /* Верхняя панель управления */
+    /* Верхняя панель */
     .panel {
       width: 210mm;
       margin: 0 auto 12px;
@@ -112,7 +107,7 @@
       outline: none;
     }
 
-    /* Калькулятор: строго слева от бланка КП */
+    /* Калькулятор */
     .calc-sidebar {
       position: fixed;
       left: calc(50% - 105mm - 330px);
@@ -537,7 +532,6 @@
     .contacts-ooo { margin-top: 16px; font-size: 10pt; line-height: 1.25; }
     .contacts-ip { margin-top: 16px; font-size: 10.5pt; line-height: 1.25; display: none; }
 
-    /* Скрытие на узких экранах (менее ширины КП с минимальными полями) */
     @media (max-width: 1000px) {
       .bg-sidebar { display: none !important; }
     }
@@ -660,21 +654,21 @@
     </div>
   </div>
 
-  <!-- Фоновые миниатюры слева (авто-растягивание) -->
+  <!-- Фоновые миниатюры слева -->
   <div class="bg-sidebar bg-left no-print" id="bgLeft">
     <img src="bg-thumb1.png" alt="">
     <img src="bg-thumb2.png" alt="">
     <img src="bg-thumb3.png" alt="">
   </div>
 
-  <!-- Фоновые миниатюры справа (авто-растягивание) -->
+  <!-- Фоновые миниатюры справа -->
   <div class="bg-sidebar bg-right no-print" id="bgRight">
     <img src="bg-thumb4.png" alt="">
     <img src="bg-thumb5.png" alt="">
     <img src="bg-thumb6.png" alt="">
   </div>
 
-  <!-- Верхняя панель -->
+  <!-- Панель действий -->
   <div class="panel no-print">
     <div class="panel-left">
       <select class="company-select" id="companySelect" onchange="onCompanyChange()">
@@ -707,10 +701,10 @@
       <tr>
         <td class="head-meta-cell">
           <div class="kp-num-wrapper">
-            КП № <span class="kp-prefix" id="kpPrefix">10-10/</span>
+            КП № <span class="kp-prefix" id="kpPrefix">10-19/</span>
             <input type="text" class="kp-user-input" id="kpNumInput" placeholder="1" value="1" oninput="saveState(); updateDocumentTitle();">
           </div><br>
-          От <input type="text" id="docDate" class="meta-input" style="width: 155px;" oninput="saveState()">
+          От <input type="text" id="docDate" class="meta-input" style="width: 155px;" oninput="onDateInput(this)">
         </td>
         <td class="head-client-cell">
           Заказчику:
@@ -729,10 +723,10 @@
       <div class="head-ip-meta">
         <div>
           <div class="kp-num-wrapper">
-            Исх. № <span class="kp-prefix" id="kpPrefixIp">10-10/</span>
+            Исх. № <span class="kp-prefix" id="kpPrefixIp">10-19/</span>
             <input type="text" class="kp-user-input" id="kpNumInputIp" placeholder="1" value="1" oninput="saveState(); updateDocumentTitle();">
           </div><br>
-          От <input type="text" id="docDateIp" class="meta-input" style="width: 155px;" oninput="saveState()">
+          От <input type="text" id="docDateIp" class="meta-input" style="width: 155px;" oninput="onDateInput(this)">
         </div>
         <div style="width: 50%; padding-left: 15px;">
           Заказчику:
@@ -1231,6 +1225,39 @@
 
     function onTextareaInput() { autoResizeTextarea(this); }
 
+    /* Синхронизация префикса с датой */
+    const MONTHS_GENITIVE = ["января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"];
+
+    function updatePrefixFromDateString(str) {
+      if (!str) return;
+      let monthIndex = -1;
+      const lower = str.toLowerCase();
+      for (let i = 0; i < MONTHS_GENITIVE.length; i++) {
+        if (lower.indexOf(MONTHS_GENITIVE[i]) !== -1) {
+          monthIndex = i;
+          break;
+        }
+      }
+
+      const dayMatch = str.match(/\b([0-3]?[0-9])\b/);
+      if (monthIndex !== -1 && dayMatch) {
+        const mStr = String(monthIndex + 1).padStart(2, '0');
+        const dStr = String(dayMatch[1]).padStart(2, '0');
+        const pfx = `${mStr}-${dStr}/`;
+        if (document.getElementById('kpPrefix')) document.getElementById('kpPrefix').textContent = pfx;
+        if (document.getElementById('kpPrefixIp')) document.getElementById('kpPrefixIp').textContent = pfx;
+      }
+    }
+
+    function onDateInput(input) {
+      updatePrefixFromDateString(input.value);
+      const isIp = document.getElementById('companySelect').value === 'ip';
+      const other = isIp ? document.getElementById('docDate') : document.getElementById('docDateIp');
+      if (other) other.value = input.value;
+      updateDocumentTitle();
+      saveState();
+    }
+
     function setDateAndPrefixes() {
       const now = new Date();
       const monthNum = String(now.getMonth() + 1).padStart(2, '0');
@@ -1240,13 +1267,12 @@
       if (document.getElementById('kpPrefix')) document.getElementById('kpPrefix').textContent = pfx;
       if (document.getElementById('kpPrefixIp')) document.getElementById('kpPrefixIp').textContent = pfx;
 
-      const months = ["января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"];
-      const dStr = `${dayNum} ${months[now.getMonth()]} ${now.getFullYear()} года`;
+      const dStr = `${dayNum} ${MONTHS_GENITIVE[now.getMonth()]} ${now.getFullYear()} года`;
       
       const dOoo = document.getElementById('docDate');
-      if (dOoo && !dOoo.value) dOoo.value = dStr;
+      if (dOoo) dOoo.value = dStr;
       const dIp = document.getElementById('docDateIp');
-      if (dIp && !dIp.value) dIp.value = dStr;
+      if (dIp) dIp.value = dStr;
     }
 
     function onPriceFocus(input) {
@@ -1411,8 +1437,6 @@
       document.getElementById('clientBoxIp').value = '';
       document.getElementById('kpNumInput').value = '1';
       document.getElementById('kpNumInputIp').value = '1';
-      document.getElementById('docDate').value = '';
-      document.getElementById('docDateIp').value = '';
       setDateAndPrefixes();
 
       document.getElementById('condOooDeliveryTime').value = '5-10(пять-десять) рабочих дней';
@@ -1576,7 +1600,15 @@
     window.addEventListener('DOMContentLoaded', () => {
       initBackgroundVisibility();
       const restored = loadState();
-      if (!restored) setDateAndPrefixes();
+      
+      // Всегда синхронизируем префикс с датой на бланке
+      const curDateStr = document.getElementById('docDate')?.value;
+      if (curDateStr) {
+        updatePrefixFromDateString(curDateStr);
+      } else {
+        setDateAndPrefixes();
+      }
+
       onCompanyChange();
       initAutoResize();
       recalc();
