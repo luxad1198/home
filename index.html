@@ -20,7 +20,7 @@
       position: relative;
     }
 
-    /* Боковые колонки картинок */
+    /* Боковые фоновые колонки: занимают все пространство */
     .bg-sidebar {
       position: fixed;
       top: 15px;
@@ -248,54 +248,21 @@
     }
     .btn-copy-calc {
       width: 100%;
-      margin-top: 8px;
-      padding: 6px;
+      margin-top: 10px;
+      padding: 8px;
       background: #2563eb;
       color: #fff;
       border: none;
       border-radius: 5px;
-      font-size: 11px;
+      font-size: 12px;
       font-weight: 600;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 4px;
+      gap: 6px;
     }
     .btn-copy-calc:hover { background: #1d4ed8; }
-
-    /* Вставка из Excel */
-    .calc-batch-box {
-      margin-top: 12px;
-      padding-top: 10px;
-      border-top: 2px dashed #e2e8f0;
-    }
-    .calc-textarea-batch {
-      width: 100%;
-      height: 90px;
-      padding: 6px;
-      border: 1px solid #cbd5e1;
-      border-radius: 5px;
-      font-family: monospace;
-      font-size: 11px;
-      line-height: 1.3;
-      resize: vertical;
-      outline: none;
-      white-space: pre;
-    }
-    .btn-apply-batch {
-      width: 100%;
-      margin-top: 6px;
-      padding: 6px;
-      background: #059669;
-      color: #fff;
-      border: none;
-      border-radius: 5px;
-      font-size: 11px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    .btn-apply-batch:hover { background: #047857; }
 
     /* Лист А4 */
     .page {
@@ -575,7 +542,7 @@
   <!-- Кнопка вызова калькулятора -->
   <button class="calc-toggle-panel-btn no-print" onclick="toggleCalcPanel()">📊 Калькулятор</button>
 
-  <!-- Калькулятор -->
+  <!-- Калькулятор прибыли -->
   <div class="calc-sidebar no-print" id="calcSidebar">
     <div class="calc-title">
       <span>📊 Расчет цен и налогов</span>
@@ -644,14 +611,6 @@
     </div>
 
     <button type="button" class="btn-copy-calc" onclick="copyCalcPrice()">📋 Скопировать цену в буфер</button>
-
-    <div class="calc-batch-box">
-      <div style="font-weight:700; margin-bottom:4px;">📥 Закупки (2 столбца из Excel)</div>
-      <div style="font-size:10.5px; color:#64748b; margin-bottom:4px;">Скопируйте <b>Кол-во</b> и <b>Цену</b> из таблицы:</div>
-      <textarea id="calcBatchText" class="calc-textarea-batch" placeholder="1	7400&#10;5	12500&#10;2	11699..." oninput="onBatchInput()"></textarea>
-      <div id="calcBatchInfo" style="font-size:11px; color:#0369a1; min-height:15px; margin-top:2px;"></div>
-      <button type="button" class="btn-apply-batch" onclick="applyBatchPricesToKp()">⚡ Заполнить строки КП</button>
-    </div>
   </div>
 
   <!-- Фоновые миниатюры слева -->
@@ -760,7 +719,7 @@
           <td class="col-text-cell"><textarea class="auto-grow col-name" placeholder="Впиши наименование" oninput="saveState()"></textarea></td>
           <td class="col-text-cell"><textarea class="auto-grow col-desc" placeholder="впиши характеристики" oninput="saveState()"></textarea></td>
           <td class="c col-num-cell"><input type="text" class="inp-text c col-country" placeholder="Китай" value="Китай" oninput="saveState()"></td>
-          <td class="c col-num-cell"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1" oninput="onTableRowChange(this)"></td>
+          <td class="c col-num-cell"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1" oninput="recalc(); saveState();"></td>
           <td class="c col-num-cell">
             <input type="text" class="inp-text r col-price" placeholder="500,00" data-raw="0" value=""
                    onfocus="onPriceFocus(this)" 
@@ -797,7 +756,7 @@
       <tr>
         <td class="cond-lbl">Доставка</td>
         <td>
-          <select class="auto-grow cond-val" id="deliverySelectOoo" onchange="calculateMargin(); syncKpToCalculator(); saveState();">
+          <select class="auto-grow cond-val" id="deliverySelectOoo" onchange="calculateMargin(); saveState();">
             <option value="Доставка товара до адреса заказчика включена">Доставка товара до адреса заказчика включена</option>
             <option value="Самовывоз со склада продавца">Самовывоз со склада продавца</option>
           </select>
@@ -813,7 +772,7 @@
     <div class="ip-cond-box" id="condIpBox">
       <div><b>Срок поставки:</b> <input type="text" id="ipDeliveryTime" class="meta-input" value="1-2 недели" style="width: 250px;" oninput="saveState()"></div>
       <div style="margin-top: 4px;"><b>Доставка:</b> 
-        <select class="meta-input" id="deliverySelectIp" onchange="calculateMargin(); syncKpToCalculator(); saveState();">
+        <select class="meta-input" id="deliverySelectIp" onchange="calculateMargin(); saveState();">
           <option value="Доставка включена в стоимость">Доставка включена в стоимость</option>
           <option value="Самовывоз со склада продавца">Самовывоз со склада продавца</option>
         </select>
@@ -898,7 +857,6 @@
       document.getElementById('btnWeekMinus').style.display = isWeeks ? 'inline-block' : 'none';
       document.getElementById('btnWeekPlus').style.display = isWeeks ? 'inline-block' : 'none';
       calculateMargin();
-      syncKpToCalculator();
       saveState();
     }
 
@@ -909,7 +867,6 @@
       weeks = Math.max(0, weeks + delta);
       input.value = weeks * 7;
       calculateMargin();
-      syncKpToCalculator();
       saveState();
     }
 
@@ -921,7 +878,6 @@
       const input = document.getElementById('calcProfitTarget');
       input.placeholder = mode === 'rub' ? '15 000' : '15';
       calculateMargin();
-      syncKpToCalculator();
       saveState();
     }
 
@@ -965,7 +921,6 @@
 
       calculateMargin();
       recalc();
-      syncKpToCalculator();
       updateDocumentTitle();
       saveState();
     }
@@ -985,113 +940,6 @@
 
     function fmtInt(n) {
       return n.toLocaleString('ru-RU', { maximumFractionDigits: 0 });
-    }
-
-    function parseBatchLines() {
-      const text = document.getElementById('calcBatchText').value || '';
-      const lines = text.split(/\r?\n/);
-      const items = [];
-      for (let line of lines) {
-        line = line.trim();
-        if (!line) continue;
-        const parts = line.split(/[\t;]+|\s{2,}/).map(p => p.trim()).filter(p => p !== '');
-        if (parts.length >= 2) {
-          const qty = parseNum(parts[0]) || 1;
-          const cost = parseNum(parts[1]);
-          if (cost > 0) items.push({ qty, cost });
-        } else if (parts.length === 1) {
-          const cost = parseNum(parts[0]);
-          if (cost > 0) items.push({ qty: 1, cost });
-        }
-      }
-      return items;
-    }
-
-    function onBatchInput() {
-      const items = parseBatchLines();
-      const infoElem = document.getElementById('calcBatchInfo');
-      if (items.length > 0) {
-        const totalCost = items.reduce((sum, it) => sum + (it.qty * it.cost), 0);
-        infoElem.textContent = `✓ Найдено: ${items.length} поз. на сумму ${fmt(totalCost)} ₽`;
-        document.getElementById('calcCostVat').value = fmt(totalCost);
-        calculateMargin();
-      } else {
-        infoElem.textContent = '';
-      }
-      saveState();
-    }
-
-    function applyBatchPricesToKp() {
-      calculateMargin();
-
-      const batchItems = parseBatchLines();
-      let totalSaleTarget = parseNum(document.getElementById('resSaleVat').getAttribute('data-val'));
-
-      // Одиночный расчет без Excel
-      if (batchItems.length === 0) {
-        if (totalSaleTarget <= 0) {
-          alert('Заполните поле закупки в калькуляторе или вставьте данные из Excel.');
-          return;
-        }
-        const tbody = document.getElementById('tableBody');
-        if (tbody.children.length === 0) addRow(false);
-
-        const firstRow = tbody.children[0];
-        const qtyVal = parseNum(firstRow.querySelector('.col-qty').value) || 1;
-        firstRow.querySelector('.col-qty').value = qtyVal;
-
-        let unitPrice = totalSaleTarget / qtyVal;
-        if (unitPrice >= 100) {
-          unitPrice = Math.round(unitPrice / 10) * 10;
-        } else {
-          unitPrice = Math.round(unitPrice * 100) / 100;
-        }
-
-        const priceInp = firstRow.querySelector('.col-price');
-        priceInp.setAttribute('data-raw', unitPrice.toFixed(2));
-        priceInp.value = fmt(unitPrice);
-
-        initAutoResize();
-        recalc();
-        syncKpToCalculator();
-        saveState();
-        return;
-      }
-
-      // Расчет для позиций из Excel
-      const sumBatch = batchItems.reduce((sum, it) => sum + (it.qty * it.cost), 0);
-      if (!totalSaleTarget || totalSaleTarget < sumBatch) {
-        totalSaleTarget = sumBatch;
-      }
-
-      const finalMultiplier = sumBatch > 0 ? (totalSaleTarget / sumBatch) : 1;
-
-      const tbody = document.getElementById('tableBody');
-      while (tbody.children.length < batchItems.length) addRow(false);
-      while (tbody.children.length > batchItems.length) tbody.lastElementChild.remove();
-
-      const rows = tbody.querySelectorAll('tr');
-      batchItems.forEach((item, i) => {
-        const row = rows[i];
-        row.querySelector('.row-idx').textContent = i + 1;
-        row.querySelector('.col-qty').value = item.qty;
-        
-        let salePrice = item.cost * finalMultiplier;
-        if (salePrice >= 100) {
-          salePrice = Math.round(salePrice / 10) * 10;
-        } else {
-          salePrice = Math.round(salePrice * 100) / 100;
-        }
-
-        const priceInp = row.querySelector('.col-price');
-        priceInp.setAttribute('data-raw', salePrice.toFixed(2));
-        priceInp.value = fmt(salePrice);
-      });
-
-      initAutoResize();
-      recalc();
-      syncKpToCalculator();
-      saveState();
     }
 
     function calculateMargin() {
@@ -1147,117 +995,12 @@
       document.getElementById('resSaleVat').setAttribute('data-val', saleVat.toFixed(2));
     }
 
-    function syncKpToCalculator() {
-      const isIp = document.getElementById('companySelect').value === 'ip';
-      const cVat = parseNum(document.getElementById('calcCostVat').value);
-      const days = parseInt(document.getElementById('calcFinDaysInput').value) || 0;
-      const finCost = cVat * (0.28 / 365) * days;
-
-      const delSelect = isIp ? document.getElementById('deliverySelectIp') : document.getElementById('deliverySelectOoo');
-      const isDeliveryInc = delSelect && delSelect.value.indexOf('Доставка') !== -1;
-      const deliveryCost = isDeliveryInc ? parseNum(document.getElementById('calcDeliveryCost').value) : 0;
-      const totalCostBase = cVat + finCost + deliveryCost;
-
-      if (totalCostBase <= 0) return;
-
-      let grandTotalKp = 0;
-      document.querySelectorAll('#tableBody tr').forEach(row => {
-        const qVal = row.querySelector('.col-qty').value;
-        const q = qVal !== '' ? (parseFloat(qVal) || 0) : 1;
-        const priceInput = row.querySelector('.col-price');
-        const p = parseNum(priceInput.getAttribute('data-raw') || priceInput.value);
-        grandTotalKp += q * p;
-      });
-
-      if (grandTotalKp <= 0) return;
-
-      let netProfit = 0, profitTax = 0, vatPayable = 0, costNet = 0;
-
-      if (!isIp) {
-        costNet = totalCostBase / 1.22;
-        const saleNet = grandTotalKp / 1.22;
-        const ebt = Math.max(0, saleNet - costNet);
-        profitTax = ebt * 0.25;
-        netProfit = ebt * 0.75;
-        const vatIn = totalCostBase - costNet;
-        const vatOut = grandTotalKp - saleNet;
-        vatPayable = Math.max(0, vatOut - vatIn);
-      } else {
-        costNet = totalCostBase;
-        profitTax = grandTotalKp * 0.07;
-        vatPayable = grandTotalKp * 5 / 105;
-        netProfit = Math.max(0, grandTotalKp - costNet - profitTax - vatPayable);
-      }
-
-      document.getElementById('resCostNet').textContent = fmt(costNet) + ' ₽';
-      document.getElementById('resNetProfit').textContent = fmt(netProfit) + ' ₽';
-      document.getElementById('resProfitTax').textContent = fmt(profitTax) + ' ₽';
-      document.getElementById('resVatPayable').textContent = fmt(vatPayable) + ' ₽';
-      document.getElementById('resSaleVat').textContent = fmt(grandTotalKp) + ' ₽';
-      document.getElementById('resSaleVat').setAttribute('data-val', grandTotalKp.toFixed(2));
-    }
-
-    /* Полная синхронизация строк КП -> поле закупки калькулятора */
-    function syncAllRowsToBatch() {
-      const rows = Array.from(document.querySelectorAll('#tableBody tr'));
-      const batchElem = document.getElementById('calcBatchText');
-      if (!batchElem) return;
-
-      let existingLines = batchElem.value.split(/\r?\n/).filter(l => l.trim() !== '');
-      const newLines = [];
-      let totalCalculatedCost = 0;
-
-      rows.forEach((row, i) => {
-        const qVal = row.querySelector('.col-qty')?.value;
-        const qty = qVal !== '' ? (parseFloat(qVal) || 1) : 1;
-        const priceInput = row.querySelector('.col-price');
-        const currentPrice = parseNum(priceInput?.getAttribute('data-raw') || priceInput?.value) || 0;
-
-        let unitCost = 0;
-        if (existingLines[i]) {
-          const parts = existingLines[i].split(/[\t;]+|\s{2,}/).map(p => p.trim()).filter(p => p !== '');
-          if (parts.length >= 2) {
-            unitCost = parseNum(parts[1]);
-          } else if (parts.length === 1) {
-            unitCost = parseNum(parts[0]);
-          }
-        }
-
-        // Если в поле закупки еще не было цены, используем цену из строки КП
-        if (unitCost === 0 && currentPrice > 0) {
-          unitCost = currentPrice;
-        }
-
-        if (unitCost > 0) {
-          newLines.push(`${qty}\t${unitCost}`);
-          totalCalculatedCost += (qty * unitCost);
-        } else {
-          newLines.push(`${qty}\t0`);
-        }
-      });
-
-      batchElem.value = newLines.join('\n');
-
-      const infoElem = document.getElementById('calcBatchInfo');
-      if (totalCalculatedCost > 0) {
-        infoElem.textContent = `✓ Найдено: ${newLines.length} поз. на сумму ${fmt(totalCalculatedCost)} ₽`;
-        document.getElementById('calcCostVat').value = fmt(totalCalculatedCost);
-      } else {
-        infoElem.textContent = '';
-      }
-      calculateMargin();
-    }
-
-    function onTableRowChange(changedInput) {
-      syncAllRowsToBatch();
-      recalc();
-      syncKpToCalculator();
-      saveState();
-    }
-
     function copyCalcPrice() {
       const val = document.getElementById('resSaleVat').getAttribute('data-val');
-      if (!val) return;
+      if (!val) {
+        alert('Сначала введите данные для расчета в калькулятор.');
+        return;
+      }
       navigator.clipboard.writeText(val).then(() => alert('Итоговая сумма скопирована в буфер!'));
     }
 
@@ -1335,14 +1078,16 @@
     function onPriceInput(input) {
       const num = parseNum(input.value);
       input.setAttribute('data-raw', num);
-      onTableRowChange(input);
+      recalc();
+      saveState();
     }
 
     function onPriceBlur(input) {
       const num = parseNum(input.value || input.getAttribute('data-raw'));
       input.setAttribute('data-raw', num);
       input.value = num > 0 ? fmt(num) : '';
-      onTableRowChange(input);
+      recalc();
+      saveState();
     }
 
     function addRow(focusNew = false) {
@@ -1354,7 +1099,7 @@
         <td class="col-text-cell"><textarea class="auto-grow col-name" placeholder="Впиши наименование" oninput="saveState()"></textarea></td>
         <td class="col-text-cell"><textarea class="auto-grow col-desc" placeholder="впиши характеристики" oninput="saveState()"></textarea></td>
         <td class="c col-num-cell"><input type="text" class="inp-text c col-country" placeholder="Китай" value="Китай" oninput="saveState()"></td>
-        <td class="c col-num-cell"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1" oninput="onTableRowChange(this)"></td>
+        <td class="c col-num-cell"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1" oninput="recalc(); saveState();"></td>
         <td class="c col-num-cell">
           <input type="text" class="inp-text r col-price" placeholder="500,00" data-raw="0" value=""
                  onfocus="onPriceFocus(this)" 
@@ -1366,7 +1111,8 @@
       `;
       tbody.appendChild(tr);
       initAutoResize();
-      onTableRowChange(null);
+      recalc();
+      saveState();
       if (focusNew) tr.querySelector('.col-name').focus();
     }
 
@@ -1382,7 +1128,8 @@
       document.querySelectorAll('#tableBody tr').forEach((row, i) => {
         row.querySelector('.row-idx').textContent = i + 1;
       });
-      onTableRowChange(null);
+      recalc();
+      saveState();
     }
 
     function recalc() {
@@ -1503,8 +1250,6 @@
       document.getElementById('calcFinDaysInput').value = '0';
       document.getElementById('calcDeliveryCost').value = '';
       document.getElementById('calcProfitTarget').value = '';
-      document.getElementById('calcBatchText').value = '';
-      document.getElementById('calcBatchInfo').textContent = '';
 
       const tbody = document.getElementById('tableBody');
       tbody.innerHTML = `
@@ -1513,7 +1258,7 @@
           <td class="col-text-cell"><textarea class="auto-grow col-name" placeholder="Впиши наименование" oninput="saveState()"></textarea></td>
           <td class="col-text-cell"><textarea class="auto-grow col-desc" placeholder="впиши характеристики" oninput="saveState()"></textarea></td>
           <td class="c col-num-cell"><input type="text" class="inp-text c col-country" placeholder="Китай" value="Китай" oninput="saveState()"></td>
-          <td class="c col-num-cell"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1" oninput="onTableRowChange(this)"></td>
+          <td class="c col-num-cell"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1" oninput="recalc(); saveState();"></td>
           <td class="c col-num-cell">
             <input type="text" class="inp-text r col-price" placeholder="500,00" data-raw="0" value=""
                    onfocus="onPriceFocus(this)" 
@@ -1528,7 +1273,6 @@
       initAutoResize();
       calculateMargin();
       recalc();
-      syncKpToCalculator();
       updateDocumentTitle();
     }
 
@@ -1569,7 +1313,6 @@
           calcProfitTarget: document.getElementById('calcProfitTarget').value,
           calcMarginMode: currentMarginMode,
           calcFinMode: currentFinMode,
-          calcBatchText: document.getElementById('calcBatchText').value,
           rows: rows
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -1609,10 +1352,6 @@
         if (state.calcProfitTarget) document.getElementById('calcProfitTarget').value = state.calcProfitTarget;
         if (state.calcMarginMode) setMarginMode(state.calcMarginMode);
         if (state.calcFinMode) setFinMode(state.calcFinMode);
-        if (state.calcBatchText) {
-          document.getElementById('calcBatchText').value = state.calcBatchText;
-          onBatchInput();
-        }
 
         if (state.rows && state.rows.length > 0) {
           const tbody = document.getElementById('tableBody');
@@ -1625,7 +1364,7 @@
               <td class="col-text-cell"><textarea class="auto-grow col-name" placeholder="Впиши наименование" oninput="saveState()">${rData.name || ''}</textarea></td>
               <td class="col-text-cell"><textarea class="auto-grow col-desc" placeholder="впиши характеристики" oninput="saveState()">${rData.desc || ''}</textarea></td>
               <td class="c col-num-cell"><input type="text" class="inp-text c col-country" placeholder="Китай" value="${rData.country || 'Китай'}" oninput="saveState()"></td>
-              <td class="c col-num-cell"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1" value="${rData.qty || ''}" oninput="onTableRowChange(this)"></td>
+              <td class="c col-num-cell"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1" value="${rData.qty || ''}" oninput="recalc(); saveState();"></td>
               <td class="c col-num-cell">
                 <input type="text" class="inp-text r col-price" placeholder="500,00" data-raw="${pNum}" value="${pNum > 0 ? fmt(pNum) : ''}"
                        onfocus="onPriceFocus(this)" 
@@ -1663,7 +1402,6 @@
       onCompanyChange();
       initAutoResize();
       recalc();
-      syncKpToCalculator();
       updateDocumentTitle();
     });
 
