@@ -398,6 +398,7 @@
       table-layout: fixed; 
       page-break-inside: auto !important;
       break-inside: auto !important;
+      box-sizing: border-box;
     }
     table.spec thead {
       display: table-header-group !important;
@@ -583,7 +584,7 @@
     /* Печать */
     @page { 
       size: A4 portrait; 
-      margin: 8mm 12mm 8mm 12mm; 
+      margin: 8mm 10mm 8mm 10mm; 
     }
     @media print {
       * {
@@ -594,6 +595,7 @@
         background: #fff !important;
         margin: 0 !important;
         padding: 0 !important;
+        width: 100% !important;
       }
       .panel, .no-print, .calc-sidebar, .calc-toggle-panel-btn, .bg-sidebar { 
         display: none !important; 
@@ -603,8 +605,32 @@
         margin: 0 !important;
         padding: 0 !important;
         width: 100% !important;
+        max-width: 100% !important;
         min-height: 0 !important;
         height: auto !important;
+      }
+
+      /* Полное удаление служебной колонки из печатного потока */
+      th.no-print, td.no-print {
+        display: none !important;
+        width: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border: none !important;
+      }
+
+      table.spec {
+        width: 100% !important;
+        table-layout: fixed !important;
+        border-collapse: collapse !important;
+        box-sizing: border-box !important;
+      }
+
+      /* Гарантированное сохранение правой границы у крайнего правого столбца */
+      table.spec th#thTotalCol,
+      table.spec td.col-total,
+      table.spec tfoot td#grandTotal {
+        border-right: 1px solid #000 !important;
       }
       
       table.spec textarea.auto-grow {
@@ -865,7 +891,7 @@
       </tr>
       <tr>
         <td class="cond-lbl">Гарантия</td>
-        <td><textarea class="auto-grow cond-val" id="condOooWarranty" oninput="saveState()">12 месяцев с возможностью расширения до 5 лет. Выезд инженера в рамках гарантийного ремонта по адресу Заказчика – опционально. Обслуживание On-site (на месте) / Keep Your Drive (KYD) ремонт с сохранением жестких дисков у клиента – опционально..</textarea></td>
+        <td><textarea class="auto-grow cond-val" id="condOooWarranty" oninput="saveState()">12 месяцев с возможностью расширения до 5 лет. Выезд инженера в рамках гарантийного ремонта по адресу Заказчика – опционально. Обслуживание On-site (на месте) / Keep Your Drive (KYD) ремонт с сохранением жестких дисков у клиента – опционально.</textarea></td>
       </tr>
     </table>
 
@@ -1011,7 +1037,6 @@
         document.getElementById('lblVatType').textContent = 'НДС (5%):';
         if (delTitle) delTitle.textContent = 'Доставка до клиента с НДС 5%, ₽';
 
-        // Подмена печати на печать ИП
         if (stampImg) {
           stampImg.src = 'stamp-ip.png';
           stampImg.style.display = 'block';
@@ -1027,7 +1052,6 @@
         document.getElementById('lblVatType').textContent = 'НДС к доплате (22%):';
         if (delTitle) delTitle.textContent = 'Доставка до клиента с НДС 22%, ₽';
 
-        // Возврат печати ООО
         if (stampImg) {
           stampImg.src = 'stamp.png';
           stampImg.style.display = 'block';
@@ -1403,7 +1427,7 @@
       document.getElementById('condOooDeliveryTime').value = '5-10(пять-десять) рабочих дней';
       document.getElementById('condOooPay').value = '100% постоплата';
       document.getElementById('deliverySelectOoo').value = 'Доставка товара до адреса заказчика включена';
-      document.getElementById('condOooWarranty').value = '12 месяцев с возможностью расширения до 5 лет. Выезд инженера в рамках гарантийного ремонта по адресу Заказчика – опционально. Обслуживание On-site (на месте) / Keep Your Drive (KYD) ремонт с сохранением жестких дисков у клиента – опционально..';
+      document.getElementById('condOooWarranty').value = '12 месяцев с возможностью расширения до 5 лет. Выезд инженера в рамках гарантийного ремонта по адресу Заказчика – опционально. Обслуживание On-site (на месте) / Keep Your Drive (KYD) ремонт с сохранением жестких дисков у клиента – опционально.';
 
       document.getElementById('ipDeliveryTime').value = '1-2 недели';
       document.getElementById('deliverySelectIp').value = 'Доставка включена в стоимость';
