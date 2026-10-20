@@ -361,6 +361,17 @@
       width: 45px;
       padding: 0 2px;
     }
+    .kp-ip-input {
+      font-family: inherit;
+      font-size: 11pt;
+      font-weight: bold;
+      border: none;
+      border-bottom: 1px dashed #777;
+      background: transparent;
+      outline: none;
+      width: 110px;
+      padding: 0 2px;
+    }
 
     .client-textarea {
       width: 100%;
@@ -530,6 +541,8 @@
       page-break-inside: avoid !important;
       break-inside: avoid !important;
     }
+    
+    /* Стили печати для ООО */
     .stamp-box { 
       position: absolute; 
       top: -38px; 
@@ -539,6 +552,13 @@
       opacity: 0.95; 
     }
     .stamp-box img { width: 100%; display: block; }
+
+    /* Позиционирование печати для ИП: росчерк аккуратно ложится на линию */
+    body.is-ip .stamp-box {
+      top: -46px;
+      right: 85px;
+      width: 185px;
+    }
 
     .contacts-ooo { 
       margin-top: 16px; 
@@ -599,7 +619,6 @@
         break-inside: auto !important;
       }
 
-      /* Класс для скрытия пустого блока заказчика на печати */
       .print-hide-client {
         display: none !important;
       }
@@ -752,14 +771,14 @@
     <div class="head-ip-container" id="headIp">
       <div class="head-ip-top">
         <b>Индивидуальный предприниматель Захаров Михаил Сергеевич</b><br>
-        ОГРНИП 324784700057488, ИНН 781630132386<br>
+        ОГРНИП: 325110000002538 / ИНН: 110214010407<br>
         Тел.: +7 (981) 208-62-36, e-mail: m.zakharov0811@gmail.com
       </div>
       <div class="head-ip-meta">
         <div>
           <div class="kp-num-wrapper">
-            Исх. № <span class="kp-prefix" id="kpPrefixIp">10-20/</span>
-            <input type="text" class="kp-user-input" id="kpNumInputIp" placeholder="1" value="1" oninput="saveState(); updateDocumentTitle();">
+            Исх. №&nbsp;
+            <input type="text" class="kp-ip-input" id="kpNumInputIp" placeholder="номер" value="" oninput="saveState(); updateDocumentTitle();">
           </div><br>
           От <input type="text" id="docDateIp" class="meta-input" style="width: 155px;" oninput="onDateInput(this)">
         </div>
@@ -978,7 +997,9 @@
       document.getElementById('contactsOoo').style.display = isIp ? 'none' : 'block';
       document.getElementById('contactsIp').style.display = isIp ? 'block' : 'none';
 
+      const stampImg = document.getElementById('stampImg');
       const delTitle = document.getElementById('lblDeliveryTitle');
+
       if (isIp) {
         document.getElementById('docIntro').textContent = 
           'Индивидуальный предприниматель Захаров Михаил Сергеевич, действующий на основании свидетельства о государственной регистрации, предлагает рассмотреть возможность поставки следующего оборудования:';
@@ -989,6 +1010,12 @@
         document.getElementById('lblTaxType').textContent = 'УСН (6%+1%):';
         document.getElementById('lblVatType').textContent = 'НДС (5%):';
         if (delTitle) delTitle.textContent = 'Доставка до клиента с НДС 5%, ₽';
+
+        // Подмена печати на печать ИП
+        if (stampImg) {
+          stampImg.src = 'stamp-ip.png';
+          stampImg.style.display = 'block';
+        }
       } else {
         document.getElementById('docIntro').textContent = 
           'Общество с ограниченной ответственностью «РТСтандарт», в лице генерального директора Маркова Дмитрия Евгеньевича, действующего на основании Устава, предлагает рассмотреть возможность поставки следующего оборудования:';
@@ -999,6 +1026,12 @@
         document.getElementById('lblTaxType').textContent = 'Налог на прибыль (25%):';
         document.getElementById('lblVatType').textContent = 'НДС к доплате (22%):';
         if (delTitle) delTitle.textContent = 'Доставка до клиента с НДС 22%, ₽';
+
+        // Возврат печати ООО
+        if (stampImg) {
+          stampImg.src = 'stamp.png';
+          stampImg.style.display = 'block';
+        }
       }
 
       calculateMargin();
@@ -1100,9 +1133,7 @@
 
     function onTextareaInput() { autoResizeTextarea(this); }
 
-    /* Подготовка содержимого для печати */
     function prepareForPrint() {
-      // 1. Копируем текст из textarea в блоки-зеркала
       document.querySelectorAll('#tableBody tr').forEach(row => {
         const textCells = row.querySelectorAll('td.col-text-cell');
         textCells.forEach(cell => {
@@ -1113,20 +1144,17 @@
           }
         });
 
-        // 2. Страна по умолчанию: если пусто, ставим "Китай"
         const countryInp = row.querySelector('.col-country');
         if (countryInp && !countryInp.value.trim()) {
           countryInp.value = 'Китай';
         }
 
-        // 3. Количество по умолчанию: если пусто, ставим 1
         const qtyInp = row.querySelector('.col-qty');
         if (qtyInp && !qtyInp.value.trim()) {
           qtyInp.value = '1';
         }
       });
 
-      // 4. Проверяем поле "Заказчику" - скрываем, если пустое
       const isIp = document.getElementById('companySelect').value === 'ip';
       const clientText = isIp ? document.getElementById('clientBoxIp')?.value : document.getElementById('clientBox')?.value;
       const clientBoxOoo = document.getElementById('clientContainerOoo');
@@ -1156,13 +1184,14 @@
         const dStr = String(dayMatch[1]).padStart(2, '0');
         const pfx = `${mStr}-${dStr}/`;
         if (document.getElementById('kpPrefix')) document.getElementById('kpPrefix').textContent = pfx;
-        if (document.getElementById('kpPrefixIp')) document.getElementById('kpPrefixIp').textContent = pfx;
       }
     }
 
     function onDateInput(input) {
-      updatePrefixFromDateString(input.value);
       const isIp = document.getElementById('companySelect').value === 'ip';
+      if (!isIp) {
+        updatePrefixFromDateString(input.value);
+      }
       const other = isIp ? document.getElementById('docDate') : document.getElementById('docDateIp');
       if (other) other.value = input.value;
       updateDocumentTitle();
@@ -1176,7 +1205,6 @@
       
       const pfx = `${monthNum}-${dayNum}/`;
       if (document.getElementById('kpPrefix')) document.getElementById('kpPrefix').textContent = pfx;
-      if (document.getElementById('kpPrefixIp')) document.getElementById('kpPrefixIp').textContent = pfx;
 
       const dStr = `${dayNum} ${MONTHS_GENITIVE[now.getMonth()]} ${now.getFullYear()} года`;
       
@@ -1259,7 +1287,6 @@
       let grandTotal = 0;
       document.querySelectorAll('#tableBody tr').forEach(row => {
         const qVal = row.querySelector('.col-qty').value;
-        // Если количество не заполнено, по умолчанию рассчитываем как 1 шт.
         const q = (qVal !== '' && qVal !== null) ? (parseFloat(qVal) || 1) : 1;
         const priceInput = row.querySelector('.col-price');
         const p = parseNum(priceInput.getAttribute('data-raw') || priceInput.value);
@@ -1348,12 +1375,18 @@
         if (first) org = first;
       }
       
-      const prefixEl = document.getElementById(isIp ? 'kpPrefixIp' : 'kpPrefix');
-      const prefix = prefixEl ? prefixEl.textContent.replace(/[\/\\]/g, '-').trim() : '';
-      const numInput = isIp ? document.getElementById('kpNumInputIp') : document.getElementById('kpNumInput');
-      const numVal = (numInput?.value || '1').trim().replace(/[\/\\]/g, '-');
+      let fullNum = '';
+      if (isIp) {
+        const numInputIp = document.getElementById('kpNumInputIp');
+        fullNum = (numInputIp?.value || '').trim().replace(/[\/\\]/g, '-');
+      } else {
+        const prefixEl = document.getElementById('kpPrefix');
+        const prefix = prefixEl ? prefixEl.textContent.replace(/[\/\\]/g, '-').trim() : '';
+        const numInput = document.getElementById('kpNumInput');
+        const numVal = (numInput?.value || '1').trim().replace(/[\/\\]/g, '-');
+        fullNum = (prefix + numVal).replace(/-+/g, '-');
+      }
       
-      const fullNum = (prefix + numVal).replace(/-+/g, '-');
       document.title = `КП-${org}-${fullNum || '1'}`;
     }
 
@@ -1364,7 +1397,7 @@
       document.getElementById('clientBox').value = '';
       document.getElementById('clientBoxIp').value = '';
       document.getElementById('kpNumInput').value = '1';
-      document.getElementById('kpNumInputIp').value = '1';
+      document.getElementById('kpNumInputIp').value = '';
       setDateAndPrefixes();
 
       document.getElementById('condOooDeliveryTime').value = '5-10(пять-десять) рабочих дней';
@@ -1464,7 +1497,7 @@
           document.getElementById('companySelect').value = state.company;
         }
         if (state.kpNumOoo) document.getElementById('kpNumInput').value = state.kpNumOoo;
-        if (state.kpNumIp) document.getElementById('kpNumInputIp').value = state.kpNumIp;
+        if (state.kpNumIp !== undefined) document.getElementById('kpNumInputIp').value = state.kpNumIp;
         if (state.docDateOoo) document.getElementById('docDate').value = state.docDateOoo;
         if (state.docDateIp) document.getElementById('docDateIp').value = state.docDateIp;
         if (state.clientOoo) document.getElementById('clientBox').value = state.clientOoo;
