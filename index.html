@@ -389,7 +389,7 @@
       break-inside: auto !important;
     }
     table.spec thead {
-      display: table-header-group !important; /* Автоматический повтор шапки на каждой новой странице */
+      display: table-header-group !important;
     }
     table.spec tbody {
       display: table-row-group !important;
@@ -445,7 +445,6 @@
       field-sizing: content;
     }
 
-    /* Блок-зеркало для печати (растягивает ячейку без обрезки и делает постраничный перенос) */
     .print-text-mirror {
       display: none;
       font-family: inherit;
@@ -588,7 +587,6 @@
         height: auto !important;
       }
       
-      /* На печати скрываем textarea с их фиксированными рамками и включаем естественный HTML-блок */
       table.spec textarea.auto-grow {
         display: none !important;
       }
@@ -596,7 +594,6 @@
         display: block !important;
       }
 
-      /* Снятие любых блокировок разрывов для таблицы */
       table.spec, table.spec tr, table.spec td {
         page-break-inside: auto !important;
         break-inside: auto !important;
@@ -734,7 +731,7 @@
       <tr>
         <td class="head-meta-cell">
           <div class="kp-num-wrapper">
-            КП № <span class="kp-prefix" id="kpPrefix">10-19/</span>
+            КП № <span class="kp-prefix" id="kpPrefix">10-20/</span>
             <input type="text" class="kp-user-input" id="kpNumInput" placeholder="1" value="1" oninput="saveState(); updateDocumentTitle();">
           </div><br>
           От <input type="text" id="docDate" class="meta-input" style="width: 155px;" oninput="onDateInput(this)">
@@ -756,7 +753,7 @@
       <div class="head-ip-meta">
         <div>
           <div class="kp-num-wrapper">
-            Исх. № <span class="kp-prefix" id="kpPrefixIp">10-19/</span>
+            Исх. № <span class="kp-prefix" id="kpPrefixIp">10-20/</span>
             <input type="text" class="kp-user-input" id="kpNumInputIp" placeholder="1" value="1" oninput="saveState(); updateDocumentTitle();">
           </div><br>
           От <input type="text" id="docDateIp" class="meta-input" style="width: 155px;" oninput="onDateInput(this)">
@@ -1031,11 +1028,8 @@
       const finCost = cVat * (0.28 / 365) * days;
       document.getElementById('calcFinCostVal').textContent = `Стоимость денег: ${fmt(finCost)} ₽ (${days} дн.)`;
 
-      const delSelect = isIp ? document.getElementById('deliverySelectIp') : document.getElementById('deliverySelectOoo');
-      const isDeliveryInc = delSelect && delSelect.value.indexOf('Доставка') !== -1;
-      const deliveryCost = isDeliveryInc ? parseNum(document.getElementById('calcDeliveryCost').value) : 0;
-
-      const totalCostBase = cVat + finCost + deliveryCost;
+      const delCost = parseNum(document.getElementById('calcDeliveryCost').value);
+      const totalCostBase = cVat + finCost + delCost;
 
       if (totalCostBase <= 0) {
         document.getElementById('resCostNet').textContent = '0,00 ₽';
@@ -1101,7 +1095,6 @@
 
     function onTextareaInput() { autoResizeTextarea(this); }
 
-    /* Перенос содержимого textarea в блок для печати */
     function syncPrintMirrors() {
       document.querySelectorAll('#tableBody tr').forEach(row => {
         const textCells = row.querySelectorAll('td.col-text-cell');
@@ -1316,16 +1309,23 @@
       return res.join(' ');
     }
 
+    /* ИСПРАВЛЕННАЯ ГЕНЕРАЦИЯ ИМЕНИ ФАЙЛА (С ПОЛНЫМ ПРЕФИКСОМ ДАТЫ) */
     function updateDocumentTitle() {
       const isIp = document.getElementById('companySelect').value === 'ip';
       const clientVal = isIp ? document.getElementById('clientBoxIp').value : document.getElementById('clientBox').value;
       let org = isIp ? 'ИП Захаров' : 'РТСтандарт';
       if (clientVal) {
-        const first = clientVal.split('\n')[0].replace(/["'«»\\/:*?<>|]+/g, ' ').trim();
+        const first = clientVal.split('\n')[0].replace(/["'«»\\/:*?<>|]+/g, ' ').replace(/\s+/g, ' ').trim();
         if (first) org = first;
       }
-      const numVal = isIp ? document.getElementById('kpNumInputIp').value : document.getElementById('kpNumInput').value;
-      document.title = `КП-${org}-${numVal || '1'}`;
+      
+      const prefixEl = document.getElementById(isIp ? 'kpPrefixIp' : 'kpPrefix');
+      const prefix = prefixEl ? prefixEl.textContent.replace(/[\/\\]/g, '-').trim() : '';
+      const numInput = isIp ? document.getElementById('kpNumInputIp') : document.getElementById('kpNumInput');
+      const numVal = (numInput?.value || '1').trim().replace(/[\/\\]/g, '-');
+      
+      const fullNum = (prefix + numVal).replace(/-+/g, '-');
+      document.title = `КП-${org}-${fullNum || '1'}`;
     }
 
     function clearForm() {
