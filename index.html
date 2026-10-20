@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Коммерческое предложение — ООО «РТСтандарт»</title>
+  <title>КП-РТСтандарт</title>
   <style>
     * { 
       box-sizing: border-box; 
@@ -11,11 +11,18 @@
       print-color-adjust: exact !important;
       color-adjust: exact !important;
     }
-    body { background: #52525b; margin: 0; padding: 20px 10px; color: #000; }
+    body { 
+      background: #3f3f46; 
+      margin: 0; 
+      padding: 20px 15px 40px; 
+      color: #000; 
+      overflow-x: auto;
+    }
     
+    /* Верхняя панель: строго по центру над КП */
     .panel {
       width: 210mm;
-      margin: 0 auto 12px;
+      margin: 0 auto 16px;
       background: #fff;
       padding: 10px 16px;
       border-radius: 6px;
@@ -23,9 +30,15 @@
       justify-content: space-between;
       align-items: center;
       font-family: Arial, sans-serif;
+      gap: 8px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      position: relative;
+      z-index: 40;
     }
+    .panel-left { display: flex; gap: 8px; align-items: center; }
+    .panel-right { display: flex; gap: 8px; align-items: center; }
     .btn {
-      padding: 8px 16px;
+      padding: 8px 14px;
       border-radius: 4px;
       cursor: pointer;
       font-weight: 600;
@@ -34,39 +47,279 @@
       border: 1px solid #1d4ed8;
       background: #1d4ed8;
       color: #fff;
+      transition: opacity 0.15s;
     }
+    .btn:hover { opacity: 0.9; }
     .btn-add { background: #f3f4f6; color: #111; border-color: #cbd5e1; }
-    .btn-del { background: #fee2e2; color: #b91c1c; border: 1px solid #f87171; padding: 2px 5px; font-size: 11px; cursor: pointer; border-radius: 3px; }
+    .btn-toggle-calc { background: #e0f2fe; color: #0369a1; border-color: #bae6fd; }
+    .btn-clear { background: #fff1f2; color: #e11d48; border-color: #fecdd3; }
+    .btn-del { background: #fee2e2; color: #b91c1c; border: 1px solid #f87171; padding: 2px 6px; font-size: 11px; cursor: pointer; border-radius: 3px; }
+
+    /* Переключатель компаний */
+    .company-switcher {
+      display: inline-flex;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 2px;
+      gap: 2px;
+    }
+    .company-btn {
+      border: none;
+      background: transparent;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      border-radius: 4px;
+      color: #475569;
+      font-family: Arial, sans-serif;
+      transition: all 0.15s;
+    }
+    .company-btn.active {
+      background: #1e293b;
+      color: #fff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    }
+
+    /* Оболочка макета: строго центрирована по КП */
+    .app-layout {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 25px;
+      width: 100%;
+      max-width: 2150px;
+      margin: 0 auto;
+    }
+
+    /* Боковые колонки картинок: 620px */
+    .side-comics-col {
+      width: 620px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      position: relative;
+      top: -72px;
+      z-index: 10;
+    }
+    .comic-card {
+      width: 100%;
+      border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+      border: 2px solid #27272a;
+      overflow: hidden;
+      background: #18181b;
+      aspect-ratio: 16 / 9.8;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .comic-card:hover {
+      transform: scale(1.015);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.6);
+    }
+    .comic-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* Калькулятор слева: прижат к правому краю левой колонки */
+    .calc-sidebar {
+      width: 325px;
+      background: #ffffff;
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.55);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 13px;
+      line-height: 1.4;
+      position: absolute;
+      right: 0px;
+      top: 0px;
+      z-index: 50;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+    .calc-sidebar.collapsed {
+      display: none !important;
+    }
+
+    .calc-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 8px;
+    }
+    .calc-badge {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: #e2e8f0;
+      color: #334155;
+      font-weight: 700;
+    }
+    .calc-field {
+      margin-bottom: 12px;
+    }
+    .calc-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #475569;
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .calc-input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .calc-input {
+      width: 100%;
+      padding: 7px 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 5px;
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .calc-input:focus {
+      border-color: #2563eb;
+    }
+    .calc-input-readonly {
+      background: #f8fafc;
+      font-weight: 600;
+      color: #0f172a;
+    }
+    .calc-toggle {
+      display: inline-flex;
+      background: #e2e8f0;
+      border-radius: 4px;
+      padding: 2px;
+      gap: 2px;
+    }
+    .calc-toggle-btn {
+      border: none;
+      background: transparent;
+      padding: 2px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      border-radius: 3px;
+      color: #475569;
+      font-family: inherit;
+    }
+    .calc-toggle-btn.active {
+      background: #2563eb;
+      color: #fff;
+    }
+
+    .btn-step {
+      padding: 6px 10px;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 11px;
+      color: #334155;
+      white-space: nowrap;
+    }
+    .btn-step:hover { background: #e2e8f0; }
+
+    .calc-result-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 10px;
+      margin-top: 14px;
+    }
+    .calc-res-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      font-size: 12px;
+      color: #64748b;
+    }
+    .calc-res-row span:last-child {
+      font-weight: 600;
+      color: #1e293b;
+    }
+    .calc-highlight {
+      border-top: 1px dashed #cbd5e1;
+      padding-top: 8px;
+      margin-top: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .calc-highlight-lbl {
+      font-size: 11px;
+      font-weight: 700;
+      color: #1e40af;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .calc-highlight-val {
+      font-size: 17px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+    .btn-copy-calc {
+      width: 100%;
+      margin-top: 10px;
+      padding: 7px;
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .btn-copy-calc:hover { background: #1d4ed8; }
 
     /* Лист А4 */
     .page {
       width: 210mm;
       min-height: 297mm;
       padding: 10mm 15mm 12mm 15mm;
-      margin: 0 auto;
       background: #fff;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.35);
+      box-shadow: 0 6px 28px rgba(0,0,0,0.5);
       position: relative;
       font-size: 11.5pt;
       line-height: 1.15;
+      flex-shrink: 0;
+      margin: 0;
+      z-index: 30;
     }
 
-    /* Шапка документа */
+    /* Шапка ООО РТСтандарт */
     .head-grid {
       width: 100%;
       border-collapse: collapse;
       margin-bottom: 12px;
-      page-break-inside: avoid;
-      break-inside: avoid;
     }
     .head-grid td {
       border: none;
       padding: 0 0 8px 0;
       vertical-align: top;
     }
-    .head-logo-cell {
-      width: 52%;
-    }
+    .head-logo-cell { width: 50%; }
     .logo {
       height: 104px;
       width: auto;
@@ -75,23 +328,55 @@
       display: block;
     }
     .head-req-cell {
-      width: 48%;
-      padding-left: 20px !important;
+      width: 50%;
+      padding-left: 15px !important;
       font-size: 11.5pt;
       line-height: 1.35;
     }
     .head-meta-cell {
-      width: 52%;
+      width: 50%;
       font-size: 11pt;
       line-height: 1.35;
       padding-top: 10px !important;
     }
     .head-client-cell {
-      width: 48%;
-      padding-left: 20px !important;
+      width: 50%;
+      padding-left: 15px !important;
       font-size: 11pt;
       line-height: 1.25;
       padding-top: 10px !important;
+    }
+
+    /* Шапка ИП Захаров М.С. */
+    .head-ip-block {
+      margin-bottom: 12px;
+    }
+    .head-ip-title {
+      font-size: 12pt;
+      font-weight: bold;
+      line-height: 1.3;
+      margin-bottom: 4px;
+    }
+    .head-ip-contacts {
+      font-size: 10pt;
+      line-height: 1.3;
+      margin-bottom: 8px;
+    }
+    .head-ip-contacts a {
+      color: #000;
+      text-decoration: underline;
+    }
+    .head-ip-meta-table {
+      width: 100%;
+      border-collapse: collapse;
+      border-top: 1px solid #000;
+      margin-top: 6px;
+    }
+    .head-ip-meta-table td {
+      border: none;
+      padding: 8px 4px 6px;
+      vertical-align: top;
+      font-size: 10.5pt;
     }
 
     .meta-input {
@@ -138,7 +423,7 @@
     }
 
     .title { text-align: center; font-size: 12pt; font-weight: bold; margin: 12px 0 6px; }
-    .intro { text-align: justify; text-indent: 10mm; font-size: 11pt; margin-bottom: 8px; line-height: 1.15; }
+    .intro { text-align: justify; text-indent: 10mm; font-size: 11pt; margin-bottom: 8px; line-height: 1.2; }
 
     /* Таблица спецификации */
     table.spec { 
@@ -162,23 +447,41 @@
     }
     table.spec th, table.spec td { 
       border: 1px solid #000; 
-      padding: 3px 4px; 
-      vertical-align: top; 
+      padding: 4px 3px; 
       line-height: 1.15; 
       word-break: break-word;
       overflow-wrap: break-word;
     }
-    table.spec th { 
+    table.spec td.col-text-cell {
+      vertical-align: top;
+    }
+    table.spec td.col-num-cell {
+      vertical-align: middle;
+    }
+
+    /* Шапка таблицы для ООО */
+    body.theme-rt table.spec th, body.theme-rt .t-tot { 
       background-color: #ACB9CA !important; 
       text-align: center; 
       font-weight: bold; 
-      padding: 4px 2px;
+      padding: 5px 2px;
       vertical-align: middle;
+      font-size: 9pt;
+      hyphens: auto;
+      -webkit-hyphens: auto;
     }
-    .t-tot { 
-      background-color: #ACB9CA !important; 
-      font-weight: bold; 
-      page-break-inside: avoid;
+    
+    /* Шапка таблицы для ИП */
+    body.theme-ip table.spec th, body.theme-ip .t-tot { 
+      background-color: #ffffff !important; 
+      text-align: center; 
+      font-weight: normal; 
+      padding: 5px 2px;
+      vertical-align: middle;
+      font-size: 9pt;
+      border: 1px solid #000 !important;
+      hyphens: auto;
+      -webkit-hyphens: auto;
     }
 
     .auto-grow {
@@ -198,7 +501,29 @@
       word-break: break-word;
     }
 
-    .inp-qty, .inp-text {
+    /* Блок для естественной печати текста без обрезки и фиксации высоты */
+    .print-text {
+      display: none;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: 9.5pt;
+      line-height: 1.15;
+      width: 100%;
+    }
+
+    .inp-qty {
+      width: 100%;
+      border: none;
+      outline: none;
+      font-family: inherit;
+      font-size: 9.5pt;
+      background: transparent;
+      padding: 0;
+      margin: 0;
+      text-align: center;
+    }
+
+    .inp-text {
       width: 100%;
       border: none;
       outline: none;
@@ -208,14 +533,13 @@
       padding: 0;
       margin: 0;
     }
-    .inp-qty { text-align: center; }
 
     .r { text-align: right; }
     .c { text-align: center; }
 
     .tot-phrase { font-size: 11pt; line-height: 1.25; margin: 6px 0 10px; page-break-inside: avoid; }
 
-    /* Таблица условий поставки */
+    /* Таблица условий ООО */
     table.cond { 
       width: 100%; 
       border-collapse: collapse; 
@@ -236,7 +560,40 @@
       font-weight: bold; 
     }
 
-    /* Неразрывный блок подписи, печати и контактов */
+    /* Редактируемые текстовые условия ИП */
+    .ip-terms-block {
+      margin: 12px 0 35px;
+      font-size: 11pt;
+      line-height: 1.35;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+    .ip-term-line {
+      margin-bottom: 6px;
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+    .ip-term-label {
+      font-weight: bold;
+      white-space: nowrap;
+    }
+    .ip-term-input {
+      font-family: inherit;
+      font-size: 11pt;
+      border: none;
+      border-bottom: 1px dashed #777;
+      background: transparent;
+      outline: none;
+      flex-grow: 1;
+    }
+    
+    select.cond-val {
+      cursor: pointer;
+      font-size: 10pt;
+    }
+
+    /* Неразрывный подвал */
     .keep-together-block {
       page-break-inside: avoid !important;
       break-inside: avoid !important;
@@ -250,7 +607,9 @@
       margin-top: 10px; 
       font-size: 11pt; 
     }
-    .stamp-box { 
+    
+    /* Печать ООО */
+    .stamp-box-rt { 
       position: absolute; 
       top: -28px; 
       right: 105px; 
@@ -258,14 +617,33 @@
       pointer-events: none; 
       opacity: 0.95; 
     }
-    .stamp-box img { width: 100%; display: block; }
+    .stamp-box-rt img { width: 100%; display: block; }
+
+    /* Печать ИП: 220px */
+    .stamp-box-ip { 
+      position: absolute; 
+      top: -65px; 
+      right: 65px; 
+      width: 220px; 
+      pointer-events: none; 
+      opacity: 0.95; 
+    }
+    .stamp-box-ip img { width: 100%; display: block; }
 
     .contacts { margin-top: 18px; font-size: 10pt; line-height: 1.25; }
 
-    /* Стили печати */
+    /* Контакты составителя ИП внизу слева */
+    .ip-author-contacts {
+      font-size: 10pt;
+      line-height: 1.35;
+      margin-top: 12px;
+      color: #000;
+    }
+
+    /* Печать */
     @page { 
       size: A4 portrait; 
-      margin: 10mm 15mm; 
+      margin: 8mm 12mm 8mm 12mm; 
     }
     
     @media print {
@@ -278,8 +656,13 @@
         margin: 0 !important;
         padding: 0 !important;
       }
-      .panel, .no-print { 
+      .panel, .no-print, .calc-sidebar, .side-comics-col { 
         display: none !important; 
+      }
+      .app-layout {
+        display: block !important;
+        width: 100% !important;
+        margin: 0 !important;
       }
       .page {
         box-shadow: none !important;
@@ -288,6 +671,13 @@
         width: 100% !important;
         min-height: 0 !important;
       }
+      body.theme-rt table.spec th, body.theme-rt .t-tot, body.theme-rt .cond-lbl {
+        background-color: #ACB9CA !important;
+      }
+      body.theme-ip table.spec th, body.theme-ip .t-tot {
+        background-color: #ffffff !important;
+      }
+      
       table.spec {
         page-break-inside: auto !important;
         break-inside: auto !important;
@@ -303,19 +693,24 @@
       table.spec thead {
         display: table-header-group !important;
       }
-      .auto-grow {
-        height: auto !important;
-        overflow: visible !important;
+
+      /* Скрываем интерактивные textarea и выводим чистый текст в div */
+      textarea.auto-grow {
+        display: none !important;
       }
-      table.spec th, .t-tot, .cond-lbl {
-        background-color: #ACB9CA !important;
+      .print-text {
+        display: block !important;
       }
-      .keep-together-block {
+
+      .keep-together-block, table.cond {
         page-break-inside: avoid !important;
         break-inside: avoid !important;
       }
-      input, textarea { 
+      input, select { 
         border-bottom: none !important; 
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
       }
       ::placeholder { 
         color: transparent !important; 
@@ -331,144 +726,675 @@
     }
   </style>
 </head>
-<body>
+<body class="theme-rt">
 
   <div class="panel no-print">
-    <button class="btn btn-add" onclick="addRow()">+ Добавить позицию</button>
-    <span style="font-size: 13px; color: #4b5563;">ООО «РТСтандарт» — Генератор коммерческих предложений</span>
-    <button class="btn" onclick="window.print()">🖨️ Сохранить в PDF / Печать</button>
+    <div class="panel-left">
+      <button class="btn btn-add" onclick="addRow(true)">+ Добавить позицию</button>
+      <button class="btn btn-toggle-calc" id="btnToggleCalc" onclick="toggleCalcSidebar()">◀ Скрыть калькулятор</button>
+      <button class="btn btn-clear" onclick="clearForm()">🗑️ Очистить бланк</button>
+    </div>
+    
+    <div class="panel-right">
+      <div class="company-switcher">
+        <button type="button" class="company-btn active" id="btnCompRt" onclick="setCompany('rt')">ООО "РТСтандарт" (НДС 22%)</button>
+        <button type="button" class="company-btn" id="btnCompIp" onclick="setCompany('ip')">ИП Захаров М.С. (УСН 6%+1%, НДС 5%)</button>
+      </div>
+      <button class="btn" onclick="prepareAndPrint()">🖨️ Сохранить в PDF / Печать</button>
+    </div>
   </div>
 
-  <div class="page">
-    <table class="head-grid">
-      <tr>
-        <td class="head-logo-cell">
-          <img src="logo.png" alt="РТСТАНДАРТ" class="logo" onerror="this.outerHTML='<b style=\'font-size:16pt;\'>РТСТАНДАРТ</b>'">
-        </td>
-        <td class="head-req-cell">
-          <b>ООО "РТСТАНДАРТ"</b><br>
-          г. Санкт-Петербург, наб. Обводного канала, д. 23, лит. Г<br>
-          ИНН 7842228552<br>
-          +7 (812) 983-44-33
-        </td>
-      </tr>
-      <tr>
-        <td class="head-meta-cell">
-          <div class="kp-num-wrapper">
-            КП № <span class="kp-prefix" id="kpPrefix">10-20/</span>
-            <input type="text" class="kp-user-input" placeholder="1" value="1">
-          </div><br>
-          От <input type="text" id="docDate" class="meta-input" style="width: 155px;">
-        </td>
-        <td class="head-client-cell">
-          Заказчику:
-          <textarea rows="2" class="auto-grow client-textarea" placeholder="можете вписать сюда наименование заказчика"></textarea>
-        </td>
-      </tr>
-    </table>
+  <div class="app-layout">
 
-    <div class="title">КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ</div>
-    <div class="intro">
-      Общество с ограниченной ответственностью «РТСтандарт», в лице генерального директора Маркова Дмитрия Евгеньевича, действующего на основании Устава, предлагает рассмотреть возможность поставки следующего оборудования:
-    </div>
-
-    <!-- Таблица спецификации -->
-    <table class="spec" id="itemsTable">
-      <thead>
-        <tr>
-          <th style="width: 4%;">№</th>
-          <th style="width: 25%;">Наименование товара</th>
-          <th style="width: 30%;">Основные характеристики предложенного товара</th>
-          <th style="width: 8%;">Страна</th>
-          <th style="width: 7%;">Кол-во</th>
-          <th style="width: 12%;">Цена за ед. руб., включая НДС 22%</th>
-          <th style="width: 14%;">Сумма руб., включая НДС 22%</th>
-          <th class="no-print" style="width: 25px; border: none; background: #fff;"></th>
-        </tr>
-      </thead>
-      <tbody id="tableBody">
-        <tr>
-          <td class="c row-idx">1</td>
-          <td><textarea class="auto-grow" placeholder="Впиши наименование"></textarea></td>
-          <td><textarea class="auto-grow" placeholder="Впиши характеристики"></textarea></td>
-          <td class="c"><input type="text" class="inp-text c" placeholder="Китай" value="Китай"></td>
-          <td class="c"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1" oninput="recalc()"></td>
-          <td class="c">
-            <input type="text" class="inp-text r col-price" placeholder="500,00" 
-                   data-raw="0" value=""
-                   onfocus="onPriceFocus(this)" 
-                   onblur="onPriceBlur(this)" 
-                   oninput="onPriceInput(this)">
-          </td>
-          <td class="r col-total" style="font-weight:bold;">0,00</td>
-          <td class="no-print c" style="border:none;"><button class="btn-del" onclick="deleteRow(this)">✕</button></td>
-        </tr>
-      </tbody>
-      <tfoot>
-        <tr class="t-tot">
-          <td colspan="6" class="r" style="padding-right: 8px;">ИТОГО:</td>
-          <td id="grandTotal" class="r">0,00</td>
-          <td class="no-print" style="border:none; background:#fff;"></td>
-        </tr>
-      </tfoot>
-    </table>
-
-    <div class="tot-phrase" id="textTotalBlock">
-      ИТОГО: 0 (ноль) рублей 00 копеек, в том числе НДС 22% 0 (ноль) рублей 00 копеек.
-    </div>
-
-    <!-- Таблица условий -->
-    <table class="cond">
-      <tr>
-        <td class="cond-lbl">Срок поставки</td>
-        <td><textarea class="auto-grow">5-10(пять-десять) рабочих дней</textarea></td>
-      </tr>
-      <tr>
-        <td class="cond-lbl">Условия оплаты</td>
-        <td><textarea class="auto-grow">100% постоплата</textarea></td>
-      </tr>
-      <tr>
-        <td class="cond-lbl">Доставка</td>
-        <td><textarea class="auto-grow">Доставка товара до адреса заказчика включена</textarea></td>
-      </tr>
-      <tr>
-        <td class="cond-lbl">Гарантия</td>
-        <td><textarea class="auto-grow">12 месяцев с возможностью расширения до 5 лет. Выезд инженера в рамках гарантийного ремонта по адресу Заказчика – опционально. Обслуживание On-site (на месте) / Keep Your Drive (KYD) ремонт с сохранением жестких дисков у клиента – опционально..</textarea></td>
-      </tr>
-    </table>
-
-    <!-- Блок подписи и печать -->
-    <div class="keep-together-block">
-      <div class="sign-row">
-        <div>
-          Генеральный директор<br>
-          ООО «РТСтандарт»
+    <!-- 3 КАРТИНКИ СЛЕВА -->
+    <div class="side-comics-col side-comics-left no-print">
+      <!-- Калькулятор внутри левой колонки -->
+      <div class="calc-sidebar no-print" id="calcSidebar">
+        <div class="calc-title">
+          <span>📊 Расчет цены и налогов</span>
+          <span class="calc-badge" id="calcTaxBadge">ОСНО: НДС 22%</span>
         </div>
-        <div style="position: relative; width: 320px; text-align: right; padding-top: 10px;">
-          <span style="border-bottom: 1px solid #000; display: inline-block; width: 140px;"></span>
-          &nbsp;/ Марков Д.Е.
-          <div class="stamp-box">
-            <img src="stamp.png" alt="Печать" onerror="this.style.display='none'">
+
+        <div class="calc-field">
+          <label class="calc-label" id="lblCalcCostVat" for="calcCostVat">Закупка товара с НДС 22%, ₽</label>
+          <div class="calc-input-wrap">
+            <input type="text" id="calcCostVat" class="calc-input" placeholder="например 100 000" oninput="calculateMargin(); saveState();">
           </div>
         </div>
+
+        <!-- Финансирование -->
+        <div class="calc-field">
+          <div class="calc-label">
+            <span>Финансирование (28% год.)</span>
+            <div class="calc-toggle">
+              <button type="button" class="calc-toggle-btn active" id="btnFinanceDays" onclick="setFinanceMode('days')">Дни</button>
+              <button type="button" class="calc-toggle-btn" id="btnFinanceWeeks" onclick="setFinanceMode('weeks')">Недели</button>
+            </div>
+          </div>
+
+          <div class="calc-input-wrap" id="wrapFinanceDays">
+            <input type="number" id="calcFinanceDaysInput" class="calc-input" style="width: 85px; text-align: center;" min="0" step="1" placeholder="0 дн." oninput="onFinanceDaysChange()">
+            <input type="text" id="calcFinanceCostDisplay" class="calc-input calc-input-readonly" readonly value="0,00 ₽" title="Стоимость пользования денежными средствами">
+          </div>
+
+          <div class="calc-input-wrap" id="wrapFinanceWeeks" style="display: none;">
+            <button type="button" class="btn-step" onclick="stepFinanceWeeks(-1)">-1 нед</button>
+            <button type="button" class="btn-step" onclick="stepFinanceWeeks(1)">+1 нед</button>
+            <input type="text" id="calcFinanceWeeksDisplay" class="calc-input calc-input-readonly" readonly value="0,00 ₽ (0 нед)">
+          </div>
+        </div>
+
+        <!-- Поле доставки -->
+        <div class="calc-field" id="calcDeliveryRow">
+          <label class="calc-label" id="lblCalcDeliveryCost" for="calcDeliveryCost">Доставка до клиента с НДС 22%, ₽</label>
+          <div class="calc-input-wrap">
+            <input type="text" id="calcDeliveryCost" class="calc-input" placeholder="например 3 500" oninput="calculateMargin(); saveState();">
+          </div>
+        </div>
+
+        <div class="calc-field">
+          <div class="calc-label">
+            <span>Желаемая прибыль</span>
+            <div class="calc-toggle">
+              <button type="button" class="calc-toggle-btn active" id="btnModeRub" onclick="setMarginMode('rub')">₽</button>
+              <button type="button" class="calc-toggle-btn" id="btnModePct" onclick="setMarginMode('pct')">%</button>
+            </div>
+          </div>
+          <div class="calc-input-wrap">
+            <input type="text" id="calcProfitTarget" class="calc-input" placeholder="15 000" oninput="calculateMargin(); saveState();">
+          </div>
+        </div>
+
+        <div class="calc-result-box">
+          <div class="calc-res-row">
+            <span>Себестоимость затрат:</span>
+            <span id="resCostNet">0,00 ₽</span>
+          </div>
+          <div class="calc-res-row">
+            <span>Финансирование сделки:</span>
+            <span id="resFinanceCost" style="color: #d97706;">0,00 ₽</span>
+          </div>
+          <div class="calc-res-row">
+            <span>Чистая прибыль (факт):</span>
+            <span id="resNetProfit" style="color: #16a34a;">0,00 ₽</span>
+          </div>
+          <div class="calc-res-row">
+            <span id="lblProfitTax">Налог на прибыль (25%):</span>
+            <span id="resProfitTax">0,00 ₽</span>
+          </div>
+          <div class="calc-res-row">
+            <span id="lblVatPayable">НДС к уплате (22%):</span>
+            <span id="resVatPayable">0,00 ₽</span>
+          </div>
+          <div class="calc-res-row">
+            <span>Цена без НДС:</span>
+            <span id="resSaleNet">0,00 ₽</span>
+          </div>
+
+          <div class="calc-highlight">
+            <span class="calc-highlight-lbl" id="lblSaleTotalVat">Итого для клиента (с НДС 22%):</span>
+            <span class="calc-highlight-val" id="resSaleVat">0,00 ₽</span>
+          </div>
+        </div>
+
+        <button type="button" class="btn-copy-calc" onclick="copyCalcPrice()">
+          📋 Скопировать цену в буфер
+        </button>
       </div>
 
-      <div class="contacts">
-        Исп.<br>
-        Коммерческий департамент<br>
-        ООО «РТСтандарт»<br>
-        E-mail: info@liscorp.ru<br>
-        +7 (981) 040-10-70<br>
-        +7 (812) 983-44-33<br>
-        https://liscorp.ru/
+      <div class="comic-card">
+        <img src="bg-thumb1.png" alt="Выбор пути">
+      </div>
+      <div class="comic-card">
+        <img src="bg-thumb2.png" alt="Я прав">
+      </div>
+      <div class="comic-card">
+        <img src="bg-thumb3.png" alt="Тимбилдинг">
       </div>
     </div>
+
+    <!-- Лист Коммерческого предложения (по центру) -->
+    <div class="page">
+      
+      <!-- ШАПКА 1: ООО "РТСТАНДАРТ" -->
+      <div id="headerRt">
+        <table class="head-grid">
+          <tr>
+            <td class="head-logo-cell">
+              <img src="logo.png" alt="РТСТАНДАРТ" class="logo" width="310" height="104" onerror="this.outerHTML='<b style=\'font-size:16pt;\'>РТСТАНДАРТ</b>'">
+            </td>
+            <td class="head-req-cell">
+              <b>ООО "РТСТАНДАРТ"</b><br>
+              г. Санкт-Петербург, наб. Обводного канала, д. 23, лит. Г<br>
+              ИНН 7842228552<br>
+              +7 (812) 983-44-33
+            </td>
+          </tr>
+          <tr>
+            <td class="head-meta-cell">
+              <div class="kp-num-wrapper">
+                КП № <span class="kp-prefix" id="kpPrefix">10-09/</span>
+                <input type="text" class="kp-user-input" id="kpNumInput" placeholder="1" value="1" oninput="saveState(); updateDocumentTitle();">
+              </div><br>
+              От <input type="text" id="docDate" class="meta-input" style="width: 155px;" oninput="saveState()">
+            </td>
+            <td class="head-client-cell">
+              Заказчику:
+              <textarea rows="2" class="auto-grow client-textarea" id="clientBox" placeholder="можете вписать сюда наименование заказчика" oninput="saveState(); updateDocumentTitle();"></textarea>
+              <div class="print-text client-print" style="font-size: 11pt;"></div>
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- ШАПКА 2: ИП Захаров М.С. -->
+      <div id="headerIp" style="display: none;" class="head-ip-block">
+        <div class="head-ip-title">
+          Индивидуальный предприниматель Захаров Михаил Сергеевич ОГРНИП: 325110000002538 / ИНН: 110214010407
+        </div>
+        <div class="head-ip-contacts">
+          Телефон +7 981 208-62-36<br>
+          e-mail: <a href="mailto:m.zakharov0811@gmail.com">m.zakharov0811@gmail.com</a>
+        </div>
+        <table class="head-ip-meta-table">
+          <tr>
+            <td style="width: 50%;">
+              <b>Исх. № <input type="text" class="meta-input" id="kpNumInputIp" style="width: 55px; font-weight: bold;" value="289" oninput="saveState(); updateDocumentTitle();"></b>
+              от «<input type="text" class="meta-input" id="docDateIpDay" style="width: 25px; text-align: center;" value="10" oninput="saveState()">» 
+              <input type="text" class="meta-input" id="docDateIpMonth" style="width: 90px;" value="октября" oninput="saveState()"> 2026 года
+            </td>
+            <td style="width: 50%; padding-left: 15px;">
+              <b>Заказчику:</b>
+              <textarea rows="2" class="auto-grow client-textarea" id="clientBoxIp" placeholder="можете вписать сюда наименование заказчика" oninput="syncClientInputs(this); saveState(); updateDocumentTitle();"></textarea>
+              <div class="print-text client-print-ip" style="font-size: 10.5pt;"></div>
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="title" id="docTitle">КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ</div>
+      
+      <!-- Вводный текст -->
+      <div class="intro" id="docIntro">
+        Общество с ограниченной ответственностью «РТСтандарт», в лице генерального директора Маркова Дмитрия Евгеньевича, действующего на основании Устава, предлагает рассмотреть возможность поставки следующего оборудования:
+      </div>
+
+      <!-- Таблица спецификации -->
+      <table class="spec" id="itemsTable">
+        <thead>
+          <tr>
+            <th style="width: 4%;">№</th>
+            <th style="width: 24%;">Наименование товара</th>
+            <th style="width: 29%;" id="thDesc">Основные характеристики предложенного товара и прочие условия</th>
+            <th style="width: 10%;" id="thCountry">Страна</th>
+            <th style="width: 8%;" id="thQty">Кол-во, шт.</th>
+            <th style="width: 12%;" id="thPrice">Цена за ед. руб., включая НДС 22%</th>
+            <th style="width: 13%;" id="thTotal">Сумма руб., включая НДС 22%</th>
+            <th class="no-print" style="width: 25px; border: none; background: #fff;"></th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+        <tfoot>
+          <tr class="t-tot">
+            <td colspan="6" class="r" style="padding-right: 8px;">ИТОГО:</td>
+            <td id="grandTotal" class="r">0,00</td>
+            <td class="no-print" style="border:none; background:#fff;"></td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <!-- Итоговая строка прописью -->
+      <div class="tot-phrase" id="textTotalBlock">
+        ИТОГО: 0 (ноль) рублей 00 копеек, в том числе НДС 22% 0 (ноль) рублей 00 копеек.
+      </div>
+
+      <!-- ВАРИАНТ 1: Условия ООО -->
+      <div id="termsRt">
+        <table class="cond">
+          <tr>
+            <td class="cond-lbl">Срок поставки</td>
+            <td>
+              <textarea class="auto-grow cond-val" id="condDeliveryTerm" oninput="saveState()">5-10(пять-десять) рабочих дней</textarea>
+              <div class="print-text">5-10(пять-десять) рабочих дней</div>
+            </td>
+          </tr>
+          <tr>
+            <td class="cond-lbl">Условия оплаты</td>
+            <td>
+              <textarea class="auto-grow cond-val" id="condPaymentTerm" oninput="saveState()">100% постоплата</textarea>
+              <div class="print-text">100% постоплата</div>
+            </td>
+          </tr>
+          <tr>
+            <td class="cond-lbl">Доставка</td>
+            <td>
+              <select class="auto-grow cond-val" id="deliverySelect" onchange="onDeliveryChange()">
+                <option value="Доставка товара до адреса заказчика включена">Доставка товара до адреса заказчика включена</option>
+                <option value="Самовывоз со склада продавца">Самовывоз со склада продавца</option>
+              </select>
+            </td>
+          </tr>
+          <tr>
+            <td class="cond-lbl">Гарантия</td>
+            <td>
+              <textarea class="auto-grow cond-val" id="condWarranty" oninput="saveState()">12 месяцев с возможностью расширения до 5 лет. Выезд инженера в рамках гарантийного ремонта по адресу Заказчика – опционально. Обслуживание On-site (на месте) / Keep Your Drive (KYD) ремонт с сохранением жестких дисков у клиента – опционально..</textarea>
+              <div class="print-text">12 месяцев с возможностью расширения до 5 лет. Выезд инженера в рамках гарантийного ремонта по адресу Заказчика – опционально. Обслуживание On-site (на месте) / Keep Your Drive (KYD) ремонт с сохранением жестких дисков у клиента – опционально..</div>
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- ВАРИАНТ 2: Условия ИП -->
+      <div id="termsIp" style="display: none;" class="ip-terms-block">
+        <div class="ip-term-line">
+          <span class="ip-term-label">Срок поставки:</span>
+          <input type="text" class="ip-term-input" id="condDeliveryTermIp" value="1-2 недели" oninput="saveState()">
+        </div>
+        <div class="ip-term-line">
+          <span class="ip-term-label">Доставка:</span>
+          <select class="ip-term-input" id="deliverySelectIp" onchange="onDeliveryChangeIp(this)">
+            <option value="Доставка товара до адреса заказчика включена">включена в стоимость</option>
+            <option value="Самовывоз со склада продавца">самовывоз со склада продавца</option>
+          </select>
+        </div>
+        <div class="ip-term-line">
+          <span class="ip-term-label">Гарантия:</span>
+          <input type="text" class="ip-term-input" id="condWarrantyIp" value="12 (двенадцать) месяцев" oninput="saveState()">
+        </div>
+        <div class="ip-term-line">
+          <span class="ip-term-label">Условия оплаты:</span>
+          <input type="text" class="ip-term-input" id="condPaymentTermIp" value="100% постоплата" oninput="saveState()">
+        </div>
+      </div>
+
+      <!-- Неразрывный подвал -->
+      <div class="keep-together-block">
+        
+        <!-- Подвал ООО РТСтандарт -->
+        <div id="footerRt">
+          <div class="sign-row">
+            <div>
+              Генеральный директор<br>
+              ООО «РТСтандарт»
+            </div>
+            <div style="position: relative; width: 320px; text-align: right; padding-top: 10px;">
+              <span style="border-bottom: 1px solid #000; display: inline-block; width: 140px;"></span>
+              &nbsp;/ Марков Д.Е.
+              <div class="stamp-box-rt">
+                <img src="stamp.png" alt="Печать" width="170" onerror="this.style.display='none'">
+              </div>
+            </div>
+          </div>
+
+          <div class="contacts">
+            Исп.<br>
+            Коммерческий департамент<br>
+            ООО «РТСтандарт»<br>
+            E-mail: info@liscorp.ru<br>
+            +7 (981) 040-10-70<br>
+            +7 (812) 983-44-33<br>
+            https://liscorp.ru/
+          </div>
+        </div>
+
+        <!-- Подвал ИП Захаров М.С. -->
+        <div id="footerIp" style="display: none;">
+          <div class="sign-row" style="margin-top: 35px; align-items: baseline;">
+            <div>
+              Индивидуальный предприниматель
+            </div>
+            <div style="position: relative; width: 340px; text-align: right;">
+              <span style="border-bottom: 1px solid #000; display: inline-block; width: 150px;"></span>
+              &nbsp;/ Захаров М.С.
+              <div class="stamp-box-ip">
+                <img src="stamp-ip.png" alt="Печать ИП" width="220" onerror="this.style.display='none'">
+              </div>
+            </div>
+          </div>
+
+          <!-- Реквизиты составителя КП внизу слева -->
+          <div class="ip-author-contacts">
+            Захаров Михаил Сергеевич<br>
+            Телефон: +7 981 208-62-36<br>
+            Email: m.zakharov0811@gmail.com
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 3 КАРТИНКИ СПРАВА -->
+    <div class="side-comics-col side-comics-right no-print">
+      <div class="comic-card">
+        <img src="bg-thumb4.png" alt="Все нормально">
+      </div>
+      <div class="comic-card">
+        <img src="bg-thumb5.png" alt="Непонятная задача">
+      </div>
+      <div class="comic-card">
+        <img src="bg-thumb6.png" alt="Налоговая инспекция">
+      </div>
+    </div>
+
   </div>
 
   <script>
+    const STORAGE_KEY = 'rtstandard_kp_draft_v1';
+    let currentCompany = 'rt';
+    let currentMarginMode = 'rub';
+    let currentFinanceMode = 'days';
+    let financeDays = 0;
+    let isCalcCollapsed = false;
+
+    const COMPANY_DATA = {
+      rt: {
+        vatRate: 0.22,
+        name: 'ООО "РТСтандарт"',
+        thPrice: 'Цена за ед. руб., включая НДС 22%',
+        thTotal: 'Сумма руб., включая НДС 22%',
+        thDesc: 'Основные характеристики предложенного товара и прочие условия',
+        thCountry: 'Страна',
+        thQty: 'Кол-во, шт.',
+        intro: 'Общество с ограниченной ответственностью «РТСтандарт», в лице генерального директора Маркова Дмитрия Евгеньевича, действующего на основании Устава, предлагает рассмотреть возможность поставки следующего оборудования:',
+        badge: 'ОСНО: НДС 22%',
+        costLabel: 'Закупка товара с НДС 22%, ₽',
+        deliveryLabel: 'Доставка до клиента с НДС 22%, ₽'
+      },
+      ip: {
+        vatRate: 0.05,
+        name: 'ИП Захаров М.С.',
+        thPrice: 'Цена за ед. руб., включая НДС 5%',
+        thTotal: 'Сумма руб., включая НДС 5%',
+        thDesc: 'Технические характеристики',
+        thCountry: 'Страна происхождения',
+        thQty: 'Кол-во',
+        intro: 'Индивидуальный предприниматель Захаров Михаил Сергеевич, (ОГРНИП: 325110000002538 от 27.01.2025, ИНН: 110214010407, зарегистрирован по адресу Российская Федерация, 169300, Республика Коми, гор. Ухта, ул. Юбилейная, д. 13, кв. 62) предлагает к поставке следующее компьютерное оборудование:',
+        badge: 'УСН 6%+1% | НДС 5%',
+        costLabel: 'Закупка товара с НДС, ₽',
+        deliveryLabel: 'Доставка до клиента с НДС 5%, ₽'
+      }
+    };
+
+    function setCompany(comp) {
+      currentCompany = comp;
+      document.body.classList.toggle('theme-rt', comp === 'rt');
+      document.body.classList.toggle('theme-ip', comp === 'ip');
+
+      document.getElementById('btnCompRt').classList.toggle('active', comp === 'rt');
+      document.getElementById('btnCompIp').classList.toggle('active', comp === 'ip');
+
+      // Шапка
+      document.getElementById('headerRt').style.display = comp === 'rt' ? 'block' : 'none';
+      document.getElementById('headerIp').style.display = comp === 'ip' ? 'block' : 'none';
+
+      // Условия под таблицей
+      document.getElementById('termsRt').style.display = comp === 'rt' ? 'block' : 'none';
+      document.getElementById('termsIp').style.display = comp === 'ip' ? 'block' : 'none';
+
+      // Подвал
+      document.getElementById('footerRt').style.display = comp === 'rt' ? 'block' : 'none';
+      document.getElementById('footerIp').style.display = comp === 'ip' ? 'block' : 'none';
+
+      const data = COMPANY_DATA[comp];
+      document.getElementById('docIntro').textContent = data.intro;
+      document.getElementById('thPrice').textContent = data.thPrice;
+      document.getElementById('thTotal').textContent = data.thTotal;
+      document.getElementById('thDesc').textContent = data.thDesc;
+      document.getElementById('thCountry').textContent = data.thCountry;
+      document.getElementById('thQty').textContent = data.thQty;
+      document.getElementById('calcTaxBadge').textContent = data.badge;
+
+      // Обновление подписей в калькуляторе
+      document.getElementById('lblCalcCostVat').textContent = data.costLabel;
+      document.getElementById('lblCalcDeliveryCost').textContent = data.deliveryLabel;
+
+      if (comp === 'rt') {
+        document.getElementById('lblProfitTax').textContent = 'Налог на прибыль (25%):';
+        document.getElementById('lblVatPayable').textContent = 'НДС к уплате (22%):';
+        document.getElementById('lblSaleTotalVat').textContent = 'Итого для клиента (с НДС 22%):';
+      } else {
+        document.getElementById('lblProfitTax').textContent = 'Налог УСН (7% от выручки):';
+        document.getElementById('lblVatPayable').textContent = 'Исходящий НДС (5%):';
+        document.getElementById('lblSaleTotalVat').textContent = 'Итого для клиента (с НДС 5%):';
+      }
+
+      calculateMargin();
+      recalc();
+      updateDocumentTitle();
+      saveState();
+    }
+
+    function syncClientInputs(source) {
+      const val = source.value;
+      const c1 = document.getElementById('clientBox');
+      const c2 = document.getElementById('clientBoxIp');
+      if (c1 && c1 !== source) c1.value = val;
+      if (c2 && c2 !== source) c2.value = val;
+    }
+
+    function toggleCalcSidebar() {
+      const sidebar = document.getElementById('calcSidebar');
+      const btn = document.getElementById('btnToggleCalc');
+      isCalcCollapsed = !isCalcCollapsed;
+
+      if (isCalcCollapsed) {
+        sidebar.classList.add('collapsed');
+        btn.textContent = '👁️ Показать калькулятор';
+        btn.style.background = '#f3f4f6';
+        btn.style.color = '#374151';
+      } else {
+        sidebar.classList.remove('collapsed');
+        btn.textContent = '◀ Скрыть калькулятор';
+        btn.style.background = '#e0f2fe';
+        btn.style.color = '#0369a1';
+      }
+      saveState();
+    }
+
+    function setMarginMode(mode) {
+      currentMarginMode = mode;
+      document.getElementById('btnModeRub').classList.toggle('active', mode === 'rub');
+      document.getElementById('btnModePct').classList.toggle('active', mode === 'pct');
+      
+      const input = document.getElementById('calcProfitTarget');
+      input.placeholder = mode === 'rub' ? '15 000' : '15';
+      calculateMargin();
+      saveState();
+    }
+
+    function setFinanceMode(mode) {
+      currentFinanceMode = mode;
+      document.getElementById('btnFinanceDays').classList.toggle('active', mode === 'days');
+      document.getElementById('btnFinanceWeeks').classList.toggle('active', mode === 'weeks');
+
+      document.getElementById('wrapFinanceDays').style.display = mode === 'days' ? 'flex' : 'none';
+      document.getElementById('wrapFinanceWeeks').style.display = mode === 'weeks' ? 'flex' : 'none';
+
+      updateFinanceInputs();
+      calculateMargin();
+      saveState();
+    }
+
+    function onFinanceDaysChange() {
+      const val = parseFloat(document.getElementById('calcFinanceDaysInput').value);
+      financeDays = (!isNaN(val) && val >= 0) ? val : 0;
+      updateFinanceInputs();
+      calculateMargin();
+      saveState();
+    }
+
+    function stepFinanceWeeks(step) {
+      financeDays = Math.max(0, financeDays + (step * 7));
+      updateFinanceInputs();
+      calculateMargin();
+      saveState();
+    }
+
+    function getFinanceCost() {
+      const cVat = parseNum(document.getElementById('calcCostVat').value);
+      if (cVat <= 0 || financeDays <= 0) return 0;
+      return cVat * 0.28 * (financeDays / 365);
+    }
+
+    function updateFinanceInputs() {
+      const cost = getFinanceCost();
+      const weeks = Math.round(financeDays / 7 * 10) / 10;
+
+      const daysInput = document.getElementById('calcFinanceDaysInput');
+      if (daysInput && document.activeElement !== daysInput) {
+        daysInput.value = financeDays > 0 ? financeDays : '';
+      }
+
+      const costDisp = document.getElementById('calcFinanceCostDisplay');
+      if (costDisp) {
+        costDisp.value = `${fmt(cost)} ₽`;
+      }
+
+      const weeksDisp = document.getElementById('calcFinanceWeeksDisplay');
+      if (weeksDisp) {
+        weeksDisp.value = `${fmt(cost)} ₽ (${weeks} нед / ${financeDays} дн)`;
+      }
+
+      document.getElementById('resFinanceCost').textContent = `${fmt(cost)} ₽`;
+    }
+
+    function onDeliveryChange() {
+      const select = document.getElementById('deliverySelect');
+      const deliveryRow = document.getElementById('calcDeliveryRow');
+      const delCostInput = document.getElementById('calcDeliveryCost');
+      const isIncluded = select && select.value.indexOf('Доставка товара') !== -1;
+
+      if (deliveryRow) {
+        deliveryRow.style.display = isIncluded ? 'block' : 'none';
+      }
+      if (!isIncluded && delCostInput) {
+        delCostInput.value = '';
+      }
+
+      const selIp = document.getElementById('deliverySelectIp');
+      if (selIp && selIp.value !== select.value) {
+        selIp.value = select.value;
+      }
+
+      calculateMargin();
+      saveState();
+    }
+
+    function onDeliveryChangeIp(selectIp) {
+      const selectRt = document.getElementById('deliverySelect');
+      if (selectRt && selectRt.value !== selectIp.value) {
+        selectRt.value = selectIp.value;
+      }
+      onDeliveryChange();
+    }
+
+    function getCalculatedEconomics() {
+      const cVat = parseNum(document.getElementById('calcCostVat').value);
+      const targetVal = parseNum(document.getElementById('calcProfitTarget').value);
+
+      const isDeliveryIncluded = (currentCompany === 'rt')
+        ? (document.getElementById('deliverySelect')?.value.indexOf('Доставка товара') !== -1)
+        : (document.getElementById('deliverySelectIp')?.value.indexOf('Доставка товара') !== -1);
+
+      const deliveryCostVat = isDeliveryIncluded ? parseNum(document.getElementById('calcDeliveryCost')?.value) : 0;
+      const financeCost = getFinanceCost();
+
+      const totalCostVat = cVat + deliveryCostVat + financeCost;
+      if (totalCostVat <= 0) return null;
+
+      let netProfit = (currentMarginMode === 'rub') ? targetVal : (totalCostVat * targetVal / 100);
+
+      if (currentCompany === 'rt') {
+        const vatRate = 0.22;
+        const taxRate = 0.25;
+        const totalCostNet = totalCostVat / (1 + vatRate);
+        const vatIn = totalCostVat - totalCostNet;
+
+        const ebt = netProfit / (1 - taxRate);
+        const profitTax = ebt * taxRate;
+        const saleNet = totalCostNet + ebt;
+        const vatOut = saleNet * vatRate;
+        const vatPayable = vatOut - vatIn;
+        const saleVat = saleNet * (1 + vatRate);
+
+        return {
+          totalCostNet,
+          financeCost,
+          netProfit,
+          profitTax,
+          vatPayable,
+          saleNet,
+          saleVat,
+          totalCostVat
+        };
+      } else {
+        const totalExpenses = totalCostVat;
+        const usnFactor = 1 - (0.05 / 1.05) - 0.07;
+        const saleVat = (totalExpenses + netProfit) / usnFactor;
+        const saleNet = saleVat / 1.05;
+        const vat5 = saleVat - saleNet;
+        const usnTax = saleVat * 0.07;
+
+        return {
+          totalCostNet: totalExpenses,
+          financeCost,
+          netProfit,
+          profitTax: usnTax,
+          vatPayable: vat5,
+          saleNet,
+          saleVat,
+          totalCostVat
+        };
+      }
+    }
+
+    function calculateMargin() {
+      updateFinanceInputs();
+      const econ = getCalculatedEconomics();
+
+      if (!econ) {
+        document.getElementById('resCostNet').textContent = '0,00 ₽';
+        document.getElementById('resFinanceCost').textContent = '0,00 ₽';
+        document.getElementById('resNetProfit').textContent = '0,00 ₽';
+        document.getElementById('resProfitTax').textContent = '0,00 ₽';
+        document.getElementById('resVatPayable').textContent = '0,00 ₽';
+        document.getElementById('resSaleNet').textContent = '0,00 ₽';
+        document.getElementById('resSaleVat').textContent = '0,00 ₽';
+        document.getElementById('resSaleVat').removeAttribute('data-val');
+        return;
+      }
+
+      document.getElementById('resCostNet').textContent = fmt(econ.totalCostNet) + ' ₽';
+      document.getElementById('resFinanceCost').textContent = fmt(econ.financeCost) + ' ₽';
+      document.getElementById('resNetProfit').textContent = fmt(econ.netProfit) + ' ₽';
+      document.getElementById('resProfitTax').textContent = fmt(econ.profitTax) + ' ₽';
+      document.getElementById('resVatPayable').textContent = fmt(econ.vatPayable) + ' ₽';
+      document.getElementById('resSaleNet').textContent = fmt(econ.saleNet) + ' ₽';
+      document.getElementById('resSaleVat').textContent = fmt(econ.saleVat) + ' ₽';
+      document.getElementById('resSaleVat').setAttribute('data-val', econ.saleVat.toFixed(2));
+    }
+
+    function onTableRowChange() {
+      recalc();
+      saveState();
+    }
+
+    function copyCalcPrice() {
+      const val = document.getElementById('resSaleVat').getAttribute('data-val');
+      if (!val || parseFloat(val) <= 0) return;
+      navigator.clipboard.writeText(val).then(() => {
+        const btn = document.querySelector('.btn-copy-calc');
+        const orig = btn.innerHTML;
+        btn.innerHTML = '✅ Скопировано!';
+        setTimeout(() => btn.innerHTML = orig, 1500);
+      });
+    }
+
     function autoResizeTextarea(el) {
-      el.style.height = 'auto';
-      el.style.height = el.scrollHeight + 'px';
+      if (el && el.tagName && el.tagName.toLowerCase() === 'textarea' && el.classList.contains('auto-grow')) {
+        el.style.height = 'auto';
+        el.style.height = el.scrollHeight + 'px';
+      }
     }
 
     function initAutoResize() {
@@ -483,6 +1409,27 @@
       autoResizeTextarea(this);
     }
 
+    /* Синхронизация текста из textarea в блоки print-text для идеальной адаптивной печати */
+    function syncPrintTexts() {
+      document.querySelectorAll('td').forEach(td => {
+        const ta = td.querySelector('textarea.auto-grow');
+        const pt = td.querySelector('.print-text');
+        if (ta && pt) {
+          pt.textContent = ta.value;
+        }
+      });
+      const clientTa = document.querySelector('.client-textarea');
+      const clientPt = document.querySelector('.client-print');
+      if (clientTa && clientPt) {
+        clientPt.textContent = clientTa.value;
+      }
+      const clientTaIp = document.getElementById('clientBoxIp');
+      const clientPtIp = document.querySelector('.client-print-ip');
+      if (clientTaIp && clientPtIp) {
+        clientPtIp.textContent = clientTaIp.value;
+      }
+    }
+
     function setDateAndKpPrefix() {
       const now = new Date();
       const monthNum = String(now.getMonth() + 1).padStart(2, '0');
@@ -495,59 +1442,196 @@
 
       const months = ["января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"];
       const dateElem = document.getElementById('docDate');
-      if (dateElem) {
+      if (dateElem && !dateElem.value) {
         dateElem.value = `${dayNum} ${months[now.getMonth()]} ${now.getFullYear()} года`;
       }
+      const dayElIp = document.getElementById('docDateIpDay');
+      const monthElIp = document.getElementById('docDateIpMonth');
+      if (dayElIp && !dayElIp.value) dayElIp.value = dayNum;
+      if (monthElIp && !monthElIp.value) monthElIp.value = months[now.getMonth()];
+    }
+
+    function updateDocumentTitle() {
+      const clientVal = (document.getElementById(currentCompany === 'rt' ? 'clientBox' : 'clientBoxIp')?.value || '').trim();
+      
+      let client = 'Клиент';
+      if (clientVal) {
+        const firstLine = clientVal.split('\n')[0].trim();
+        if (firstLine) client = firstLine;
+      }
+      client = client.replace(/["'«»\\/:*?<>|]+/g, ' ').replace(/\s+/g, ' ').trim();
+
+      let fullNum = '1';
+      if (currentCompany === 'rt') {
+        const prefix = (document.getElementById('kpPrefix')?.textContent || '').replace(/[\/\\]/g, '-');
+        const numVal = (document.getElementById('kpNumInput')?.value || '1').trim().replace(/[\/\\]/g, '-');
+        fullNum = (prefix + numVal).replace(/-+$/, '');
+      } else {
+        fullNum = (document.getElementById('kpNumInputIp')?.value || '289').trim();
+      }
+
+      const prefixDoc = currentCompany === 'rt' ? 'КП-РТСтандарт' : 'КП-ИП Захаров';
+      document.title = `${prefixDoc}-${client}-${fullNum}`;
     }
 
     function parseNum(val) {
-      if (!val) return 0;
-      val = String(val).replace(/\s+/g, '').replace(',', '.');
-      return parseFloat(val) || 0;
+      if (val === null || val === undefined) return 0;
+      let clean = String(val).replace(/\u00A0/g, ' ').replace(/\s+/g, '').replace(',', '.');
+      clean = clean.replace(/[^0-9.]/g, '');
+      const parts = clean.split('.');
+      if (parts.length > 2) {
+        clean = parts[0] + '.' + parts.slice(1).join('');
+      }
+      return parseFloat(clean) || 0;
+    }
+
+    function fmt(n) {
+      return n.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function fmtInt(n) {
+      return n.toLocaleString('ru-RU', { maximumFractionDigits: 0 });
     }
 
     function onPriceFocus(input) {
       const raw = input.getAttribute('data-raw');
       if (raw && parseNum(raw) > 0) {
-        input.value = raw;
+        input.value = String(raw).replace('.', ',');
       }
     }
 
     function onPriceInput(input) {
       const num = parseNum(input.value);
       input.setAttribute('data-raw', num);
-      recalc();
+      onTableRowChange();
     }
 
     function onPriceBlur(input) {
       const num = parseNum(input.value || input.getAttribute('data-raw'));
       input.setAttribute('data-raw', num);
       input.value = num > 0 ? fmt(num) : '';
-      recalc();
+      onTableRowChange();
     }
 
-    function addRow() {
+    function onPriceKeyDown(event, input) {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        input.blur();
+        addRow(true);
+      }
+    }
+
+    function createRowElement(data = {}, focusNew = false) {
       const tbody = document.getElementById('tableBody');
-      const idx = tbody.children.length + 1;
       const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td class="c row-idx">${idx}</td>
-        <td><textarea class="auto-grow" placeholder="Впиши наименование"></textarea></td>
-        <td><textarea class="auto-grow" placeholder="Впиши характеристики"></textarea></td>
-        <td class="c"><input type="text" class="inp-text c" placeholder="Китай" value="Китай"></td>
-        <td class="c"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1" oninput="recalc()"></td>
-        <td class="c">
-          <input type="text" class="inp-text r col-price" placeholder="500,00" data-raw="0" 
-                 onfocus="onPriceFocus(this)" 
-                 onblur="onPriceBlur(this)" 
-                 oninput="onPriceInput(this)">
-        </td>
-        <td class="r col-total" style="font-weight:bold;">0,00</td>
-        <td class="no-print c" style="border:none;"><button class="btn-del" onclick="deleteRow(this)">✕</button></td>
-      `;
+
+      // 1. №
+      const tdIdx = document.createElement('td');
+      tdIdx.className = 'c col-num-cell row-idx';
+      tdIdx.textContent = tbody.children.length + 1;
+      tr.appendChild(tdIdx);
+
+      // 2. Наименование
+      const tdName = document.createElement('td');
+      tdName.className = 'col-text-cell';
+      const taName = document.createElement('textarea');
+      taName.className = 'auto-grow col-name';
+      taName.placeholder = 'Впиши наименование';
+      taName.value = data.name || '';
+      taName.oninput = saveState;
+      const ptName = document.createElement('div');
+      ptName.className = 'print-text';
+      tdName.appendChild(taName);
+      tdName.appendChild(ptName);
+      tr.appendChild(tdName);
+
+      // 3. Характеристики
+      const tdDesc = document.createElement('td');
+      tdDesc.className = 'col-text-cell';
+      const taDesc = document.createElement('textarea');
+      taDesc.className = 'auto-grow col-desc';
+      taDesc.placeholder = 'впиши характеристики';
+      taDesc.value = data.desc || '';
+      taDesc.oninput = saveState;
+      const ptDesc = document.createElement('div');
+      ptDesc.className = 'print-text';
+      tdDesc.appendChild(taDesc);
+      tdDesc.appendChild(ptDesc);
+      tr.appendChild(tdDesc);
+
+      // 4. Страна
+      const tdCountry = document.createElement('td');
+      tdCountry.className = 'c col-num-cell';
+      const inpCountry = document.createElement('input');
+      inpCountry.type = 'text';
+      inpCountry.className = 'inp-text c col-country';
+      inpCountry.placeholder = 'Китай';
+      inpCountry.value = data.country !== undefined ? data.country : 'Китай';
+      inpCountry.oninput = saveState;
+      tdCountry.appendChild(inpCountry);
+      tr.appendChild(tdCountry);
+
+      // 5. Количество
+      const tdQty = document.createElement('td');
+      tdQty.className = 'c col-num-cell';
+      const inpQty = document.createElement('input');
+      inpQty.type = 'number';
+      inpQty.className = 'inp-qty col-qty';
+      inpQty.min = '1';
+      inpQty.step = '1';
+      inpQty.placeholder = '1';
+      inpQty.value = data.qty || '';
+      inpQty.oninput = function() { onTableRowChange(); };
+      tdQty.appendChild(inpQty);
+      tr.appendChild(tdQty);
+
+      // 6. Цена
+      const tdPrice = document.createElement('td');
+      tdPrice.className = 'c col-num-cell';
+      const inpPrice = document.createElement('input');
+      inpPrice.type = 'text';
+      inpPrice.className = 'inp-text r col-price';
+      inpPrice.placeholder = '500,00';
+      const pNum = parseNum(data.price);
+      inpPrice.setAttribute('data-raw', pNum);
+      inpPrice.value = pNum > 0 ? fmt(pNum) : '';
+      inpPrice.onfocus = function() { onPriceFocus(this); };
+      inpPrice.onblur = function() { onPriceBlur(this); };
+      inpPrice.oninput = function() { onPriceInput(this); };
+      inpPrice.onkeydown = function(e) { onPriceKeyDown(e, this); };
+      tdPrice.appendChild(inpPrice);
+      tr.appendChild(tdPrice);
+
+      // 7. Сумма
+      const tdTotal = document.createElement('td');
+      tdTotal.className = 'r col-num-cell col-total';
+      tdTotal.style.fontWeight = 'bold';
+      tdTotal.textContent = '0,00';
+      tr.appendChild(tdTotal);
+
+      // 8. Удаление
+      const tdDel = document.createElement('td');
+      tdDel.className = 'no-print c';
+      tdDel.style.border = 'none';
+      const btnDel = document.createElement('button');
+      btnDel.className = 'btn-del';
+      btnDel.textContent = '✕';
+      btnDel.onclick = function() { deleteRow(this); };
+      tdDel.appendChild(btnDel);
+      tr.appendChild(tdDel);
+
       tbody.appendChild(tr);
+
+      if (focusNew) {
+        taName.focus();
+      }
+      return tr;
+    }
+
+    function addRow(focusNew = false) {
+      createRowElement({}, focusNew);
       initAutoResize();
-      recalc();
+      onTableRowChange();
     }
 
     function deleteRow(btn) {
@@ -557,26 +1641,20 @@
       } else {
         const row = tbody.children[0];
         row.querySelectorAll('textarea, input').forEach(input => input.value = '');
-        row.querySelector('.col-price').setAttribute('data-raw', 0);
+        const p = row.querySelector('.col-price');
+        if (p) p.setAttribute('data-raw', 0);
       }
       document.querySelectorAll('#tableBody tr').forEach((row, i) => {
         row.querySelector('.row-idx').textContent = i + 1;
       });
-      recalc();
-    }
-
-    function fmt(n) {
-      return n.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    }
-
-    function fmtInteger(n) {
-      return n.toLocaleString('ru-RU');
+      onTableRowChange();
     }
 
     function recalc() {
       let grandTotal = 0;
       document.querySelectorAll('#tableBody tr').forEach(row => {
-        const q = parseFloat(row.querySelector('.col-qty').value) || 0;
+        const qVal = row.querySelector('.col-qty').value;
+        const q = qVal !== '' ? (parseFloat(qVal) || 0) : 1;
         const priceInput = row.querySelector('.col-price');
         const p = parseNum(priceInput.getAttribute('data-raw') || priceInput.value);
         const tot = q * p;
@@ -586,7 +1664,11 @@
 
       document.getElementById('grandTotal').textContent = fmt(grandTotal);
 
-      const vat = grandTotal > 0 ? (grandTotal * 22 / 122) : 0;
+      const isRt = (currentCompany === 'rt');
+      const vatRate = isRt ? 0.22 : 0.05;
+      const vatDiv = isRt ? 122 : 105;
+
+      const vat = grandTotal > 0 ? (grandTotal * (vatRate * 100) / vatDiv) : 0;
       const tRub = Math.floor(grandTotal);
       const vRub = Math.floor(vat);
       const tKop = Math.round((grandTotal - tRub) * 100);
@@ -594,12 +1676,18 @@
 
       const tRubW = num2words(tRub);
       const tRubDecl = decl(tRub, ['рубль', 'рубля', 'рублей']);
+      const tKopDecl = decl(tKop, ['копейка', 'копейки', 'копеек']);
+
       const vRubW = num2words(vRub);
       const vRubDecl = decl(vRub, ['рубль', 'рубля', 'рублей']);
       const vKopDecl = decl(vKop, ['копейка', 'копейки', 'копеек']);
 
+      const vatText = isRt 
+        ? `, в том числе НДС 22% <b>${fmtInt(vRub)} (${vRubW}) ${vRubDecl} ${String(vKop).padStart(2, '0')} ${vKopDecl}</b>`
+        : `, включая НДС 5%`;
+
       document.getElementById('textTotalBlock').innerHTML = 
-        `ИТОГО: <b>${fmtInteger(tRub)} (${tRubW}) ${tRubDecl} ${String(tKop).padStart(2, '0')} копеек</b>, в том числе НДС 22% <b>${fmtInteger(vRub)} (${vRubW}) ${vRubDecl} ${String(vKop).padStart(2, '0')} ${vKopDecl}</b>.`;
+        `ИТОГО: <b>${fmtInt(tRub)} (${tRubW}) ${tRubDecl} ${String(tKop).padStart(2, '0')} ${tKopDecl}</b>${vatText}.`;
     }
 
     function decl(n, forms) {
@@ -630,13 +1718,13 @@
       let rem = n;
 
       for (let g of grps) {
-        let count = Math.floor(rem / g.u);
+        let c = Math.floor(rem / g.u);
         rem %= g.u;
-        if (count === 0) continue;
+        if (c === 0) continue;
 
-        let ch = Math.floor(count / 100);
-        let ct = Math.floor((count % 100) / 10);
-        let co = count % 10;
+        let ch = Math.floor(c / 100);
+        let ct = Math.floor((c % 100) / 10);
+        let co = c % 10;
 
         if (ch > 0) res.push(h[ch]);
         if (ct === 1) {
@@ -645,15 +1733,177 @@
           if (ct > 1) res.push(t[ct]);
           if (co > 0) res.push(g.fem ? of[co] : o[co]);
         }
-        if (g.f[0]) res.push(decl(count, g.f));
+        if (g.f[0]) res.push(decl(c, g.f));
       }
       return res.join(' ');
     }
 
-    window.addEventListener('DOMContentLoaded', () => {
+    function saveState() {
+      try {
+        const rows = [];
+        document.querySelectorAll('#tableBody tr').forEach(row => {
+          rows.push({
+            name: row.querySelector('.col-name').value,
+            desc: row.querySelector('.col-desc').value,
+            country: row.querySelector('.col-country').value,
+            qty: row.querySelector('.col-qty').value,
+            price: row.querySelector('.col-price').getAttribute('data-raw') || 0
+          });
+        });
+
+        const state = {
+          currentCompany: currentCompany,
+          kpNum: document.getElementById('kpNumInput').value,
+          kpNumIp: document.getElementById('kpNumInputIp').value,
+          docDate: document.getElementById('docDate').value,
+          docDateIpDay: document.getElementById('docDateIpDay').value,
+          docDateIpMonth: document.getElementById('docDateIpMonth').value,
+          client: document.getElementById('clientBox').value,
+          clientIp: document.getElementById('clientBoxIp').value,
+          condDeliveryTerm: document.getElementById('condDeliveryTerm').value,
+          condPaymentTerm: document.getElementById('condPaymentTerm').value,
+          deliverySelect: document.getElementById('deliverySelect').value,
+          condWarranty: document.getElementById('condWarranty').value,
+          condDeliveryTermIp: document.getElementById('condDeliveryTermIp').value,
+          deliverySelectIp: document.getElementById('deliverySelectIp').value,
+          condWarrantyIp: document.getElementById('condWarrantyIp').value,
+          condPaymentTermIp: document.getElementById('condPaymentTermIp').value,
+          rows: rows,
+          calcCostVat: document.getElementById('calcCostVat')?.value || '',
+          calcDeliveryCost: document.getElementById('calcDeliveryCost')?.value || '',
+          calcProfitTarget: document.getElementById('calcProfitTarget')?.value || '',
+          calcMarginMode: currentMarginMode,
+          calcFinanceMode: currentFinanceMode,
+          financeDays: financeDays,
+          isCalcCollapsed: isCalcCollapsed
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (e) {
+        console.warn('LocalStorage save failed', e);
+      }
+    }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return false;
+        const state = JSON.parse(raw);
+
+        if (state.currentCompany) setCompany(state.currentCompany);
+        if (state.kpNum) document.getElementById('kpNumInput').value = state.kpNum;
+        if (state.kpNumIp) document.getElementById('kpNumInputIp').value = state.kpNumIp;
+        if (state.docDate) document.getElementById('docDate').value = state.docDate;
+        if (state.docDateIpDay) document.getElementById('docDateIpDay').value = state.docDateIpDay;
+        if (state.docDateIpMonth) document.getElementById('docDateIpMonth').value = state.docDateIpMonth;
+        if (state.client) {
+          document.getElementById('clientBox').value = state.client;
+          document.getElementById('clientBoxIp').value = state.client;
+        }
+
+        if (state.condDeliveryTerm) document.getElementById('condDeliveryTerm').value = state.condDeliveryTerm;
+        if (state.condPaymentTerm) document.getElementById('condPaymentTerm').value = state.condPaymentTerm;
+        if (state.deliverySelect) document.getElementById('deliverySelect').value = state.deliverySelect;
+        if (state.condWarranty) document.getElementById('condWarranty').value = state.condWarranty;
+        if (state.condDeliveryTermIp) document.getElementById('condDeliveryTermIp').value = state.condDeliveryTermIp;
+        if (state.deliverySelectIp) document.getElementById('deliverySelectIp').value = state.deliverySelectIp;
+        if (state.condWarrantyIp) document.getElementById('condWarrantyIp').value = state.condWarrantyIp;
+        if (state.condPaymentTermIp) document.getElementById('condPaymentTermIp').value = state.condPaymentTermIp;
+
+        if (state.calcCostVat !== undefined) document.getElementById('calcCostVat').value = state.calcCostVat;
+        if (state.calcDeliveryCost !== undefined) document.getElementById('calcDeliveryCost').value = state.calcDeliveryCost;
+        if (state.calcProfitTarget !== undefined) document.getElementById('calcProfitTarget').value = state.calcProfitTarget;
+        if (state.calcMarginMode) setMarginMode(state.calcMarginMode);
+        
+        if (state.financeDays !== undefined) financeDays = state.financeDays;
+        if (state.calcFinanceMode) setFinanceMode(state.calcFinanceMode);
+
+        if (state.isCalcCollapsed) {
+          toggleCalcSidebar();
+        }
+
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = '';
+        if (state.rows && state.rows.length > 0) {
+          state.rows.forEach(rData => {
+            createRowElement(rData, false);
+          });
+        } else {
+          createRowElement({}, false);
+        }
+        
+        initAutoResize();
+        calculateMargin();
+        recalc();
+        return true;
+      } catch (e) {
+        console.warn('LocalStorage load failed', e);
+        return false;
+      }
+    }
+
+    function clearForm() {
+      if (!confirm('Вы уверены, что хотите очистить весь бланк?')) return;
+      localStorage.removeItem(STORAGE_KEY);
+      
+      document.getElementById('clientBox').value = '';
+      document.getElementById('clientBoxIp').value = '';
+      document.getElementById('kpNumInput').value = '1';
+      document.getElementById('kpNumInputIp').value = '289';
+      document.getElementById('docDate').value = '';
+      
+      const costVat = document.getElementById('calcCostVat');
+      const delCost = document.getElementById('calcDeliveryCost');
+      const targetP = document.getElementById('calcProfitTarget');
+      if (costVat) costVat.value = '';
+      if (delCost) delCost.value = '';
+      if (targetP) targetP.value = '';
+      
+      financeDays = 0;
+      updateFinanceInputs();
+      
       setDateAndKpPrefix();
+
+      document.getElementById('condDeliveryTerm').value = '5-10(пять-десять) рабочих дней';
+      document.getElementById('condPaymentTerm').value = '100% постоплата';
+      document.getElementById('deliverySelect').value = 'Доставка товара до адреса заказчика включена';
+      document.getElementById('condWarranty').value = '12 месяцев с возможностью расширения до 5 лет. Выезд инженера в рамках гарантийного ремонта по адресу Заказчика – опционально. Обслуживание On-site (на месте) / Keep Your Drive (KYD) ремонт с сохранением жестких дисков у клиента – опционально..';
+      
+      document.getElementById('condDeliveryTermIp').value = '1-2 недели';
+      document.getElementById('deliverySelectIp').value = 'Доставка товара до адреса заказчика включена';
+      document.getElementById('condWarrantyIp').value = '12 (двенадцать) месяцев';
+      document.getElementById('condPaymentTermIp').value = '100% постоплата';
+
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = '';
+      createRowElement({}, false);
+
+      initAutoResize();
+      onDeliveryChange();
+      onTableRowChange();
+      updateDocumentTitle();
+    }
+
+    function prepareAndPrint() {
+      syncPrintTexts();
       initAutoResize();
       recalc();
+      updateDocumentTitle();
+      window.print();
+    }
+
+    window.addEventListener('beforeprint', syncPrintTexts);
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const restored = loadState();
+      if (!restored) {
+        setDateAndKpPrefix();
+        setCompany('rt');
+        createRowElement({}, false);
+      }
+      initAutoResize();
+      onDeliveryChange();
+      onTableRowChange();
+      updateDocumentTitle();
     });
 
     window.addEventListener('load', () => {
