@@ -599,6 +599,11 @@
         break-inside: auto !important;
       }
 
+      /* Класс для скрытия пустого блока заказчика на печати */
+      .print-hide-client {
+        display: none !important;
+      }
+
       input, textarea, select { 
         border-bottom: none !important; 
         appearance: none;
@@ -736,7 +741,7 @@
           </div><br>
           От <input type="text" id="docDate" class="meta-input" style="width: 155px;" oninput="onDateInput(this)">
         </td>
-        <td class="head-client-cell">
+        <td class="head-client-cell" id="clientContainerOoo">
           Заказчику:
           <textarea rows="2" class="auto-grow client-textarea" id="clientBox" placeholder="можете вписать наименование заказчика" oninput="saveState(); updateDocumentTitle();"></textarea>
         </td>
@@ -758,7 +763,7 @@
           </div><br>
           От <input type="text" id="docDateIp" class="meta-input" style="width: 155px;" oninput="onDateInput(this)">
         </div>
-        <div style="width: 50%; padding-left: 15px;">
+        <div style="width: 50%; padding-left: 15px;" id="clientContainerIp">
           Заказчику:
           <textarea rows="2" class="auto-grow client-textarea" id="clientBoxIp" placeholder="можете вписать наименование заказчика" oninput="saveState(); updateDocumentTitle();"></textarea>
         </div>
@@ -1095,7 +1100,9 @@
 
     function onTextareaInput() { autoResizeTextarea(this); }
 
-    function syncPrintMirrors() {
+    /* Подготовка содержимого для печати */
+    function prepareForPrint() {
+      // 1. Копируем текст из textarea в блоки-зеркала
       document.querySelectorAll('#tableBody tr').forEach(row => {
         const textCells = row.querySelectorAll('td.col-text-cell');
         textCells.forEach(cell => {
@@ -1105,7 +1112,29 @@
             mirror.textContent = ta.value;
           }
         });
+
+        // 2. Страна по умолчанию: если пусто, ставим "Китай"
+        const countryInp = row.querySelector('.col-country');
+        if (countryInp && !countryInp.value.trim()) {
+          countryInp.value = 'Китай';
+        }
+
+        // 3. Количество по умолчанию: если пусто, ставим 1
+        const qtyInp = row.querySelector('.col-qty');
+        if (qtyInp && !qtyInp.value.trim()) {
+          qtyInp.value = '1';
+        }
       });
+
+      // 4. Проверяем поле "Заказчику" - скрываем, если пустое
+      const isIp = document.getElementById('companySelect').value === 'ip';
+      const clientText = isIp ? document.getElementById('clientBoxIp')?.value : document.getElementById('clientBox')?.value;
+      const clientBoxOoo = document.getElementById('clientContainerOoo');
+      const clientBoxIp = document.getElementById('clientContainerIp');
+
+      const isEmpty = !clientText || !clientText.trim();
+      if (clientBoxOoo) clientBoxOoo.classList.toggle('print-hide-client', isEmpty);
+      if (clientBoxIp) clientBoxIp.classList.toggle('print-hide-client', isEmpty);
     }
 
     const MONTHS_GENITIVE = ["января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"];
@@ -1230,7 +1259,8 @@
       let grandTotal = 0;
       document.querySelectorAll('#tableBody tr').forEach(row => {
         const qVal = row.querySelector('.col-qty').value;
-        const q = qVal !== '' ? (parseFloat(qVal) || 0) : 1;
+        // Если количество не заполнено, по умолчанию рассчитываем как 1 шт.
+        const q = (qVal !== '' && qVal !== null) ? (parseFloat(qVal) || 1) : 1;
         const priceInput = row.querySelector('.col-price');
         const p = parseNum(priceInput.getAttribute('data-raw') || priceInput.value);
         const tot = q * p;
@@ -1309,7 +1339,6 @@
       return res.join(' ');
     }
 
-    /* ИСПРАВЛЕННАЯ ГЕНЕРАЦИЯ ИМЕНИ ФАЙЛА (С ПОЛНЫМ ПРЕФИКСОМ ДАТЫ) */
     function updateDocumentTitle() {
       const isIp = document.getElementById('companySelect').value === 'ip';
       const clientVal = isIp ? document.getElementById('clientBoxIp').value : document.getElementById('clientBox').value;
@@ -1496,12 +1525,12 @@
     function prepareAndPrint() {
       initAutoResize();
       recalc();
-      syncPrintMirrors();
+      prepareForPrint();
       updateDocumentTitle();
       window.print();
     }
 
-    window.addEventListener('beforeprint', syncPrintMirrors);
+    window.addEventListener('beforeprint', prepareForPrint);
 
     window.addEventListener('DOMContentLoaded', () => {
       initBackgroundVisibility();
