@@ -416,6 +416,7 @@
       line-height: 1.15; 
       page-break-inside: auto !important;
       break-inside: auto !important;
+      box-sizing: border-box;
     }
     table.spec td.col-text-cell { 
       vertical-align: top; 
@@ -554,7 +555,7 @@
     }
     .stamp-box img { width: 100%; display: block; }
 
-    /* Позиционирование печати для ИП: росчерк аккуратно ложится на линию */
+    /* Позиционирование печати для ИП */
     body.is-ip .stamp-box {
       top: -46px;
       right: 85px;
@@ -584,7 +585,7 @@
     /* Печать */
     @page { 
       size: A4 portrait; 
-      margin: 8mm 10mm 8mm 10mm; 
+      margin: 8mm 12mm 8mm 12mm; 
     }
     @media print {
       * {
@@ -600,17 +601,19 @@
       .panel, .no-print, .calc-sidebar, .calc-toggle-panel-btn, .bg-sidebar { 
         display: none !important; 
       }
+      
+      /* Сохраняем безопасные боковые поля у контейнера листа, чтобы края не резались принтером */
       .page {
         box-shadow: none !important;
-        margin: 0 !important;
-        padding: 0 !important;
+        margin: 0 auto !important;
+        padding: 4mm 2mm !important;
         width: 100% !important;
         max-width: 100% !important;
         min-height: 0 !important;
         height: auto !important;
       }
 
-      /* Полное удаление служебной колонки из печатного потока */
+      /* Полное удаление служебного столбца */
       th.no-print, td.no-print {
         display: none !important;
         width: 0 !important;
@@ -619,18 +622,20 @@
         border: none !important;
       }
 
+      /* Безопасная ширина таблицы и жесткая фиксация правой внешней границы */
       table.spec {
-        width: 100% !important;
+        width: 99.4% !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
         table-layout: fixed !important;
         border-collapse: collapse !important;
-        box-sizing: border-box !important;
+        border-right: 1.5px solid #000 !important;
       }
 
-      /* Гарантированное сохранение правой границы у крайнего правого столбца */
       table.spec th#thTotalCol,
       table.spec td.col-total,
       table.spec tfoot td#grandTotal {
-        border-right: 1px solid #000 !important;
+        border-right: 1.5px solid #000 !important;
       }
       
       table.spec textarea.auto-grow {
