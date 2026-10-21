@@ -20,7 +20,7 @@
       position: relative;
     }
 
-    /* Боковые фоновые колонки: автозаполнение пространства */
+    /* Боковые фоновые колонки */
     .bg-sidebar {
       position: fixed;
       top: 15px;
@@ -107,7 +107,7 @@
       outline: none;
     }
 
-    /* Калькулятор слева от КП */
+    /* Калькулятор */
     .calc-sidebar {
       position: fixed;
       left: calc(50% - 105mm - 330px);
@@ -316,16 +316,16 @@
       padding-top: 6px !important;
     }
 
-    /* Шапка ИП */
+    /* Шапка ИП: выравнивание по левому краю */
     .head-ip-container {
       width: 100%;
       margin-bottom: 12px;
       display: none;
     }
     .head-ip-top {
-      text-align: center;
+      text-align: left;
       font-size: 11pt;
-      line-height: 1.25;
+      line-height: 1.3;
       padding-bottom: 8px;
       border-bottom: 2px solid #000;
     }
@@ -334,6 +334,12 @@
       justify-content: space-between;
       margin-top: 8px;
       font-size: 11pt;
+    }
+    .head-ip-meta-left {
+      display: flex;
+      align-items: baseline;
+      gap: 15px;
+      flex-wrap: wrap;
     }
 
     .meta-input {
@@ -361,15 +367,22 @@
       width: 45px;
       padding: 0 2px;
     }
+
+    /* Для ИП: обычный нежирный шрифт */
+    .kp-ip-wrapper {
+      display: inline-flex;
+      align-items: baseline;
+      font-weight: normal;
+    }
     .kp-ip-input {
       font-family: inherit;
       font-size: 11pt;
-      font-weight: bold;
+      font-weight: normal;
       border: none;
       border-bottom: 1px dashed #777;
       background: transparent;
       outline: none;
-      width: 110px;
+      width: 90px;
       padding: 0 2px;
     }
 
@@ -432,9 +445,11 @@
       word-break: break-word;
       overflow-wrap: break-word;
     }
+    
+    /* ИТОГО в таблице: обычный шрифт */
     .t-tot { 
       background-color: #ACB9CA !important; 
-      font-weight: bold; 
+      font-weight: normal; 
       page-break-inside: avoid !important;
       break-inside: avoid !important;
     }
@@ -494,6 +509,11 @@
     .r { text-align: right; }
     .c { text-align: center; }
 
+    /* Обычный шрифт в столбце сумма */
+    .col-total {
+      font-weight: normal !important;
+    }
+
     .tot-phrase { 
       font-size: 11pt; 
       line-height: 1.25; 
@@ -544,7 +564,7 @@
       break-inside: avoid !important;
     }
     
-    /* Стили печати для ООО */
+    /* Печать ООО */
     .stamp-box { 
       position: absolute; 
       top: -38px; 
@@ -555,7 +575,7 @@
     }
     .stamp-box img { width: 100%; display: block; }
 
-    /* Позиционирование печати для ИП */
+    /* Позиционирование печати ИП */
     body.is-ip .stamp-box {
       top: -46px;
       right: 85px;
@@ -602,7 +622,6 @@
         display: none !important; 
       }
       
-      /* Сохраняем безопасные боковые поля у контейнера листа, чтобы края не резались принтером */
       .page {
         box-shadow: none !important;
         margin: 0 auto !important;
@@ -613,7 +632,6 @@
         height: auto !important;
       }
 
-      /* Полное удаление служебного столбца */
       th.no-print, td.no-print {
         display: none !important;
         width: 0 !important;
@@ -622,7 +640,6 @@
         border: none !important;
       }
 
-      /* Безопасная ширина таблицы и жесткая фиксация правой внешней границы */
       table.spec {
         width: 99.4% !important;
         margin-left: auto !important;
@@ -798,22 +815,25 @@
       </tr>
     </table>
 
-    <!-- Шапка ИП -->
+    <!-- Шапка ИП: выровнена по левому краю, ОГРНИП и ИНН жирные, e-mail с новой строки -->
     <div class="head-ip-container" id="headIp">
       <div class="head-ip-top">
         <b>Индивидуальный предприниматель Захаров Михаил Сергеевич</b><br>
-        ОГРНИП: 325110000002538 / ИНН: 110214010407<br>
-        Тел.: +7 (981) 208-62-36, e-mail: m.zakharov0811@gmail.com
+        <b>ОГРНИП: 325110000002538</b> / <b>ИНН: 110214010407</b><br>
+        Тел.: +7 (981) 208-62-36<br>
+        e-mail: m.zakharov0811@gmail.com
       </div>
       <div class="head-ip-meta">
-        <div>
-          <div class="kp-num-wrapper">
+        <div class="head-ip-meta-left">
+          <div class="kp-ip-wrapper">
             Исх. №&nbsp;
             <input type="text" class="kp-ip-input" id="kpNumInputIp" placeholder="номер" value="" oninput="saveState(); updateDocumentTitle();">
-          </div><br>
-          От <input type="text" id="docDateIp" class="meta-input" style="width: 155px;" oninput="onDateInput(this)">
+          </div>
+          <div>
+            От <input type="text" id="docDateIp" class="meta-input" style="width: 155px;" oninput="onDateInput(this)">
+          </div>
         </div>
-        <div style="width: 50%; padding-left: 15px;" id="clientContainerIp">
+        <div style="width: 48%; padding-left: 15px;" id="clientContainerIp">
           Заказчику:
           <textarea rows="2" class="auto-grow client-textarea" id="clientBoxIp" placeholder="можете вписать наименование заказчика" oninput="saveState(); updateDocumentTitle();"></textarea>
         </div>
@@ -858,21 +878,21 @@
                    onblur="onPriceBlur(this)" 
                    oninput="onPriceInput(this)">
           </td>
-          <td class="r col-num-cell col-total" style="font-weight:bold;">0,00</td>
+          <td class="r col-num-cell col-total">0,00</td>
           <td class="no-print c" style="border:none;"><button class="btn-del" onclick="deleteRow(this)">✕</button></td>
         </tr>
       </tbody>
       <tfoot>
         <tr class="t-tot">
           <td colspan="6" class="r" style="padding-right: 8px;">ИТОГО:</td>
-          <td id="grandTotal" class="r">0,00</td>
+          <td id="grandTotal" class="r col-total">0,00</td>
           <td class="no-print" style="border:none; background:#fff;"></td>
         </tr>
       </tfoot>
     </table>
 
     <div class="tot-phrase" id="textTotalBlock">
-      ИТОГО: 0 (ноль) рублей 00 копеек, в том числе НДС 22% 0 (ноль) рублей 00 копеек.
+      <b>ИТОГО: 0 (ноль) рублей 00 копеек</b>, <b>в том числе НДС 22% 0 (ноль) рублей 00 копеек</b>.
     </div>
 
     <!-- Условия ООО -->
@@ -911,12 +931,9 @@
       </div>
     </div>
 
-    <!-- Подписи -->
+    <!-- Подписи: без лишней строки -->
     <div class="sign-row">
-      <div id="signTitleBlock">
-        Генеральный директор<br>
-        ООО «РТСтандарт»
-      </div>
+      <div id="signTitleBlock">Генеральный директор ООО «РТСтандарт»</div>
       <div style="position: relative; width: 320px; text-align: right; padding-top: 10px;">
         <span style="border-bottom: 1px solid #000; display: inline-block; width: 140px;"></span>
         &nbsp;/ <span id="signPersonName">Марков Д.Е.</span>
@@ -1036,7 +1053,7 @@
           'Индивидуальный предприниматель Захаров Михаил Сергеевич, действующий на основании свидетельства о государственной регистрации, предлагает рассмотреть возможность поставки следующего оборудования:';
         document.getElementById('thPriceCol').textContent = 'Цена за ед. руб., с НДС 5%';
         document.getElementById('thTotalCol').textContent = 'Сумма руб., с НДС 5%';
-        document.getElementById('signTitleBlock').innerHTML = 'Индивидуальный предприниматель';
+        document.getElementById('signTitleBlock').textContent = 'Индивидуальный предприниматель';
         document.getElementById('signPersonName').textContent = 'Захаров М.С.';
         document.getElementById('lblTaxType').textContent = 'УСН (6%+1%):';
         document.getElementById('lblVatType').textContent = 'НДС (5%):';
@@ -1285,7 +1302,7 @@
                  onblur="onPriceBlur(this)" 
                  oninput="onPriceInput(this)">
         </td>
-        <td class="r col-num-cell col-total" style="font-weight:bold;">0,00</td>
+        <td class="r col-num-cell col-total">0,00</td>
         <td class="no-print c" style="border:none;"><button class="btn-del" onclick="deleteRow(this)">✕</button></td>
       `;
       tbody.appendChild(tr);
@@ -1343,8 +1360,10 @@
       const vRubDecl = decl(vRub, ['рубль', 'рубля', 'рублей']);
       const vKopDecl = decl(vKop, ['копейка', 'копейки', 'копеек']);
 
+      const vatPrefix = isIp ? 'в том числе НДС 5% —' : 'в том числе НДС 22%';
+
       document.getElementById('textTotalBlock').innerHTML = 
-        `ИТОГО: <b>${fmtInt(tRub)} (${tRubW}) ${tRubDecl} ${String(tKop).padStart(2, '0')} ${tKopDecl}</b>, в том числе НДС ${vatRate}% <b>${fmtInt(vRub)} (${vRubW}) ${vRubDecl} ${String(vKop).padStart(2, '0')} ${vKopDecl}</b>.`;
+        `<b>ИТОГО: ${fmtInt(tRub)} (${tRubW}) ${tRubDecl} ${String(tKop).padStart(2, '0')} ${tKopDecl}</b>, <b>${vatPrefix} ${fmtInt(vRub)} (${vRubW}) ${vRubDecl} ${String(vKop).padStart(2, '0')} ${vKopDecl}</b>.`;
     }
 
     function decl(n, forms) {
@@ -1462,7 +1481,7 @@
                    onblur="onPriceBlur(this)" 
                    oninput="onPriceInput(this)">
           </td>
-          <td class="r col-num-cell col-total" style="font-weight:bold;">0,00</td>
+          <td class="r col-num-cell col-total">0,00</td>
           <td class="no-print c" style="border:none;"><button class="btn-del" onclick="deleteRow(this)">✕</button></td>
         </tr>
       `;
@@ -1574,7 +1593,7 @@
                        onblur="onPriceBlur(this)" 
                        oninput="onPriceInput(this)">
               </td>
-              <td class="r col-num-cell col-total" style="font-weight:bold;">0,00</td>
+              <td class="r col-num-cell col-total">0,00</td>
               <td class="no-print c" style="border:none;"><button class="btn-del" onclick="deleteRow(this)">✕</button></td>
             `;
             tbody.appendChild(tr);
