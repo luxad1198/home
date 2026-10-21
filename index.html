@@ -316,7 +316,7 @@
       padding-top: 6px !important;
     }
 
-    /* Шапка ИП: выравнивание по левому краю */
+    /* Шапка ИП */
     .head-ip-container {
       width: 100%;
       margin-bottom: 12px;
@@ -368,7 +368,6 @@
       padding: 0 2px;
     }
 
-    /* Для ИП: обычный нежирный шрифт */
     .kp-ip-wrapper {
       display: inline-flex;
       align-items: baseline;
@@ -446,7 +445,6 @@
       overflow-wrap: break-word;
     }
     
-    /* ИТОГО в таблице: обычный шрифт */
     .t-tot { 
       background-color: #ACB9CA !important; 
       font-weight: normal; 
@@ -509,7 +507,6 @@
     .r { text-align: right; }
     .c { text-align: center; }
 
-    /* Обычный шрифт в столбце сумма */
     .col-total {
       font-weight: normal !important;
     }
@@ -545,7 +542,7 @@
 
     /* Условия ИП */
     .ip-cond-box {
-      margin-bottom: 25px;
+      margin-bottom: 20px;
       font-size: 11pt;
       line-height: 1.35;
       display: none;
@@ -562,6 +559,11 @@
       font-size: 11pt; 
       page-break-inside: avoid !important;
       break-inside: avoid !important;
+    }
+
+    /* Для ИП убираем лишний разрыв: надпись идет единым блоком с контактами */
+    body.is-ip .sign-row {
+      margin-top: 15px;
     }
     
     /* Печать ООО */
@@ -589,8 +591,10 @@
       page-break-inside: avoid !important;
       break-inside: avoid !important;
     }
+    
+    /* Контакты ИП: без лишнего верхнего отступа, текст сразу под строкой должности */
     .contacts-ip { 
-      margin-top: 16px; 
+      margin-top: 2px; 
       font-size: 10.5pt; 
       line-height: 1.25; 
       display: none; 
@@ -815,7 +819,7 @@
       </tr>
     </table>
 
-    <!-- Шапка ИП: выровнена по левому краю, ОГРНИП и ИНН жирные, e-mail с новой строки -->
+    <!-- Шапка ИП -->
     <div class="head-ip-container" id="headIp">
       <div class="head-ip-top">
         <b>Индивидуальный предприниматель Захаров Михаил Сергеевич</b><br>
@@ -931,9 +935,30 @@
       </div>
     </div>
 
-    <!-- Подписи: без лишней строки -->
+    <!-- Подписи и контакты -->
     <div class="sign-row">
-      <div id="signTitleBlock">Генеральный директор ООО «РТСтандарт»</div>
+      <div>
+        <div id="signTitleBlock">Генеральный директор ООО «РТСтандарт»</div>
+        
+        <!-- Контакты ООО -->
+        <div class="contacts-ooo" id="contactsOoo">
+          Исп.<br>
+          Коммерческий департамент<br>
+          ООО «РТСтандарт»<br>
+          E-mail: info@liscorp.ru<br>
+          +7 (981) 040-10-70<br>
+          +7 (812) 983-44-33<br>
+          https://liscorp.ru/
+        </div>
+
+        <!-- Контакты ИП: идут сразу же под надписью "Индивидуальный предприниматель" -->
+        <div class="contacts-ip" id="contactsIp">
+          Захаров Михаил Сергеевич<br>
+          Телефон: +7 981 208-62-36<br>
+          Email: m.zakharov0811@gmail.com
+        </div>
+      </div>
+
       <div style="position: relative; width: 320px; text-align: right; padding-top: 10px;">
         <span style="border-bottom: 1px solid #000; display: inline-block; width: 140px;"></span>
         &nbsp;/ <span id="signPersonName">Марков Д.Е.</span>
@@ -941,24 +966,6 @@
           <img src="stamp.png" alt="Печать" id="stampImg" onerror="this.style.display='none'">
         </div>
       </div>
-    </div>
-
-    <!-- Контакты ООО -->
-    <div class="contacts-ooo" id="contactsOoo">
-      Исп.<br>
-      Коммерческий департамент<br>
-      ООО «РТСтандарт»<br>
-      E-mail: info@liscorp.ru<br>
-      +7 (981) 040-10-70<br>
-      +7 (812) 983-44-33<br>
-      https://liscorp.ru/
-    </div>
-
-    <!-- Контакты ИП -->
-    <div class="contacts-ip" id="contactsIp">
-      Захаров Михаил Сергеевич<br>
-      Телефон: +7 981 208-62-36<br>
-      Email: m.zakharov0811@gmail.com
     </div>
 
   </div>
