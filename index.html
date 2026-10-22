@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <title>КП — ООО «РТСтандарт»</title>
+  <!-- Библиотеки для сборки и скачивания .docx прямо в браузере -->
+  <script src="https://unpkg.com/docx@8.5.0/build/index.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
   <style>
     * { 
       box-sizing: border-box; 
@@ -72,16 +75,21 @@
     }
     .panel-left { 
       display: flex; 
-      gap: 8px; 
+      gap: 6px; 
       align-items: center; 
       flex-wrap: wrap; 
     }
+    .panel-right {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
     .btn {
-      padding: 8px 14px;
+      padding: 7px 11px;
       border-radius: 4px;
       cursor: pointer;
       font-weight: 600;
-      font-size: 13px;
+      font-size: 12.5px;
       font-family: Arial, sans-serif;
       border: 1px solid #1d4ed8;
       background: #1d4ed8;
@@ -92,10 +100,11 @@
     .btn-add { background: #f3f4f6; color: #111; border-color: #cbd5e1; }
     .btn-toggle-bg { background: #f8fafc; color: #334155; border-color: #cbd5e1; }
     .btn-clear { background: #fff1f2; color: #e11d48; border-color: #fecdd3; }
+    .btn-word { background: #0284c7; border-color: #0369a1; color: #fff; }
     .btn-del { background: #fee2e2; color: #b91c1c; border: 1px solid #f87171; padding: 2px 6px; font-size: 11px; cursor: pointer; border-radius: 3px; }
 
     .company-select {
-      padding: 7px 10px;
+      padding: 7px 8px;
       border-radius: 4px;
       border: 1px solid #94a3b8;
       font-family: Arial, sans-serif;
@@ -434,7 +443,6 @@
     table.spec td.col-text-cell { 
       vertical-align: top; 
     }
-    /* Выравнивание по верхнему краю для ячеек №, Страна, Кол-во, Цена, Сумма */
     table.spec td.col-num-cell { 
       vertical-align: top; 
     }
@@ -593,7 +601,7 @@
       break-inside: avoid !important;
     }
     
-    /* Контакты ИП: сразу под должностью */
+    /* Контакты ИП */
     .contacts-ip { 
       margin-top: 2px; 
       font-size: 10.5pt; 
@@ -786,7 +794,11 @@
       <button class="btn btn-toggle-bg" id="btnToggleBg" onclick="toggleBackgroundImages()">🖼️ Скрыть картинки</button>
       <button class="btn btn-clear" onclick="clearForm()">🗑️ Очистить бланк</button>
     </div>
-    <button class="btn" onclick="prepareAndPrint()">🖨️ Сохранить в PDF / Печать</button>
+    <div class="panel-right">
+      <button class="btn btn-word" onclick="exportToWord(true)" title="Скачать файл Word со вставленной печатью">📝 Word (с печатью)</button>
+      <button class="btn btn-word" onclick="exportToWord(false)" title="Скачать файл Word без печати для подписи">📝 Word (без печати)</button>
+      <button class="btn" onclick="prepareAndPrint()">🖨️ PDF / Печать</button>
+    </div>
   </div>
 
   <!-- Лист А4 -->
@@ -1617,6 +1629,479 @@
       prepareForPrint();
       updateDocumentTitle();
       window.print();
+    }
+
+    // ==========================================
+    // ВЫГРУЗКА В WORD (.DOCX) С ПЕЧАТЬЮ И БЕЗ
+    // ==========================================
+    async function fetchImageAsBuffer(url) {
+      try {
+        const response = await fetch(url);
+        if (!response.ok) return null;
+        const blob = await response.blob();
+        return await blob.arrayBuffer();
+      } catch (e) {
+        console.warn('Не удалось загрузить изображение для Word:', url, e);
+        return null;
+      }
+    }
+
+    async function exportToWord(includeStamp = true) {
+      if (typeof docx === 'undefined') {
+        alert('Библиотека формирования Word ещё загружается. Пожалуйста, подождите несколько секунд.');
+        return;
+      }
+
+      initAutoResize();
+      recalc();
+      updateDocumentTitle();
+
+      const {
+        Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
+        WidthType, AlignmentType, VerticalAlign, BorderStyle, ShadingType, ImageRun
+      } = docx;
+
+      const isIp = document.getElementById('companySelect').value === 'ip';
+
+      // Чтение данных бланка
+      const clientVal = (isIp ? document.getElementById('clientBoxIp')?.value : document.getElementById('clientBox')?.value) || '';
+      const dateVal = (isIp ? document.getElementById('docDateIp')?.value : document.getElementById('docDate')?.value) || '';
+      
+      let fullNum = '';
+      if (isIp) {
+        fullNum = (document.getElementById('kpNumInputIp')?.value || '').trim();
+      } else {
+        const pfx = document.getElementById('kpPrefix')?.textContent || '';
+        const num = document.getElementById('kpNumInput')?.value || '1';
+        fullNum = pfx + num;
+      }
+
+      const tableBorders = {
+        top: { style: BorderStyle.SINGLE, size: 4, color: "000000" },
+        bottom: { style: BorderStyle.SINGLE, size: 4, color: "000000" },
+        left: { style: BorderStyle.SINGLE, size: 4, color: "000000" },
+        right: { style: BorderStyle.SINGLE, size: 4, color: "000000" }
+      };
+
+      const noBorder = {
+        top: { style: BorderStyle.NONE, size: 0, color: "auto" },
+        bottom: { style: BorderStyle.NONE, size: 0, color: "auto" },
+        left: { style: BorderStyle.NONE, size: 0, color: "auto" },
+        right: { style: BorderStyle.NONE, size: 0, color: "auto" }
+      };
+
+      const docElements = [];
+
+      // 1. Шапка документа
+      if (!isIp) {
+        const logoBuffer = await fetchImageAsBuffer('logo.png');
+        const logoRuns = [];
+        if (logoBuffer) {
+          logoRuns.push(new ImageRun({
+            data: logoBuffer,
+            transformation: { width: 180, height: 50 }
+          }));
+        } else {
+          logoRuns.push(new TextRun({ text: "РТСТАНДАРТ", bold: true, size: 28, font: "Times New Roman" }));
+        }
+
+        const oooHeadTable = new Table({
+          width: { size: 100, type: WidthType.PERCENTAGE },
+          borders: noBorder,
+          rows: [
+            new TableRow({
+              children: [
+                new TableCell({
+                  width: { size: 50, type: WidthType.PERCENTAGE },
+                  borders: noBorder,
+                  children: [new Paragraph({ children: logoRuns })]
+                }),
+                new TableCell({
+                  width: { size: 50, type: WidthType.PERCENTAGE },
+                  borders: noBorder,
+                  children: [
+                    new Paragraph({
+                      spacing: { line: 260 },
+                      children: [
+                        new TextRun({ text: "ООО \"РТСТАНДАРТ\"", bold: true, size: 23, font: "Times New Roman" }),
+                        new TextRun({ text: "\nг. Санкт-Петербург, наб. Обводного канала, д. 23, лит. Г\nИНН 7842228552\n+7 (812) 983-44-33", size: 22, font: "Times New Roman" })
+                      ]
+                    })
+                  ]
+                })
+              ]
+            }),
+            new TableRow({
+              children: [
+                new TableCell({
+                  width: { size: 50, type: WidthType.PERCENTAGE },
+                  borders: noBorder,
+                  children: [
+                    new Paragraph({
+                      spacing: { before: 140, line: 260 },
+                      children: [
+                        new TextRun({ text: `КП № ${fullNum}\n`, bold: true, size: 22, font: "Times New Roman" }),
+                        new TextRun({ text: `От ${dateVal}`, size: 22, font: "Times New Roman" })
+                      ]
+                    })
+                  ]
+                }),
+                new TableCell({
+                  width: { size: 50, type: WidthType.PERCENTAGE },
+                  borders: noBorder,
+                  children: clientVal.trim() ? [
+                    new Paragraph({
+                      spacing: { before: 140, line: 260 },
+                      children: [
+                        new TextRun({ text: "Заказчику:\n", size: 22, font: "Times New Roman" }),
+                        new TextRun({ text: clientVal, size: 22, font: "Times New Roman" })
+                      ]
+                    })
+                  ] : []
+                })
+              ]
+            })
+          ]
+        });
+        docElements.push(oooHeadTable);
+      } else {
+        // Шапка ИП
+        docElements.push(new Paragraph({
+          children: [
+            new TextRun({ text: "Индивидуальный предприниматель Захаров Михаил Сергеевич\n", bold: true, size: 22, font: "Times New Roman" }),
+            new TextRun({ text: "ОГРНИП: 325110000002538", bold: true, size: 22, font: "Times New Roman" }),
+            new TextRun({ text: " / ", size: 22, font: "Times New Roman" }),
+            new TextRun({ text: "ИНН: 110214010407\n", bold: true, size: 22, font: "Times New Roman" }),
+            new TextRun({ text: "Тел.: +7 (981) 208-62-36\ne-mail: m.zakharov0811@gmail.com", size: 22, font: "Times New Roman" })
+          ],
+          border: { bottom: { style: BorderStyle.SINGLE, size: 12, color: "000000", space: 4 } }
+        }));
+
+        const ipMetaTable = new Table({
+          width: { size: 100, type: WidthType.PERCENTAGE },
+          borders: noBorder,
+          rows: [
+            new TableRow({
+              children: [
+                new TableCell({
+                  width: { size: 50, type: WidthType.PERCENTAGE },
+                  borders: noBorder,
+                  children: [
+                    new Paragraph({
+                      spacing: { before: 120, line: 260 },
+                      children: [
+                        new TextRun({ text: `Исх. № ${fullNum}        От ${dateVal}`, size: 22, font: "Times New Roman" })
+                      ]
+                    })
+                  ]
+                }),
+                new TableCell({
+                  width: { size: 50, type: WidthType.PERCENTAGE },
+                  borders: noBorder,
+                  children: clientVal.trim() ? [
+                    new Paragraph({
+                      spacing: { before: 120, line: 260 },
+                      children: [
+                        new TextRun({ text: "Заказчику:\n", size: 22, font: "Times New Roman" }),
+                        new TextRun({ text: clientVal, size: 22, font: "Times New Roman" })
+                      ]
+                    })
+                  ] : []
+                })
+              ]
+            })
+          ]
+        });
+        docElements.push(ipMetaTable);
+      }
+
+      // 2. Заголовок и вводная часть
+      docElements.push(new Paragraph({
+        alignment: AlignmentType.CENTER,
+        spacing: { before: 200, after: 120 },
+        children: [new TextRun({ text: "КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ", bold: true, size: 24, font: "Times New Roman" })]
+      }));
+
+      const introText = isIp
+        ? "Индивидуальный предприниматель Захаров Михаил Сергеевич, действующий на основании свидетельства о государственной регистрации, предлагает рассмотреть возможность поставки следующего оборудования:"
+        : "Общество с ограниченной ответственностью «РТСтандарт», в лице генерального директора Маркова Дмитрия Евгеньевича, действующего на основании Устава, предлагает рассмотреть возможность поставки следующего оборудования:";
+
+      docElements.push(new Paragraph({
+        alignment: AlignmentType.JUSTIFIED,
+        indent: { firstLine: 567 },
+        spacing: { after: 140, line: 260 },
+        children: [new TextRun({ text: introText, size: 22, font: "Times New Roman" })]
+      }));
+
+      // 3. Таблица спецификации
+      const headerBgColor = isIp ? "FFFFFF" : "ACB9CA";
+      const priceColTitle = isIp ? "Цена за ед. руб., с НДС 5%" : "Цена за ед. руб., с НДС 22%";
+      const sumColTitle = isIp ? "Сумма руб., с НДС 5%" : "Сумма руб., с НДС 22%";
+
+      const colWidths = [
+        { pct: 4, dxa: 400 },
+        { pct: 25, dxa: 2400 },
+        { pct: 30, dxa: 2900 },
+        { pct: 8, dxa: 800 },
+        { pct: 7, dxa: 700 },
+        { pct: 12, dxa: 1100 },
+        { pct: 14, dxa: 1300 }
+      ];
+
+      const makeHeaderCell = (text, idx) => new TableCell({
+        width: { size: colWidths[idx].dxa, type: WidthType.DXA },
+        borders: tableBorders,
+        shading: { fill: headerBgColor, type: ShadingType.CLEAR },
+        verticalAlign: VerticalAlign.TOP,
+        children: [new Paragraph({
+          alignment: AlignmentType.CENTER,
+          children: [new TextRun({ text, bold: true, size: 19, font: "Times New Roman" })]
+        })]
+      });
+
+      const tableRows = [
+        new TableRow({
+          tableHeader: true,
+          cantSplit: true,
+          children: [
+            makeHeaderCell("№", 0),
+            makeHeaderCell("Наименование товара", 1),
+            makeHeaderCell("Основные характеристики предложенного товара", 2),
+            makeHeaderCell("Страна", 3),
+            makeHeaderCell("Кол-во", 4),
+            makeHeaderCell(priceColTitle, 5),
+            makeHeaderCell(sumColTitle, 6)
+          ]
+        })
+      ];
+
+      const htmlRows = document.querySelectorAll('#tableBody tr');
+      htmlRows.forEach((tr, i) => {
+        const name = tr.querySelector('.col-name')?.value || '';
+        const desc = tr.querySelector('.col-desc')?.value || '';
+        const country = tr.querySelector('.col-country')?.value || 'Китай';
+        const qty = tr.querySelector('.col-qty')?.value || '1';
+        const price = tr.querySelector('.col-price')?.value || '0,00';
+        const total = tr.querySelector('.col-total')?.textContent || '0,00';
+
+        const makeDataCell = (content, align = AlignmentType.LEFT, idx = 0) => new TableCell({
+          width: { size: colWidths[idx].dxa, type: WidthType.DXA },
+          borders: tableBorders,
+          verticalAlign: VerticalAlign.TOP,
+          children: [new Paragraph({
+            alignment: align,
+            spacing: { line: 230 },
+            children: [new TextRun({ text: String(content), size: 19, font: "Times New Roman" })]
+          })]
+        });
+
+        tableRows.push(new TableRow({
+          cantSplit: true,
+          children: [
+            makeDataCell(i + 1, AlignmentType.CENTER, 0),
+            makeDataCell(name, AlignmentType.LEFT, 1),
+            makeDataCell(desc, AlignmentType.LEFT, 2),
+            makeDataCell(country, AlignmentType.CENTER, 3),
+            makeDataCell(qty, AlignmentType.CENTER, 4),
+            makeDataCell(price, AlignmentType.RIGHT, 5),
+            makeDataCell(total, AlignmentType.RIGHT, 6)
+          ]
+        }));
+      });
+
+      // Строка ИТОГО в таблице
+      const grandTotalVal = document.getElementById('grandTotal')?.textContent || '0,00';
+      tableRows.push(new TableRow({
+        cantSplit: true,
+        children: [
+          new TableCell({
+            columnSpan: 6,
+            borders: tableBorders,
+            shading: { fill: headerBgColor, type: ShadingType.CLEAR },
+            verticalAlign: VerticalAlign.TOP,
+            children: [new Paragraph({
+              alignment: AlignmentType.RIGHT,
+              children: [new TextRun({ text: "ИТОГО:", size: 19, font: "Times New Roman" })]
+            })]
+          }),
+          new TableCell({
+            borders: tableBorders,
+            shading: { fill: headerBgColor, type: ShadingType.CLEAR },
+            verticalAlign: VerticalAlign.TOP,
+            children: [new Paragraph({
+              alignment: AlignmentType.RIGHT,
+              children: [new TextRun({ text: grandTotalVal, size: 19, font: "Times New Roman" })]
+            })]
+          })
+        ]
+      }));
+
+      docElements.push(new Table({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        borders: tableBorders,
+        rows: tableRows
+      }));
+
+      // 4. Сумма прописью
+      const textTotalBlock = document.getElementById('textTotalBlock')?.innerText || '';
+      docElements.push(new Paragraph({
+        spacing: { before: 140, after: 180, line: 260 },
+        children: [new TextRun({ text: textTotalBlock, bold: true, size: 22, font: "Times New Roman" })]
+      }));
+
+      // 5. Условия сделки
+      const condRows = [];
+      if (!isIp) {
+        const condFields = [
+          { lbl: "Срок поставки", val: document.getElementById('condOooDeliveryTime')?.value || '' },
+          { lbl: "Условия оплаты", val: document.getElementById('condOooPay')?.value || '' },
+          { lbl: "Доставка", val: document.getElementById('deliverySelectOoo')?.value || '' },
+          { lbl: "Гарантия", val: document.getElementById('condOooWarranty')?.value || '' }
+        ];
+        condFields.forEach(item => {
+          condRows.push(new TableRow({
+            cantSplit: true,
+            children: [
+              new TableCell({
+                width: { size: 2200, type: WidthType.DXA },
+                borders: tableBorders,
+                shading: { fill: "ACB9CA", type: ShadingType.CLEAR },
+                verticalAlign: VerticalAlign.CENTER,
+                children: [new Paragraph({ children: [new TextRun({ text: item.lbl, bold: true, size: 20, font: "Times New Roman" })] })]
+              }),
+              new TableCell({
+                width: { size: 7400, type: WidthType.DXA },
+                borders: tableBorders,
+                verticalAlign: VerticalAlign.CENTER,
+                children: [new Paragraph({ spacing: { line: 240 }, children: [new TextRun({ text: item.val, size: 20, font: "Times New Roman" })] })]
+              })
+            ]
+          }));
+        });
+        docElements.push(new Table({
+          width: { size: 100, type: WidthType.PERCENTAGE },
+          borders: tableBorders,
+          rows: condRows
+        }));
+      } else {
+        const ipTime = document.getElementById('ipDeliveryTime')?.value || '';
+        const ipDel = document.getElementById('deliverySelectIp')?.value || '';
+        docElements.push(new Paragraph({
+          spacing: { after: 60, line: 260 },
+          children: [
+            new TextRun({ text: "Срок поставки: ", bold: true, size: 22, font: "Times New Roman" }),
+            new TextRun({ text: ipTime, size: 22, font: "Times New Roman" })
+          ]
+        }));
+        docElements.push(new Paragraph({
+          spacing: { after: 180, line: 260 },
+          children: [
+            new TextRun({ text: "Доставка: ", bold: true, size: 22, font: "Times New Roman" }),
+            new TextRun({ text: ipDel, size: 22, font: "Times New Roman" })
+          ]
+        }));
+      }
+
+      // 6. Подписи, печать и контакты
+      const signTitle = isIp ? "Индивидуальный предприниматель" : "Генеральный директор ООО «РТСтандарт»";
+      const signPerson = isIp ? "Захаров М.С." : "Марков Д.Е.";
+      const stampFile = isIp ? 'stamp-ip.png' : 'stamp.png';
+
+      let stampImageRun = null;
+      if (includeStamp) {
+        const stampBuffer = await fetchImageAsBuffer(stampFile);
+        if (stampBuffer) {
+          stampImageRun = new ImageRun({
+            data: stampBuffer,
+            transformation: { width: 140, height: 75 }
+          });
+        }
+      }
+
+      const leftSignChildren = [
+        new Paragraph({
+          spacing: { line: 240 },
+          children: [new TextRun({ text: signTitle, size: 22, font: "Times New Roman" })]
+        })
+      ];
+
+      if (!isIp) {
+        leftSignChildren.push(new Paragraph({
+          spacing: { before: 140, line: 240 },
+          children: [
+            new TextRun({ text: "Исп.\nКоммерческий департамент\nООО «РТСтандарт»\nE-mail: info@liscorp.ru\n+7 (981) 040-10-70\n+7 (812) 983-44-33\nhttps://liscorp.ru/", size: 20, font: "Times New Roman" })
+          ]
+        }));
+      } else {
+        leftSignChildren.push(new Paragraph({
+          spacing: { before: 40, line: 240 },
+          children: [
+            new TextRun({ text: "Захаров Михаил Сергеевич\nТелефон: +7 981 208-62-36\nEmail: m.zakharov0811@gmail.com", size: 21, font: "Times New Roman" })
+          ]
+        }));
+      }
+
+      const rightSignChildren = [
+        new Paragraph({
+          alignment: AlignmentType.RIGHT,
+          children: [new TextRun({ text: `_________________ / ${signPerson}`, size: 22, font: "Times New Roman" })]
+        })
+      ];
+
+      if (stampImageRun) {
+        rightSignChildren.push(new Paragraph({
+          alignment: AlignmentType.RIGHT,
+          spacing: { before: 60 },
+          children: [stampImageRun]
+        }));
+      }
+
+      const signTable = new Table({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        borders: noBorder,
+        rows: [
+          new TableRow({
+            children: [
+              new TableCell({
+                width: { size: 55, type: WidthType.PERCENTAGE },
+                borders: noBorder,
+                verticalAlign: VerticalAlign.TOP,
+                children: leftSignChildren
+              }),
+              new TableCell({
+                width: { size: 45, type: WidthType.PERCENTAGE },
+                borders: noBorder,
+                verticalAlign: VerticalAlign.TOP,
+                children: rightSignChildren
+              })
+            ]
+          })
+        ]
+      });
+
+      docElements.push(new Paragraph({ spacing: { before: 140 } }));
+      docElements.push(signTable);
+
+      // Генерация и скачивание документа
+      const wordDoc = new Document({
+        sections: [{
+          properties: {
+            page: {
+              margin: { top: 720, bottom: 720, left: 850, right: 850 }
+            }
+          },
+          children: docElements
+        }]
+      });
+
+      Packer.toBlob(wordDoc).then(blob => {
+        const titleText = document.title || 'КП';
+        const stampSuffix = includeStamp ? '' : '-без-печати';
+        saveAs(blob, `${titleText}${stampSuffix}.docx`);
+      }).catch(err => {
+        console.error('Ошибка сборки Word:', err);
+        alert('Произошла ошибка при формировании Word. Подробности в консоли браузера.');
+      });
     }
 
     window.addEventListener('beforeprint', prepareForPrint);
