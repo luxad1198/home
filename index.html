@@ -533,7 +533,7 @@
       width: 100%; 
       border-collapse: collapse; 
       font-size: 10pt; 
-      margin-bottom: 20px; 
+      margin-bottom: 6px; 
       page-break-inside: avoid !important;
       break-inside: avoid !important;
     }
@@ -547,6 +547,42 @@
       width: 140px; 
       background-color: #ACB9CA !important; 
       font-weight: bold; 
+    }
+    .cond-lbl-input {
+      width: 100%;
+      font-weight: bold;
+      border: none;
+      outline: none;
+      background: transparent;
+      font-family: inherit;
+      font-size: 10pt;
+    }
+
+    /* Блок умного срока поставки */
+    .delivery-builder-box {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+    .delivery-input-short {
+      width: 80px;
+      padding: 2px 5px;
+      border: 1px solid #94a3b8;
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 9.5pt;
+      outline: none;
+    }
+    .delivery-select-unit {
+      padding: 2px 4px;
+      border: 1px solid #94a3b8;
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 9.5pt;
+      outline: none;
+      background: #f8fafc;
+      cursor: pointer;
     }
 
     /* Условия ИП */
@@ -630,7 +666,7 @@
         padding: 0 !important;
         width: 100% !important;
       }
-      .panel, .no-print, .calc-sidebar, .calc-toggle-panel-btn, .bg-sidebar { 
+      .panel, .no-print, .calc-sidebar, .calc-toggle-panel-btn, .bg-sidebar, .delivery-builder-box, .btn-cond-add { 
         display: none !important; 
       }
       
@@ -794,7 +830,7 @@
       <button class="btn btn-clear" onclick="clearForm()">🗑️ Очистить бланк</button>
     </div>
     <div class="panel-right">
-      <button class="btn btn-word" onclick="exportToWord()" title="Скачать редактируемый документ Word">📝 Скачать Word</button>
+      <button class="btn btn-word" onclick="exportToWord()" title="Скачать чистый документ Word">📝 Скачать Word</button>
       <button class="btn" onclick="prepareAndPrint()">🖨️ PDF / Печать</button>
     </div>
   </div>
@@ -912,28 +948,50 @@
 
     <!-- Условия ООО -->
     <table class="cond" id="condOooTable">
-      <tr>
-        <td class="cond-lbl">Срок поставки</td>
-        <td><textarea class="auto-grow cond-val" id="condOooDeliveryTime" oninput="saveState()">5-10(пять-десять) рабочих дней</textarea></td>
-      </tr>
-      <tr>
-        <td class="cond-lbl">Условия оплаты</td>
-        <td><textarea class="auto-grow cond-val" id="condOooPay" oninput="saveState()">100% постоплата</textarea></td>
-      </tr>
-      <tr>
-        <td class="cond-lbl">Доставка</td>
-        <td>
-          <select class="auto-grow cond-val" id="deliverySelectOoo" onchange="calculateMargin(); saveState();">
-            <option value="Доставка товара до адреса заказчика включена">Доставка товара до адреса заказчика включена</option>
-            <option value="Самовывоз со склада продавца">Самовывоз со склада продавца</option>
-          </select>
-        </td>
-      </tr>
-      <tr>
-        <td class="cond-lbl">Гарантия</td>
-        <td><textarea class="auto-grow cond-val" id="condOooWarranty" oninput="saveState()">12 месяцев с возможностью расширения до 5 лет. Выезд инженера в рамках гарантийного ремонта по адресу Заказчика – опционально. Обслуживание On-site (на месте) / Keep Your Drive (KYD) ремонт с сохранением жестких дисков у клиента – опционально.</textarea></td>
-      </tr>
+      <tbody id="condOooTbody">
+        <tr id="rowDeliveryTime">
+          <td class="cond-lbl">Срок поставки</td>
+          <td>
+            <!-- Умный генератор срока поставки -->
+            <div class="delivery-builder-box no-print">
+              <span style="font-size:9pt; color:#64748b;">Быстрый ввод:</span>
+              <input type="text" class="delivery-input-short" id="deliveryDaysInput" placeholder="5-10" value="5-10" oninput="onDeliveryBuilderChange()">
+              <select class="delivery-select-unit" id="deliveryUnitSelect" onchange="onDeliveryBuilderChange()">
+                <option value="work_days">рабочих дней</option>
+                <option value="cal_days">календарных дней</option>
+                <option value="weeks">недель</option>
+              </select>
+            </div>
+            <textarea class="auto-grow cond-val" id="condOooDeliveryTime" oninput="saveState()">5-10 (пять-десять) рабочих дней</textarea>
+          </td>
+          <td class="no-print" style="width:25px; border:none; background:#fff;"></td>
+        </tr>
+        <tr>
+          <td class="cond-lbl">Условия оплаты</td>
+          <td><textarea class="auto-grow cond-val" id="condOooPay" oninput="saveState()">100% постоплата</textarea></td>
+          <td class="no-print" style="width:25px; border:none; background:#fff;"></td>
+        </tr>
+        <tr>
+          <td class="cond-lbl">Доставка</td>
+          <td>
+            <select class="auto-grow cond-val" id="deliverySelectOoo" onchange="calculateMargin(); saveState();">
+              <option value="Доставка товара до адреса заказчика включена">Доставка товара до адреса заказчика включена</option>
+              <option value="Самовывоз со склада продавца">Самовывоз со склада продавца</option>
+            </select>
+          </td>
+          <td class="no-print" style="width:25px; border:none; background:#fff;"></td>
+        </tr>
+        <tr>
+          <td class="cond-lbl">Гарантия</td>
+          <td><textarea class="auto-grow cond-val" id="condOooWarranty" oninput="saveState()">12 месяцев с возможностью расширения до 5 лет. Выезд инженера в рамках гарантийного ремонта по адресу Заказчика – опционально. Обслуживание On-site (на месте) / Keep Your Drive (KYD) ремонт с сохранением жестких дисков у клиента – опционально.</textarea></td>
+          <td class="no-print" style="width:25px; border:none; background:#fff;"></td>
+        </tr>
+      </tbody>
     </table>
+
+    <div style="margin-bottom: 18px;" class="no-print">
+      <button type="button" class="btn btn-add btn-cond-add" onclick="addCondRow()">+ Добавить условие</button>
+    </div>
 
     <!-- Условия ИП -->
     <div class="ip-cond-box" id="condIpBox">
@@ -986,6 +1044,68 @@
     const BG_VISIBILITY_KEY = 'rtstandard_bg_hidden';
     let currentMarginMode = 'rub';
     let currentFinMode = 'days';
+
+    // Функция перевода чисел в слова для сроков поставки (включая диапазоны "5-10")
+    function parseNumberToWord(numStr) {
+      const n = parseInt(numStr, 10);
+      if (isNaN(n)) return numStr;
+      return num2words(n);
+    }
+
+    function generateDeliveryPhrase(rangeStr, unitKey) {
+      if (!rangeStr || !rangeStr.trim()) return '';
+      const clean = rangeStr.trim();
+      
+      let wordsPart = '';
+      if (clean.includes('-')) {
+        const parts = clean.split('-');
+        const w1 = parseNumberToWord(parts[0]);
+        const w2 = parseNumberToWord(parts[1]);
+        wordsPart = `(${w1}-${w2})`;
+      } else {
+        wordsPart = `(${parseNumberToWord(clean)})`;
+      }
+
+      let unitStr = 'рабочих дней';
+      if (unitKey === 'cal_days') unitStr = 'календарных дней';
+      if (unitKey === 'weeks') unitStr = 'недель';
+
+      return `${clean} ${wordsPart} ${unitStr}`;
+    }
+
+    function onDeliveryBuilderChange() {
+      const val = document.getElementById('deliveryDaysInput').value;
+      const unit = document.getElementById('deliveryUnitSelect').value;
+      const res = generateDeliveryPhrase(val, unit);
+      const ta = document.getElementById('condOooDeliveryTime');
+      if (ta && res) {
+        ta.value = res;
+        autoResizeTextarea(ta);
+      }
+      saveState();
+    }
+
+    // Добавление произвольных строк в таблицу условий
+    function addCondRow(title = 'Дополнительно', val = '') {
+      const tbody = document.getElementById('condOooTbody');
+      const tr = document.createElement('tr');
+      tr.className = 'custom-cond-row';
+      tr.innerHTML = `
+        <td class="cond-lbl"><input type="text" class="cond-lbl-input" value="${title}" oninput="saveState()"></td>
+        <td><textarea class="auto-grow cond-val" placeholder="впишите условия" oninput="saveState()">${val}</textarea></td>
+        <td class="no-print" style="width:25px; border:none; background:#fff; text-align:center;">
+          <button type="button" class="btn-del" onclick="deleteCondRow(this)">✕</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+      initAutoResize();
+      saveState();
+    }
+
+    function deleteCondRow(btn) {
+      btn.closest('tr').remove();
+      saveState();
+    }
 
     function toggleBackgroundImages() {
       const isHidden = document.body.classList.toggle('hide-bg-sidebar');
@@ -1058,6 +1178,7 @@
       document.getElementById('headIp').style.display = isIp ? 'block' : 'none';
 
       document.getElementById('condOooTable').style.display = isIp ? 'none' : 'table';
+      document.querySelector('.btn-cond-add').style.display = isIp ? 'none' : 'inline-block';
       document.getElementById('condIpBox').style.display = isIp ? 'block' : 'none';
 
       document.getElementById('contactsOoo').style.display = isIp ? 'none' : 'block';
@@ -1466,10 +1587,14 @@
       document.getElementById('kpNumInputIp').value = '';
       setDateAndPrefixes();
 
-      document.getElementById('condOooDeliveryTime').value = '5-10(пять-десять) рабочих дней';
+      document.getElementById('deliveryDaysInput').value = '5-10';
+      document.getElementById('deliveryUnitSelect').value = 'work_days';
+      document.getElementById('condOooDeliveryTime').value = '5-10 (пять-десять) рабочих дней';
       document.getElementById('condOooPay').value = '100% постоплата';
       document.getElementById('deliverySelectOoo').value = 'Доставка товара до адреса заказчика включена';
       document.getElementById('condOooWarranty').value = '12 месяцев с возможностью расширения до 5 лет. Выезд инженера в рамках гарантийного ремонта по адресу Заказчика – опционально. Обслуживание On-site (на месте) / Keep Your Drive (KYD) ремонт с сохранением жестких дисков у клиента – опционально.';
+
+      document.querySelectorAll('#condOooTbody tr.custom-cond-row').forEach(tr => tr.remove());
 
       document.getElementById('ipDeliveryTime').value = '1-2 недели';
       document.getElementById('deliverySelectIp').value = 'Доставка включена в стоимость';
@@ -1523,6 +1648,14 @@
           });
         });
 
+        const customConds = [];
+        document.querySelectorAll('#condOooTbody tr.custom-cond-row').forEach(row => {
+          customConds.push({
+            lbl: row.querySelector('.cond-lbl-input').value,
+            val: row.querySelector('.cond-val').value
+          });
+        });
+
         const state = {
           company: document.getElementById('companySelect').value,
           kpNumOoo: document.getElementById('kpNumInput').value,
@@ -1537,6 +1670,9 @@
             document.getElementById('deliverySelectOoo').value,
             document.getElementById('condOooWarranty').value
           ],
+          deliveryDaysInput: document.getElementById('deliveryDaysInput')?.value || '5-10',
+          deliveryUnitSelect: document.getElementById('deliveryUnitSelect')?.value || 'work_days',
+          customConds: customConds,
           condIp: [
             document.getElementById('ipDeliveryTime').value,
             document.getElementById('deliverySelectIp').value
@@ -1575,6 +1711,15 @@
           document.getElementById('deliverySelectOoo').value = state.condOoo[2] || 'Доставка товара до адреса заказчика включена';
           document.getElementById('condOooWarranty').value = state.condOoo[3] || '';
         }
+
+        if (state.deliveryDaysInput) document.getElementById('deliveryDaysInput').value = state.deliveryDaysInput;
+        if (state.deliveryUnitSelect) document.getElementById('deliveryUnitSelect').value = state.deliveryUnitSelect;
+
+        document.querySelectorAll('#condOooTbody tr.custom-cond-row').forEach(tr => tr.remove());
+        if (state.customConds && state.customConds.length > 0) {
+          state.customConds.forEach(c => addCondRow(c.lbl, c.val));
+        }
+
         if (state.condIp) {
           document.getElementById('ipDeliveryTime').value = state.condIp[0] || '1-2 недели';
           document.getElementById('deliverySelectIp').value = state.condIp[1] || 'Доставка включена в стоимость';
@@ -1621,7 +1766,7 @@
       } catch (e) { return false; }
     }
 
-    function prepareAndPrint() {
+    function prepareForPrint() {
       initAutoResize();
       recalc();
       prepareForPrint();
@@ -1630,7 +1775,7 @@
     }
 
     // ==========================================
-    // ВЫГРУЗКА В WORD (.DOCX)
+    // ВЫГРУЗКА В WORD (.DOCX) БЕЗ ПОЛОС
     // ==========================================
     async function getImageBufferFromElement(imgElement, fallbackSrc) {
       if (imgElement && imgElement.complete && imgElement.naturalWidth > 0) {
@@ -1701,6 +1846,13 @@
         right: { style: BorderStyle.SINGLE, size: 4, color: "000000" }
       };
 
+      const strictlyNoBorder = {
+        top: { style: BorderStyle.NONE, size: 0, color: "auto" },
+        bottom: { style: BorderStyle.NONE, size: 0, color: "auto" },
+        left: { style: BorderStyle.NONE, size: 0, color: "auto" },
+        right: { style: BorderStyle.NONE, size: 0, color: "auto" }
+      };
+
       const docElements = [];
 
       // 1. Шапка документа
@@ -1742,10 +1894,12 @@
               children: [
                 new TableCell({
                   width: { size: 50, type: WidthType.PERCENTAGE },
+                  borders: strictlyNoBorder,
                   children: [new Paragraph({ children: logoRuns })]
                 }),
                 new TableCell({
                   width: { size: 50, type: WidthType.PERCENTAGE },
+                  borders: strictlyNoBorder,
                   children: [
                     new Paragraph({
                       spacing: { line: 240 },
@@ -1764,6 +1918,7 @@
               children: [
                 new TableCell({
                   width: { size: 50, type: WidthType.PERCENTAGE },
+                  borders: strictlyNoBorder,
                   children: [
                     new Paragraph({
                       spacing: { before: 120, line: 240 },
@@ -1776,6 +1931,7 @@
                 }),
                 new TableCell({
                   width: { size: 50, type: WidthType.PERCENTAGE },
+                  borders: strictlyNoBorder,
                   children: clientParagraphs
                 })
               ]
@@ -1956,7 +2112,7 @@
         children: [new TextRun({ text: textTotalBlock, bold: true, size: 22, font: "Times New Roman" })]
       }));
 
-      // 5. Условия сделки
+      // 5. Условия сделки (включая добавленные строки)
       if (!isIp) {
         const condFields = [
           { lbl: "Срок поставки", val: document.getElementById('condOooDeliveryTime')?.value || '' },
@@ -1964,6 +2120,14 @@
           { lbl: "Доставка", val: document.getElementById('deliverySelectOoo')?.value || '' },
           { lbl: "Гарантия", val: document.getElementById('condOooWarranty')?.value || '' }
         ];
+
+        document.querySelectorAll('#condOooTbody tr.custom-cond-row').forEach(row => {
+          condFields.push({
+            lbl: row.querySelector('.cond-lbl-input')?.value || 'Дополнительно',
+            val: row.querySelector('.cond-val')?.value || ''
+          });
+        });
+
         const condRows = condFields.map(item => new TableRow({
           cantSplit: true,
           children: [
@@ -2006,7 +2170,7 @@
         }));
       }
 
-      // 6. Подписи и контакты (БЕЗ разделительных таблиц, чтобы не было вертикальных линий)
+      // 6. Подписи и контакты
       const signTitle = isIp ? "Индивидуальный предприниматель" : "Генеральный директор ООО «РТСтандарт»";
       const signPerson = isIp ? "Захаров М.С." : "Марков Д.Е.";
 
