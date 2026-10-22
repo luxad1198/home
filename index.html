@@ -996,7 +996,7 @@
       </select>
     </div>
 
-    <!-- Условия ООО -->
+    <!-- Таблица условий ООО -->
     <table class="cond" id="condOooTable">
       <tbody id="condOooTbody">
         <tr id="rowDeliveryTime">
@@ -1630,6 +1630,7 @@
       saveState();
     }
 
+    // Безопасное разбиение суммы на рубли и копейки без ошибки 100 копеек
     function splitRubKop(amount) {
       const totalKop = Math.round((amount + Number.EPSILON) * 100);
       const rub = Math.floor(totalKop / 100);
@@ -1682,6 +1683,7 @@
       return forms[2];
     }
 
+    // Перевод числа в текст с поддержкой триллионов (1e12) и женского рода
     function num2words(n, baseFem = false) {
       n = Math.floor(Math.abs(Number(n) || 0));
       if (n === 0) return 'ноль';
@@ -1874,7 +1876,6 @@
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
         if (!raw) {
-          // Инициализация дефолтов если хранилище абсолютно пустое
           document.getElementById('condOooDeliveryTime').value = DEFAULT_DELIVERY_TIME_OOO;
           document.getElementById('condOooPay').value = DEFAULT_PAY_OOO;
           document.getElementById('deliverySelectOoo').value = DEFAULT_DELIVERY_TYPE_OOO;
@@ -1893,7 +1894,7 @@
         if (state.clientOoo) document.getElementById('clientBox').value = state.clientOoo;
         if (state.clientIp) document.getElementById('clientBoxIp').value = state.clientIp;
 
-        // Строгая защита от пустых условий: если значение пустая строка, подставляется дефолт
+        // Строгая защита от пустых условий ООО: если значение пустое, подставляется эталон
         if (state.condOoo && Array.isArray(state.condOoo)) {
           document.getElementById('condOooDeliveryTime').value = (state.condOoo[0] && state.condOoo[0].trim()) ? state.condOoo[0] : DEFAULT_DELIVERY_TIME_OOO;
           document.getElementById('condOooPay').value = (state.condOoo[1] && state.condOoo[1].trim()) ? state.condOoo[1] : DEFAULT_PAY_OOO;
@@ -2085,7 +2086,7 @@
         if (logoBuffer) {
           logoRuns.push(new ImageRun({
             data: logoBuffer,
-            transformation: { width: 175, height: 50 }
+            transformation: { width: 225, height: 64 }
           }));
         } else {
           logoRuns.push(new TextRun({ text: "ООО \"РТСТАНДАРТ\"", bold: true, size: 24, font: "Times New Roman" }));
@@ -2334,7 +2335,7 @@
         children: [new TextRun({ text: textTotalBlock, bold: true, size: 22, font: "Times New Roman" })]
       }));
 
-      // 5. Условия сделки
+      // 5. Условия сделки (включая добавленные строки)
       if (!isIp) {
         const condFields = [
           { lbl: "Срок поставки", val: cleanTextForXml(document.getElementById('condOooDeliveryTime')?.value || '') },
