@@ -1,825 +1,379 @@
-{
-box-sizing: border-box;
-font-family: 'Times New Roman', Times, serif;
--webkit-print-color-adjust: exact !important;
-print-color-adjust: exact !important;
-color-adjust: exact !important;
+const STORAGE_KEY = 'rtstandard_calc_full_state_v2';
+const BG_VISIBILITY_KEY = 'rtstandard_bg_hidden';
+let currentMarginMode = 'rub';
+let currentFinMode = 'days';
+
+const DEFAULT_DELIVERY_TIME_OOO = '5-10 (пять-десять) рабочих дней';
+const DEFAULT_PAY_OOO = '100% постоплата';
+const DEFAULT_DELIVERY_TYPE_OOO = 'Доставка товара до адреса заказчика включена';
+const DEFAULT_WARRANTY_OOO = '12 месяцев с возможностью расширения до 5 лет. Выезд инженера в рамках гарантийного ремонта по адресу Заказчика – опционально. Обслуживание On-site (на месте) / Keep Your Drive (KYD) ремонт с сохранением жестких дисков у клиента – опционально.';
+
+function parseNumberToWord(numStr, isFem = false) {
+  const n = parseInt(numStr, 10);
+  if (isNaN(n) || n < 0) return numStr;
+  return num2words(n, isFem);
+}
+
+function generateDeliveryPhrase(rangeStr, unitKey) {
+  if (!rangeStr || !rangeStr.trim()) return '';
+  const clean = rangeStr.trim().replace(/\s+/g, '');
+  const isFem = unitKey === 'weeks';
+
+  let wordsPart = '';
+  let lastNumber = 0;
+
+  if (clean.includes('-')) {
+    const parts = clean.split('-').filter(Boolean);
+    if (parts.length >= 2) {
+      const w1 = parseNumberToWord(parts[0], isFem);
+      const w2 = parseNumberToWord(parts[1], isFem);
+      wordsPart = `(${w1}-${w2})`;
+      lastNumber = parseInt(parts[1], 10);
+    } else {
+      wordsPart = `(${parseNumberToWord(parts[0], isFem)})`;
+      lastNumber = parseInt(parts[0], 10);
+    }
+  } else {
+    wordsPart = `(${parseNumberToWord(clean, isFem)})`;
+    lastNumber = parseInt(clean, 10);
+  }
+
+  const nForDecl = isNaN(lastNumber) ? 5 : lastNumber;
+  let unitStr = '';
+  if (unitKey === 'work_days') {
+    unitStr = decl(nForDecl, ['рабочий день', 'рабочих дня', 'рабочих дней']);
+  } else if (unitKey === 'cal_days') {
+    unitStr = decl(nForDecl, ['календарный день', 'календарных дня', 'календарных дней']);
+  } else if (unitKey === 'weeks') {
+    unitStr = decl(nForDecl, ['неделя', 'недели', 'недель']);
+  }
+
+  return `${clean} ${wordsPart} ${unitStr}`;
+}
+
+function onDeliveryBuilderChange() {
+  const val = document.getElementById('deliveryDaysInput').value;
+  const unit = document.getElementById('deliveryUnitSelect').value;
+  const res = generateDeliveryPhrase(val, unit);
+  if (!res) return;
+
+  const isIp = document.getElementById('companySelect').value === 'ip';
+  if (isIp) {
+    const inpIp = document.getElementById('ipDeliveryTime');
+    if (inpIp) inpIp.value = res;
+  } else {
+    const taOoo = document.getElementById('condOooDeliveryTime');
+    if (taOoo) {
+      taOoo.value = res;
+      autoResizeTextarea(taOoo);
+    }
+  }
+  saveState();
+}
+
+function addCondRowForActiveCompany() {
+  const isIp = document.getElementById('companySelect').value === 'ip';
+  if (isIp) {
+    addCondRowIp('Документы', 'УПД, Счет');
+  } else {
+    addCondRowOoo('Дополнительно', '');
+  }
+}
+
+function addCondRowOoo(title = 'Дополнительно', val = '') {
+  const tbody = document.getElementById('condOooTbody');
+  const tr = document.createElement('tr');
+  tr.className = 'custom-cond-row';
+  tr.innerHTML = `
+    <td class="cond-lbl"><input type="text" class="cond-lbl-input" value="${escapeHtml(title)}" oninput="saveState()"></td>
+    <td>
+      <textarea class="auto-grow cond-val" placeholder="впишите условия" oninput="saveState()">${escapeHtml(val)}</textarea>
+      <div class="print-text-mirror"></div>
+    </td>
+    <td class="no-print" style="width:25px; border:none; background:#fff; text-align:center;">
+      <button type="button" class="btn-del" onclick="deleteCondRow(this)">✕</button>
+    </td>
+  `;
+  tbody.appendChild(tr);
+  initAutoResize();
+  saveState();
+}
+
+function adjustInputWidth(input) {
+  if (!input) return;
+  const length = (input.value || '').length || 1;
+  input.style.width = Math.max(30, length * 8.5 + 4) + 'px';
 }
 
-body {
-background: #52525b;
-margin: 0;
-padding: 20px 10px 40px;
-color: #000;
-min-height: 100vh;
-position: relative;
+function addCondRowIp(title = 'Документы', val = 'УПД, Счет') {
+  const container = document.getElementById('condIpCustomList');
+  const div = document.createElement('div');
+  div.className = 'ip-custom-cond-row';
+  div.innerHTML = `
+    <b><input type="text" class="ip-cond-lbl-input" value="${escapeHtml(title)}" oninput="adjustInputWidth(this); saveState();">:</b>&nbsp;
+    <input type="text" class="meta-input ip-cond-val-input" value="${escapeHtml(val)}" placeholder="значение" style="width: 320px;" oninput="saveState()">&nbsp;
+    <button type="button" class="btn-del no-print" onclick="deleteIpCondRow(this)">✕</button>
+  `;
+  container.appendChild(div);
+  const inp = div.querySelector('.ip-cond-lbl-input');
+  adjustInputWidth(inp);
+  saveState();
 }
 
-/* Боковые фоновые колонки */
-.bg-sidebar {
-position: fixed;
-top: 15px;
-bottom: 15px;
-width: calc((100vw - 210mm) / 2 - 25px);
-display: flex;
-flex-direction: column;
-justify-content: space-between;
-gap: 12px;
-z-index: 1;
-pointer-events: none;
-transition: opacity 0.2s ease, transform 0.2s ease;
+function deleteCondRow(btn) {
+  btn.closest('tr').remove();
+  saveState();
 }
 
-.bg-left { left: 12px; }
-.bg-right { right: 12px; }
-
-.bg-sidebar img {
-width: 100%;
-flex: 1 1 0;
-min-height: 0;
-object-fit: cover;
-object-position: center;
-border-radius: 8px;
-box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
-border: 1px solid rgba(255, 255, 255, 0.15);
-background: #27272a;
+function deleteIpCondRow(btn) {
+  btn.closest('.ip-custom-cond-row').remove();
+  saveState();
 }
 
-body.hide-bg-sidebar .bg-sidebar {
-opacity: 0 !important;
-pointer-events: none !important;
-transform: scale(0.96);
-}
-
-/* Верхняя панель управления */
-.panel {
-width: 210mm;
-margin: 0 auto 12px;
-background: #fff;
-padding: 10px 16px;
-border-radius: 6px;
-display: flex;
-justify-content: space-between;
-align-items: center;
-font-family: Arial, sans-serif;
-position: relative;
-z-index: 20;
-box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-}
-
-.panel-left {
-display: flex;
-gap: 6px;
-align-items: center;
-flex-wrap: wrap;
-}
-
-.panel-right {
-display: flex;
-gap: 6px;
-align-items: center;
-}
-
-.btn {
-padding: 7px 12px;
-border-radius: 4px;
-cursor: pointer;
-font-weight: 600;
-font-size: 12.5px;
-font-family: Arial, sans-serif;
-border: 1px solid #1d4ed8;
-background: #1d4ed8;
-color: #fff;
-transition: opacity 0.15s, background-color 0.15s;
-}
-
-.btn:hover { opacity: 0.9; }
-.btn-add { background: #f3f4f6; color: #111; border-color: #cbd5e1; }
-.btn-toggle-bg { background: #f8fafc; color: #334155; border-color: #cbd5e1; }
-.btn-clear { background: #fff1f2; color: #e11d48; border-color: #fecdd3; }
-.btn-word { background: #0284c7; border-color: #0369a1; color: #fff; }
-.btn-del {
-background: #fee2e2;
-color: #b91c1c;
-border: 1px solid #f87171;
-padding: 2px 6px;
-font-size: 11px;
-cursor: pointer;
-border-radius: 3px;
-}
-
-.company-select {
-padding: 7px 8px;
-border-radius: 4px;
-border: 1px solid #94a3b8;
-font-family: Arial, sans-serif;
-font-size: 12px;
-font-weight: bold;
-background: #f8fafc;
-color: #0f172a;
-cursor: pointer;
-outline: none;
-}
-
-/* Калькулятор наценки и налогов */
-.calc-sidebar {
-position: fixed;
-left: calc(50% - 105mm - 330px);
-top: 60px;
-width: 310px;
-max-height: 88vh;
-overflow-y: auto;
-background: #ffffff;
-border-radius: 8px;
-padding: 14px;
-box-shadow: 0 4px 18px rgba(0,0,0,0.35);
-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-font-size: 12px;
-line-height: 1.35;
-z-index: 30;
-transition: transform 0.25s ease, opacity 0.25s ease;
-}
-
-.calc-sidebar.collapsed {
-transform: translateX(-360px);
-opacity: 0;
-pointer-events: none;
-}
-
-.calc-toggle-panel-btn {
-position: fixed;
-left: calc(50% - 105mm - 330px);
-top: 18px;
-z-index: 35;
-padding: 6px 12px;
-background: #0f172a;
-color: #fff;
-border: none;
-border-radius: 4px;
-font-family: Arial, sans-serif;
-font-size: 12px;
-font-weight: 600;
-cursor: pointer;
-box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-}
-
-@media (max-width: 1460px) {
-.calc-sidebar, .calc-toggle-panel-btn {
-left: 12px;
-}
-}
-
-.calc-title {
-font-size: 13px;
-font-weight: 700;
-color: #1e293b;
-margin-bottom: 10px;
-display: flex;
-align-items: center;
-justify-content: space-between;
-border-bottom: 2px solid #e2e8f0;
-padding-bottom: 6px;
-}
-
-.calc-field { margin-bottom: 10px; }
-
-.calc-label {
-font-size: 11px;
-font-weight: 600;
-color: #475569;
-margin-bottom: 3px;
-display: flex;
-justify-content: space-between;
-align-items: center;
-}
-
-.calc-input {
-width: 100%;
-padding: 6px 8px;
-border: 1px solid #cbd5e1;
-border-radius: 5px;
-font-size: 12px;
-font-family: inherit;
-outline: none;
-}
-
-.calc-input:focus { border-color: #2563eb; }
-
-.calc-input:disabled {
-background: #f1f5f9;
-color: #94a3b8;
-cursor: not-allowed;
-}
-
-.calc-toggle {
-display: inline-flex;
-background: #e2e8f0;
-border-radius: 4px;
-padding: 2px;
-gap: 2px;
-}
-
-.calc-toggle-btn {
-border: none;
-background: transparent;
-padding: 2px 7px;
-font-size: 10px;
-font-weight: 600;
-cursor: pointer;
-border-radius: 3px;
-color: #475569;
-font-family: inherit;
-}
-
-.calc-toggle-btn.active {
-background: #2563eb;
-color: #fff;
-}
-
-.calc-result-box {
-background: #f8fafc;
-border: 1px solid #e2e8f0;
-border-radius: 6px;
-padding: 8px;
-margin-top: 10px;
-}
-
-.calc-res-row {
-display: flex;
-justify-content: space-between;
-margin-bottom: 4px;
-font-size: 11px;
-color: #64748b;
-}
-
-.calc-res-row span:last-child {
-font-weight: 600;
-color: #1e293b;
-}
-
-.calc-highlight {
-border-top: 1px dashed #cbd5e1;
-padding-top: 6px;
-margin-top: 6px;
-display: flex;
-flex-direction: column;
-gap: 2px;
-}
-
-.calc-highlight-lbl {
-font-size: 10px;
-font-weight: 700;
-color: #1e40af;
-text-transform: uppercase;
-}
-
-.calc-highlight-val {
-font-size: 15px;
-font-weight: 800;
-color: #0f172a;
-}
-
-.btn-copy-calc {
-width: 100%;
-margin-top: 10px;
-padding: 8px;
-background: #2563eb;
-color: #fff;
-border: none;
-border-radius: 5px;
-font-size: 12px;
-font-weight: 600;
-cursor: pointer;
-display: flex;
-align-items: center;
-justify-content: center;
-gap: 6px;
-}
-
-.btn-copy-calc:hover { background: #1d4ed8; }
-
-/* Лист А4 */
-.page {
-width: 210mm;
-min-height: 297mm;
-padding: 10mm 15mm 12mm 15mm;
-margin: 0 auto;
-background: #fff;
-box-shadow: 0 4px 25px rgba(0,0,0,0.45);
-position: relative;
-z-index: 10;
-font-size: 11.5pt;
-line-height: 1.15;
-}
-
-/* Шапка ООО */
-.head-grid {
-width: 100%;
-border-collapse: collapse;
-margin-bottom: 12px;
-}
-
-.head-grid td {
-border: none;
-padding: 0 0 8px 0;
-vertical-align: top;
-}
-
-.head-logo-cell { width: 50%; }
-
-.logo {
-height: 64px;
-max-width: 100%;
-object-fit: contain;
-display: block;
-}
-
-.head-req-cell {
-width: 50%;
-padding-left: 15px !important;
-font-size: 11.5pt;
-line-height: 1.3;
-}
-
-.head-meta-cell {
-width: 50%;
-font-size: 11pt;
-line-height: 1.35;
-padding-top: 6px !important;
-}
-
-.head-client-cell {
-width: 50%;
-padding-left: 15px !important;
-font-size: 11pt;
-line-height: 1.25;
-padding-top: 6px !important;
-}
-
-/* Шапка ИП */
-.head-ip-container {
-width: 100%;
-margin-bottom: 12px;
-display: none;
-}
-
-.head-ip-top {
-text-align: left;
-font-size: 11pt;
-line-height: 1.3;
-padding-bottom: 8px;
-border-bottom: 2px solid #000;
-}
-
-.head-ip-meta {
-display: flex;
-justify-content: space-between;
-margin-top: 8px;
-font-size: 11pt;
-}
-
-.head-ip-meta-left {
-display: flex;
-align-items: baseline;
-gap: 15px;
-flex-wrap: wrap;
-}
-
-.meta-input {
-font-family: inherit;
-font-size: 11pt;
-border: none;
-border-bottom: 1px dashed #777;
-background: transparent;
-outline: none;
-}
-
-.kp-num-wrapper {
-display: inline-flex;
-align-items: baseline;
-font-weight: bold;
-}
-
-.kp-prefix { font-weight: bold; margin-left: 2px; }
-
-.kp-user-input {
-font-family: inherit;
-font-size: 11pt;
-font-weight: bold;
-border: none;
-border-bottom: 1px dashed #777;
-background: transparent;
-outline: none;
-width: 45px;
-padding: 0 2px;
-}
-
-.kp-ip-wrapper {
-display: inline-flex;
-align-items: baseline;
-font-weight: normal;
-}
-
-.kp-ip-input {
-font-family: inherit;
-font-size: 11pt;
-font-weight: normal;
-border: none;
-border-bottom: 1px dashed #777;
-background: transparent;
-outline: none;
-width: 90px;
-padding: 0 2px;
-}
-
-.client-textarea {
-width: 100%;
-font-family: inherit;
-font-size: 11pt;
-border: none;
-border-bottom: 1px dashed #777;
-background: transparent;
-outline: none;
-resize: none;
-overflow: hidden;
-line-height: 1.25;
-}
-
-.title {
-text-align: center;
-font-size: 12pt;
-font-weight: bold;
-margin: 10px 0 6px;
-}
-
-.intro {
-text-align: justify;
-text-indent: 10mm;
-font-size: 11pt;
-margin-bottom: 8px;
-line-height: 1.15;
-}
-
-/* Таблица спецификации */
-table.spec {
-width: 100%;
-border-collapse: collapse;
-font-size: 9.5pt;
-margin-bottom: 6px;
-table-layout: fixed;
-page-break-inside: auto !important;
-break-inside: auto !important;
-box-sizing: border-box;
-}
-
-table.spec thead {
-display: table-header-group !important;
-}
-
-table.spec tbody {
-display: table-row-group !important;
-}
-
-table.spec tr {
-page-break-inside: auto !important;
-break-inside: auto !important;
-}
-
-table.spec th, table.spec td {
-border: 1px solid #000;
-padding: 3px 4px;
-line-height: 1.15;
-page-break-inside: auto !important;
-break-inside: auto !important;
-box-sizing: border-box;
-}
-
-table.spec td.col-text-cell {
-vertical-align: top;
-}
-
-table.spec td.col-num-cell {
-vertical-align: top;
-}
-
-table.spec th {
-background-color: #ACB9CA !important;
-text-align: center;
-font-weight: bold;
-padding: 4px 2px;
-word-break: break-word;
-overflow-wrap: break-word;
-}
-
-.t-tot {
-background-color: #ACB9CA !important;
-font-weight: normal;
-page-break-inside: avoid !important;
-break-inside: avoid !important;
-}
-
-body.is-ip table.spec th { background-color: #fff !important; }
-body.is-ip .t-tot { background-color: #fff !important; }
-
-.auto-grow {
-width: 100%;
-border: none;
-outline: none;
-font-family: inherit;
-font-size: 9.5pt;
-background: transparent;
-padding: 0;
-margin: 0;
-resize: none;
-overflow: hidden;
-line-height: 1.15;
-display: block;
-field-sizing: content;
-}
-
-.print-text-mirror {
-display: none;
-font-family: inherit;
-font-size: 9.5pt;
-line-height: 1.15;
-white-space: pre-wrap;
-word-break: break-word;
-overflow-wrap: break-word;
-}
-
-.inp-qty {
-width: 100%;
-border: none;
-outline: none;
-font-family: inherit;
-font-size: 9.5pt;
-background: transparent;
-padding: 0;
-margin: 0;
-text-align: center;
-}
-
-.inp-text {
-width: 100%;
-border: none;
-outline: none;
-font-family: inherit;
-font-size: 9.5pt;
-background: transparent;
-padding: 0;
-margin: 0;
-}
-
-.r { text-align: right; }
-.c { text-align: center; }
-
-.col-total {
-font-weight: normal !important;
-}
-
-.tot-phrase {
-font-size: 11pt;
-line-height: 1.25;
-margin: 6px 0 10px;
-page-break-inside: avoid !important;
-break-inside: avoid !important;
-}
-
-/* Таблица условий ООО */
-table.cond {
-width: 100%;
-border-collapse: collapse;
-font-size: 10pt;
-margin-bottom: 6px;
-page-break-inside: avoid !important;
-break-inside: avoid !important;
-}
-
-table.cond td {
-border: 1px solid #000;
-padding: 3px 6px;
-vertical-align: middle;
-line-height: 1.15;
-}
-
-.cond-lbl {
-width: 140px;
-background-color: #ACB9CA !important;
-font-weight: bold;
-}
-
-.cond-lbl-input {
-width: 100%;
-font-weight: bold;
-border: none;
-outline: none;
-background: transparent;
-font-family: inherit;
-font-size: 10pt;
-}
-
-/* Конструктор срока поставки */
-.delivery-builder-box {
-display: flex;
-gap: 6px;
-align-items: center;
-margin-bottom: 6px;
-background: #f8fafc;
-padding: 4px 8px;
-border-radius: 4px;
-border: 1px dashed #cbd5e1;
-width: fit-content;
-font-family: Arial, sans-serif;
-}
-
-.delivery-input-short {
-width: 75px;
-padding: 2px 6px;
-border: 1px solid #94a3b8;
-border-radius: 4px;
-font-family: Arial, sans-serif;
-font-size: 9pt;
-outline: none;
-}
-
-.delivery-select-unit {
-padding: 2px 4px;
-border: 1px solid #94a3b8;
-border-radius: 4px;
-font-family: Arial, sans-serif;
-font-size: 9pt;
-outline: none;
-background: #fff;
-cursor: pointer;
-}
-
-/* Условия ИП */
-.ip-cond-box {
-margin-bottom: 6px;
-font-size: 11pt;
-line-height: 1.35;
-display: none;
-page-break-inside: avoid !important;
-break-inside: avoid !important;
-}
-
-.ip-custom-cond-row {
-display: flex;
-align-items: baseline;
-gap: 0;
-margin-top: 4px;
-font-size: 11pt;
-}
-
-.ip-cond-lbl-input {
-font-family: inherit;
-font-size: 11pt;
-font-weight: bold;
-border: none;
-border-bottom: 1px dashed #777;
-background: transparent;
-outline: none;
-padding: 0;
-margin: 0;
-min-width: 40px;
-field-sizing: content;
-}
-
-/* Подписи и подвал */
-.sign-row {
-display: flex;
-justify-content: space-between;
-position: relative;
-margin-top: 20px;
-font-size: 11pt;
-page-break-inside: avoid !important;
-break-inside: avoid !important;
-}
-
-body.is-ip .sign-row {
-margin-top: 14px;
-}
-
-.stamp-box {
-position: absolute;
-top: -38px;
-right: 105px;
-width: 170px;
-pointer-events: none;
-opacity: 0.95;
-}
-
-.stamp-box img { width: 100%; display: block; }
-
-body.is-ip .stamp-box {
-top: -46px;
-right: 85px;
-width: 185px;
-}
-
-.contacts-ooo {
-margin-top: 16px;
-font-size: 10pt;
-line-height: 1.25;
-page-break-inside: avoid !important;
-break-inside: avoid !important;
-}
-
-.contacts-ip {
-margin-top: 2px;
-font-size: 10.5pt;
-line-height: 1.25;
-display: none;
-page-break-inside: avoid !important;
-break-inside: avoid !important;
-}
-
-@media (max-width: 1000px) {
-.bg-sidebar { display: none !important; }
-}
-
-/* Печать страницы */
-@page {
-size: A4 portrait;
-margin: 8mm 12mm 8mm 12mm;
-}
-
-@media print {
-
-{
--webkit-print-color-adjust: exact !important;
-print-color-adjust: exact !important;
-}
-html, body {
-background: #fff !important;
-margin: 0 !important;
-padding: 0 !important;
-width: 100% !important;
-orphans: 3;
-widows: 3;
-}
-.panel, .no-print, .calc-sidebar, .calc-toggle-panel-btn, .bg-sidebar, .delivery-builder-box, .btn-cond-add {
-display: none !important;
-}
-
-.page {
-box-shadow: none !important;
-margin: 0 auto !important;
-padding: 4mm 2mm !important;
-width: 100% !important;
-max-width: 100% !important;
-min-height: 0 !important;
-height: auto !important;
-}
-
-th.no-print, td.no-print {
-display: none !important;
-width: 0 !important;
-padding: 0 !important;
-margin: 0 !important;
-border: none !important;
-}
-
-table.spec {
-width: 99.4% !important;
-margin-left: auto !important;
-margin-right: auto !important;
-table-layout: fixed !important;
-border-collapse: collapse !important;
-border-right: 1.5px solid #000 !important;
-}
-
-table.spec th#thTotalCol,
-table.spec td.col-total,
-table.spec tfoot td#grandTotal {
-border-right: 1.5px solid #000 !important;
-}
-
-table.spec textarea.auto-grow,
-table.cond textarea.auto-grow {
-display: none !important;
-}
-.print-text-mirror {
-display: block !important;
-}
-
-table.spec, table.spec tr, table.spec td {
-page-break-inside: auto !important;
-break-inside: auto !important;
-}
-
-.sign-row {
-margin-top: 12px !important;
-}
-
-.print-hide-client {
-display: none !important;
-}
-
-input, textarea, select {
-border-bottom: none !important;
-appearance: none;
--webkit-appearance: none;
-}
-::placeholder { color: transparent !important; }
-}
+function escapeHtml(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function toggleBackgroundImages() {
+  const isHidden = document.body.classList.toggle('hide-bg-sidebar');
+  localStorage.setItem(BG_VISIBILITY_KEY, isHidden ? 'true' : 'false');
+  updateBgButtonText(isHidden);
+}
+
+function updateBgButtonText(isHidden) {
+  const btn = document.getElementById('btnToggleBg');
+  if (btn) {
+    btn.textContent = isHidden ? '🖼️ Показать картинки' : '🖼️ Скрыть картинки';
+  }
+}
+
+function initBackgroundVisibility() {
+  const isHidden = localStorage.getItem(BG_VISIBILITY_KEY) === 'true';
+  if (isHidden) {
+    document.body.classList.add('hide-bg-sidebar');
+  } else {
+    document.body.classList.remove('hide-bg-sidebar');
+  }
+  updateBgButtonText(isHidden);
+}
+
+function toggleCalcPanel() {
+  const panel = document.getElementById('calcSidebar');
+  panel.classList.toggle('collapsed');
+}
+
+function setFinMode(mode) {
+  currentFinMode = mode;
+  document.getElementById('btnFinDays').classList.toggle('active', mode === 'days');
+  document.getElementById('btnFinWeeks').classList.toggle('active', mode === 'weeks');
+
+  const isWeeks = mode === 'weeks';
+  document.getElementById('btnWeekMinus').style.display = isWeeks ? 'inline-block' : 'none';
+  document.getElementById('btnWeekPlus').style.display = isWeeks ? 'inline-block' : 'none';
+  calculateMargin();
+  saveState();
+}
+
+function stepFinWeeks(delta) {
+  const input = document.getElementById('calcFinDaysInput');
+  let days = parseInt(input.value) || 0;
+  let weeks = Math.round(days / 7);
+  weeks = Math.max(0, weeks + delta);
+  input.value = weeks * 7;
+  calculateMargin();
+  saveState();
+}
+
+function setMarginMode(mode) {
+  currentMarginMode = mode;
+  document.getElementById('btnModeRub').classList.toggle('active', mode === 'rub');
+  document.getElementById('btnModePct').classList.toggle('active', mode === 'pct');
+  
+  const input = document.getElementById('calcProfitTarget');
+  input.placeholder = mode === 'rub' ? '15 000' : '15';
+  calculateMargin();
+  saveState();
+}
+
+function onCompanyChange() {
+  const comp = document.getElementById('companySelect').value;
+  const isIp = comp === 'ip';
+
+  document.body.classList.toggle('is-ip', isIp);
+
+  document.getElementById('headOoo').style.display = isIp ? 'none' : 'table';
+  document.getElementById('headIp').style.display = isIp ? 'block' : 'none';
+
+  document.getElementById('condOooTable').style.display = isIp ? 'none' : 'table';
+  document.getElementById('condIpBox').style.display = isIp ? 'block' : 'none';
+
+  document.getElementById('contactsOoo').style.display = isIp ? 'none' : 'block';
+  document.getElementById('contactsIp').style.display = isIp ? 'block' : 'none';
+
+  const stampImg = document.getElementById('stampImg');
+  const delTitle = document.getElementById('lblDeliveryTitle');
+
+  if (isIp) {
+    document.getElementById('docIntro').textContent = 
+      'Индивидуальный предприниматель Захаров Михаил Сергеевич, действующий на основании свидетельства о государственной регистрации, предлагает рассмотреть возможность поставки следующего оборудования:';
+    document.getElementById('thPriceCol').textContent = 'Цена за ед. руб., с НДС 5%';
+    document.getElementById('thTotalCol').textContent = 'Сумма руб., с НДС 5%';
+    document.getElementById('signTitleBlock').textContent = 'Индивидуальный предприниматель';
+    document.getElementById('signPersonName').textContent = 'Захаров М.С.';
+    document.getElementById('lblTaxType').textContent = 'УСН (6%+1%):';
+    document.getElementById('lblVatType').textContent = 'НДС (5%):';
+    if (delTitle) delTitle.textContent = 'Доставка до клиента с НДС 5%, ₽';
+
+    if (stampImg) {
+      stampImg.src = 'stamp-ip.png';
+      stampImg.style.display = 'block';
+    }
+  } else {
+    document.getElementById('docIntro').textContent = 
+      'Общество с ограниченной ответственностью «РТСтандарт», в лице генерального директора Маркова Дмитрия Евгеньевича, действующего на основании Устава, предлагает рассмотреть возможность поставки следующего оборудования:';
+    document.getElementById('thPriceCol').textContent = 'Цена за ед. руб., включая НДС 22%';
+    document.getElementById('thTotalCol').textContent = 'Сумма руб., включая НДС 22%';
+    document.getElementById('signTitleBlock').innerHTML = 'Генеральный директор<br>ООО «РТСтандарт»';
+    document.getElementById('signPersonName').textContent = 'Марков Д.Е.';
+    document.getElementById('lblTaxType').textContent = 'Налог на прибыль (25%):';
+    document.getElementById('lblVatType').textContent = 'НДС к доплате (22%):';
+    if (delTitle) delTitle.textContent = 'Доставка до клиента с НДС 22%, ₽';
+
+    if (stampImg) {
+      stampImg.src = 'stamp.png';
+      stampImg.style.display = 'block';
+    }
+  }
+
+  calculateMargin();
+  recalc();
+  updateDocumentTitle();
+  saveState();
+}
+
+function parseNum(val) {
+  if (val === null || val === undefined) return 0;
+  let clean = String(val).replace(/\s+/g, '').replace(',', '.');
+  clean = clean.replace(/[^0-9.]/g, '');
+  const parts = clean.split('.');
+  if (parts.length > 2) clean = parts[0] + '.' + parts.slice(1).join('');
+  return parseFloat(clean) || 0;
+}
+
+function fmt(n) {
+  return n.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function fmtInt(n) {
+  return n.toLocaleString('ru-RU', { maximumFractionDigits: 0 });
+}
+
+function calculateMargin() {
+  const isIp = document.getElementById('companySelect').value === 'ip';
+  const cVat = parseNum(document.getElementById('calcCostVat').value);
+  const targetVal = parseNum(document.getElementById('calcProfitTarget').value);
+  const days = parseInt(document.getElementById('calcFinDaysInput').value) || 0;
+  
+  const finCost = cVat * (0.28 / 365) * days;
+  document.getElementById('calcFinCostVal').textContent = `Стоимость денег: ${fmt(finCost)} ₽ (${days} дн.)`;
+
+  const activeDelSelect = isIp ? document.getElementById('deliverySelectIp') : document.getElementById('deliverySelectOoo');
+  const isPickup = activeDelSelect && activeDelSelect.value.toLowerCase().includes('самовывоз');
+  
+  const delInputEl = document.getElementById('calcDeliveryCost');
+  const pickupNoteEl = document.getElementById('calcDeliveryPickupNote');
+  if (delInputEl) delInputEl.disabled = isPickup;
+  if (pickupNoteEl) pickupNoteEl.style.display = isPickup ? 'block' : 'none';
+
+  const delCost = isPickup ? 0 : parseNum(delInputEl?.value);
+  const totalCostBase = cVat + finCost + delCost;
+
+  if (totalCostBase <= 0) {
+    document.getElementById('resCostNet').textContent = '0,00 ₽';
+    document.getElementById('resNetProfit').textContent = '0,00 ₽';
+    document.getElementById('resProfitTax').textContent = '0,00 ₽';
+    document.getElementById('resVatPayable').textContent = '0,00 ₽';
+    document.getElementById('resSaleVat').textContent = '0,00 ₽';
+    document.getElementById('resSaleVat').removeAttribute('data-val');
+    return;
+  }
+
+  let netProfit = currentMarginMode === 'rub' ? targetVal : (totalCostBase * targetVal / 100);
+  let saleVat = 0, profitTax = 0, vatPayable = 0, costNet = 0;
+
+  if (!isIp) {
+    costNet = totalCostBase / 1.22;
+    const vatIn = totalCostBase - costNet;
+    const ebt = netProfit / 0.75;
+    profitTax = ebt * 0.25;
+    const saleNet = costNet + ebt;
+    const vatOut = saleNet * 0.22;
+    vatPayable = vatOut - vatIn;
+    saleVat = saleNet * 1.22;
+  } else {
+    costNet = totalCostBase;
+    const taxFactor = 1 - (5 / 105) - 0.07;
+    saleVat = (costNet + netProfit) / taxFactor;
+    profitTax = saleVat * 0.07;
+    vatPayable = saleVat * 5 / 105;
+  }
+
+  document.getElementById('resCostNet').textContent = fmt(costNet) + ' ₽';
+  document.getElementById('resNetProfit').textContent = fmt(netProfit) + ' ₽';
+  document.getElementById('resProfitTax').textContent = fmt(profitTax) + ' ₽';
+  document.getElementById('resVatPayable').textContent = fmt(vatPayable) + ' ₽';
+  document.getElementById('resSaleVat').textContent = fmt(saleVat) + ' ₽';
+  document.getElementById('resSaleVat').setAttribute('data-val', saleVat.toFixed(2));
+}
+
+function copyCalcPrice() {
+  const val = document.getElementById('resSaleVat').getAttribute('data-val');
+  if (!val) {
+    alert('Сначала введите данные для расчета в калькулятор.');
+    return;
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(val)
+      .then(() => alert('Итоговая сумма скопирована в буфер!'))
+      .catch(() => fallbackCopyText(val));
+  } else {
+    fallbackCopyText(val);
+  }
+}
+
+function fallbackCopyText(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try {
+    document.execCommand('copy');
+    alert('Итоговая сумма скопирована в буфер!');
+  } catch (e) {
+    alert('Не удалось скопировать автоматически. Сумма: ' + text);
+  }
+  document.body.removeChild(ta);
+}
+
+function autoResizeTextarea(el) {
+  if (el && el.classList.contains('auto-grow')) {
+    el.style.height = 'auto';
+    el.style.height = el.scrollHeight + 'px';
+  }
+}
+
+function initAutoResize() {
+  document.querySelectorAll('textarea.auto-grow').forEach(el => {
+    autoResizeTextarea(el);
+    el.removeEventListener('input', onTextareaInput);
+    el.addEventListener('input', onTextareaInput);
+  });
+}
+
+function onTextareaInput() { autoResizeTextarea(this); }
