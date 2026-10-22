@@ -316,7 +316,7 @@
       padding-top: 6px !important;
     }
 
-    /* Шапка ИП */
+    /* Шапка ИП: выровнена влево */
     .head-ip-container {
       width: 100%;
       margin-bottom: 12px;
@@ -368,6 +368,7 @@
       padding: 0 2px;
     }
 
+    /* Для ИП: обычный нежирный шрифт */
     .kp-ip-wrapper {
       display: inline-flex;
       align-items: baseline;
@@ -433,8 +434,9 @@
     table.spec td.col-text-cell { 
       vertical-align: top; 
     }
+    /* Выравнивание по верхнему краю для ячеек №, Страна, Кол-во, Цена, Сумма */
     table.spec td.col-num-cell { 
-      vertical-align: middle; 
+      vertical-align: top; 
     }
     table.spec th { 
       background-color: #ACB9CA !important; 
@@ -561,7 +563,6 @@
       break-inside: avoid !important;
     }
 
-    /* Для ИП убираем лишний разрыв: надпись идет единым блоком с контактами */
     body.is-ip .sign-row {
       margin-top: 15px;
     }
@@ -592,7 +593,7 @@
       break-inside: avoid !important;
     }
     
-    /* Контакты ИП: без лишнего верхнего отступа, текст сразу под строкой должности */
+    /* Контакты ИП: сразу под должностью */
     .contacts-ip { 
       margin-top: 2px; 
       font-size: 10.5pt; 
@@ -951,7 +952,7 @@
           https://liscorp.ru/
         </div>
 
-        <!-- Контакты ИП: идут сразу же под надписью "Индивидуальный предприниматель" -->
+        <!-- Контакты ИП -->
         <div class="contacts-ip" id="contactsIp">
           Захаров Михаил Сергеевич<br>
           Телефон: +7 981 208-62-36<br>
