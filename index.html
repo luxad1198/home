@@ -1968,7 +1968,7 @@
     }
 
     // ==========================================
-    // ВЫГРУЗКА В WORD (.DOCX) С ЗАЩИТОЙ ОТ СПЕЦСИМВОЛОВ
+    // ВЫГРУЗКА В WORD (.DOCX) БЕЗ ЛИНИЙ И СЕТОК
     // ==========================================
     function cleanTextForXml(str) {
       if (str === null || str === undefined) return '';
@@ -2029,7 +2029,7 @@
     async function exportToWord() {
       const docxLib = window.docx;
       if (!docxLib || !docxLib.Document) {
-        alert('Библиотека Word не загрузилась (возможно, блокируется доступ к CDN). Попробуйте сохранить через кнопку PDF / Печать.');
+        alert('Библиотека Word не загрузилась. Попробуйте сохранить через кнопку PDF / Печать.');
         return;
       }
 
@@ -2039,7 +2039,7 @@
 
       const {
         Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
-        WidthType, AlignmentType, VerticalAlign, BorderStyle, ShadingType, ImageRun
+        WidthType, AlignmentType, VerticalAlign, BorderStyle, ShadingType, ImageRun, TabStopType
       } = docxLib;
 
       const isIp = document.getElementById('companySelect').value === 'ip';
@@ -2062,98 +2062,67 @@
         right: { style: BorderStyle.SINGLE, size: 4, color: "000000" }
       };
 
-      const strictlyNoBorder = {
-        top: { style: BorderStyle.NIL, size: 0, color: "FFFFFF" },
-        bottom: { style: BorderStyle.NIL, size: 0, color: "FFFFFF" },
-        left: { style: BorderStyle.NIL, size: 0, color: "FFFFFF" },
-        right: { style: BorderStyle.NIL, size: 0, color: "FFFFFF" }
-      };
-
       const docElements = [];
 
-      // 1. Шапка документа
+      // 1. Шапка документа БЕЗ ТАБЛИЦ (через табы), что гарантирует отсутствие полос на 100%
       if (!isIp) {
         const logoEl = document.getElementById('logoImgOoo');
         const logoBuffer = await getImageBufferFromElement(logoEl, 'logo.png');
-        const logoRuns = [];
+
+        // Строка 1: Логотип слева и название ООО справа
+        const row1Runs = [];
         if (logoBuffer) {
-          logoRuns.push(new ImageRun({
+          row1Runs.push(new ImageRun({
             data: logoBuffer,
             transformation: { width: 190, height: 64 }
           }));
         } else {
-          logoRuns.push(new TextRun({ text: "ООО \"РТСТАНДАРТ\"", bold: true, size: 24, font: "Times New Roman" }));
+          row1Runs.push(new TextRun({ text: "ООО \"РТСТАНДАРТ\"", bold: true, size: 24, font: "Times New Roman" }));
         }
 
-        const clientParagraphs = clientVal.trim() ? [
-          new Paragraph({
-            spacing: { before: 120, line: 240 },
-            children: [
-              new TextRun({ text: "Заказчику:", size: 22, font: "Times New Roman" }),
-              ...clientVal.split('\n').map(line => new TextRun({ text: line, break: 1, size: 22, font: "Times New Roman" }))
-            ]
-          })
-        ] : [];
+        row1Runs.push(
+          new TextRun({ text: "\tООО \"РТСТАНДАРТ\"", bold: true, size: 23, font: "Times New Roman" })
+        );
 
-        docElements.push(new Table({
-          width: { size: 100, type: WidthType.PERCENTAGE },
-          borders: {
-            top: { style: BorderStyle.NIL, size: 0, color: "FFFFFF" },
-            bottom: { style: BorderStyle.NIL, size: 0, color: "FFFFFF" },
-            left: { style: BorderStyle.NIL, size: 0, color: "FFFFFF" },
-            right: { style: BorderStyle.NIL, size: 0, color: "FFFFFF" },
-            insideHorizontal: { style: BorderStyle.NIL, size: 0, color: "FFFFFF" },
-            insideVertical: { style: BorderStyle.NIL, size: 0, color: "FFFFFF" }
-          },
-          rows: [
-            new TableRow({
-              children: [
-                new TableCell({
-                  width: { size: 50, type: WidthType.PERCENTAGE },
-                  borders: strictlyNoBorder,
-                  children: [new Paragraph({ children: logoRuns })]
-                }),
-                new TableCell({
-                  width: { size: 50, type: WidthType.PERCENTAGE },
-                  borders: strictlyNoBorder,
-                  children: [
-                    new Paragraph({
-                      spacing: { line: 240 },
-                      children: [
-                        new TextRun({ text: "ООО \"РТСТАНДАРТ\"", bold: true, size: 22, font: "Times New Roman" }),
-                        new TextRun({ text: "г. Санкт-Петербург, наб. Обводного канала, д. 23, лит. Г", break: 1, size: 21, font: "Times New Roman" }),
-                        new TextRun({ text: "ИНН 7842228552", break: 1, size: 21, font: "Times New Roman" }),
-                        new TextRun({ text: "+7 (812) 983-44-33", break: 1, size: 21, font: "Times New Roman" })
-                      ]
-                    })
-                  ]
-                })
-              ]
-            }),
-            new TableRow({
-              children: [
-                new TableCell({
-                  width: { size: 50, type: WidthType.PERCENTAGE },
-                  borders: strictlyNoBorder,
-                  children: [
-                    new Paragraph({
-                      spacing: { before: 120, line: 240 },
-                      children: [
-                        new TextRun({ text: `КП № ${fullNum}`, bold: true, size: 22, font: "Times New Roman" }),
-                        new TextRun({ text: `От ${dateVal}`, break: 1, size: 22, font: "Times New Roman" })
-                      ]
-                    })
-                  ]
-                }),
-                new TableCell({
-                  width: { size: 50, type: WidthType.PERCENTAGE },
-                  borders: strictlyNoBorder,
-                  children: clientParagraphs
-                })
-              ]
-            })
+        docElements.push(new Paragraph({
+          tabStops: [{ type: TabStopType.RIGHT, position: 9600 }],
+          spacing: { line: 240 },
+          children: row1Runs
+        }));
+
+        // Строки адреса и реквизитов (прижаты к правому краю)
+        docElements.push(new Paragraph({
+          alignment: AlignmentType.RIGHT,
+          spacing: { line: 240 },
+          children: [
+            new TextRun({ text: "г. Санкт-Петербург, наб. Обводного канала, д. 23, лит. Г", size: 21, font: "Times New Roman" }),
+            new TextRun({ text: "ИНН 7842228552", break: 1, size: 21, font: "Times New Roman" }),
+            new TextRun({ text: "+7 (812) 983-44-33", break: 1, size: 21, font: "Times New Roman" })
           ]
         }));
+
+        // Номер КП слева, Заказчик справа
+        const clientFirstLine = clientVal.trim() ? `Заказчику: ${clientVal.split('\n')[0]}` : "";
+        docElements.push(new Paragraph({
+          tabStops: [{ type: TabStopType.RIGHT, position: 9600 }],
+          spacing: { before: 140, line: 240 },
+          children: [
+            new TextRun({ text: `КП № ${fullNum}`, bold: true, size: 22, font: "Times New Roman" }),
+            ...(clientFirstLine ? [new TextRun({ text: `\t${clientFirstLine}`, size: 22, font: "Times New Roman" })] : [])
+          ]
+        }));
+
+        // Дата слева, продолжение заказчика справа
+        const clientOtherLines = clientVal.trim() ? clientVal.split('\n').slice(1).join(' ') : "";
+        docElements.push(new Paragraph({
+          tabStops: [{ type: TabStopType.RIGHT, position: 9600 }],
+          spacing: { line: 240 },
+          children: [
+            new TextRun({ text: `От ${dateVal}`, size: 22, font: "Times New Roman" }),
+            ...(clientOtherLines ? [new TextRun({ text: `\t${clientOtherLines}`, size: 22, font: "Times New Roman" })] : [])
+          ]
+        }));
+
       } else {
         // Шапка ИП
         docElements.push(new Paragraph({
@@ -2175,11 +2144,12 @@
 
         if (clientVal.trim()) {
           ipMetaChildren.push(
-            new TextRun({ text: `                                      Заказчику: ${clientVal.replace(/\n/g, ' ')}`, size: 22, font: "Times New Roman" })
+            new TextRun({ text: `\tЗаказчику: ${clientVal.replace(/\n/g, ' ')}`, size: 22, font: "Times New Roman" })
           );
         }
 
         docElements.push(new Paragraph({
+          tabStops: [{ type: TabStopType.RIGHT, position: 9600 }],
           spacing: { before: 120, after: 80, line: 240 },
           children: ipMetaChildren
         }));
@@ -2415,10 +2385,11 @@
       const signPerson = isIp ? "Захаров М.С." : "Марков Д.Е.";
 
       docElements.push(new Paragraph({
+        tabStops: [{ type: TabStopType.RIGHT, position: 9600 }],
         spacing: { before: 180, line: 240 },
         children: [
           new TextRun({ text: signTitle, size: 22, font: "Times New Roman" }),
-          new TextRun({ text: `                             _________________ / ${signPerson}`, size: 22, font: "Times New Roman" })
+          new TextRun({ text: `\t_________________ / ${signPerson}`, size: 22, font: "Times New Roman" })
         ]
       }));
 
