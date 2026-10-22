@@ -539,8 +539,8 @@
       border-collapse: collapse; 
       font-size: 10pt; 
       margin-bottom: 6px; 
-      page-break-inside: auto !important;
-      break-inside: auto !important;
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
     }
     table.cond td { 
       border: 1px solid #000; 
@@ -2029,7 +2029,7 @@
     async function exportToWord() {
       const docxLib = window.docx;
       if (!docxLib || !docxLib.Document) {
-        alert('Библиотека Word не загрузилась. Попробуйте сохранить через кнопку PDF / Печать.');
+        alert('Библиотека Word не загрузилась (возможно, блокируется доступ к CDN). Попробуйте сохранить через кнопку PDF / Печать.');
         return;
       }
 
@@ -2063,10 +2063,10 @@
       };
 
       const strictlyNoBorder = {
-        top: { style: BorderStyle.NONE, size: 0 },
-        bottom: { style: BorderStyle.NONE, size: 0 },
-        left: { style: BorderStyle.NONE, size: 0 },
-        right: { style: BorderStyle.NONE, size: 0 }
+        top: { style: BorderStyle.NIL, size: 0, color: "FFFFFF" },
+        bottom: { style: BorderStyle.NIL, size: 0, color: "FFFFFF" },
+        left: { style: BorderStyle.NIL, size: 0, color: "FFFFFF" },
+        right: { style: BorderStyle.NIL, size: 0, color: "FFFFFF" }
       };
 
       const docElements = [];
@@ -2098,12 +2098,12 @@
         docElements.push(new Table({
           width: { size: 100, type: WidthType.PERCENTAGE },
           borders: {
-            top: { style: BorderStyle.NONE, size: 0 },
-            bottom: { style: BorderStyle.NONE, size: 0 },
-            left: { style: BorderStyle.NONE, size: 0 },
-            right: { style: BorderStyle.NONE, size: 0 },
-            insideH: { style: BorderStyle.NONE, size: 0 },
-            insideV: { style: BorderStyle.NONE, size: 0 }
+            top: { style: BorderStyle.NIL, size: 0, color: "FFFFFF" },
+            bottom: { style: BorderStyle.NIL, size: 0, color: "FFFFFF" },
+            left: { style: BorderStyle.NIL, size: 0, color: "FFFFFF" },
+            right: { style: BorderStyle.NIL, size: 0, color: "FFFFFF" },
+            insideHorizontal: { style: BorderStyle.NIL, size: 0, color: "FFFFFF" },
+            insideVertical: { style: BorderStyle.NIL, size: 0, color: "FFFFFF" }
           },
           rows: [
             new TableRow({
