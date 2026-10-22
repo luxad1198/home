@@ -1707,7 +1707,9 @@
         top: { style: BorderStyle.NONE, size: 0, color: "auto" },
         bottom: { style: BorderStyle.NONE, size: 0, color: "auto" },
         left: { style: BorderStyle.NONE, size: 0, color: "auto" },
-        right: { style: BorderStyle.NONE, size: 0, color: "auto" }
+        right: { style: BorderStyle.NONE, size: 0, color: "auto" },
+        insideH: { style: BorderStyle.NONE, size: 0, color: "auto" },
+        insideV: { style: BorderStyle.NONE, size: 0, color: "auto" }
       };
 
       const docElements = [];
@@ -1807,7 +1809,9 @@
             top: { style: BorderStyle.SINGLE, size: 12, color: "000000" },
             bottom: { style: BorderStyle.NONE, size: 0, color: "auto" },
             left: { style: BorderStyle.NONE, size: 0, color: "auto" },
-            right: { style: BorderStyle.NONE, size: 0, color: "auto" }
+            right: { style: BorderStyle.NONE, size: 0, color: "auto" },
+            insideH: { style: BorderStyle.NONE, size: 0, color: "auto" },
+            insideV: { style: BorderStyle.NONE, size: 0, color: "auto" }
           },
           rows: [
             new TableRow({
@@ -2089,75 +2093,23 @@
         );
       }
 
-      // Формирование блока подписи и точной посадки печати
-      const rightCellChildren = [];
+      // Формирование блока подписи и печати (без полос и пустых страниц)
+      const rightCellRuns = [
+        new TextRun({ text: `_________________ / ${signPerson}`, size: 22, font: "Times New Roman" })
+      ];
 
       if (includeStamp && stampBuffer) {
-        // Таблица-наложение в Word: слева линия и подпись, справа печать с отрицательным подъемом
-        const stampTable = new Table({
-          width: { size: 100, type: WidthType.PERCENTAGE },
-          borders: noBorder,
-          rows: [
-            new TableRow({
-              children: [
-                new TableCell({
-                  width: { size: 55, type: WidthType.PERCENTAGE },
-                  borders: noBorder,
-                  verticalAlign: VerticalAlign.BOTTOM,
-                  children: [
-                    new Paragraph({
-                      alignment: AlignmentType.RIGHT,
-                      children: [
-                        new TextRun({ text: "_________________ /", size: 22, font: "Times New Roman" })
-                      ]
-                    })
-                  ]
-                }),
-                new TableCell({
-                  width: { size: 45, type: WidthType.PERCENTAGE },
-                  borders: noBorder,
-                  verticalAlign: VerticalAlign.BOTTOM,
-                  children: [
-                    new Paragraph({
-                      alignment: AlignmentType.LEFT,
-                      children: [
-                        new TextRun({ text: ` ${signPerson}`, size: 22, font: "Times New Roman" })
-                      ]
-                    })
-                  ]
-                })
-              ]
-            }),
-            new TableRow({
-              children: [
-                new TableCell({
-                  columnSpan: 2,
-                  borders: noBorder,
-                  children: [
-                    new Paragraph({
-                      alignment: AlignmentType.RIGHT,
-                      spacing: { before: -750 }, // Поднимаем печать точно на черту подписи
-                      children: [
-                        new ImageRun({
-                          data: stampBuffer,
-                          transformation: { width: 145, height: 75 }
-                        })
-                      ]
-                    })
-                  ]
-                })
-              ]
-            })
-          ]
-        });
-        rightCellChildren.push(stampTable);
-      } else {
-        // Без печати: просто линия и фамилия
-        rightCellChildren.push(new Paragraph({
-          alignment: AlignmentType.RIGHT,
-          spacing: { before: 60 },
-          children: [new TextRun({ text: `_________________ / ${signPerson}`, size: 22, font: "Times New Roman" })]
-        }));
+        rightCellRuns.push(
+          new ImageRun({
+            data: stampBuffer,
+            transformation: { width: 145, height: 75 },
+            floating: {
+              horizontalPosition: { offset: 1200000 },
+              verticalPosition: { offset: -350000 },
+              wrap: { type: docxLib.WrapType.NONE }
+            }
+          })
+        );
       }
 
       const signTable = new Table({
@@ -2167,23 +2119,23 @@
           new TableRow({
             children: [
               new TableCell({
-                width: { size: 52, type: WidthType.PERCENTAGE },
+                width: { size: 55, type: WidthType.PERCENTAGE },
                 borders: noBorder,
                 verticalAlign: VerticalAlign.TOP,
                 children: [new Paragraph({ spacing: { line: 240 }, children: leftSignRuns })]
               }),
               new TableCell({
-                width: { size: 48, type: WidthType.PERCENTAGE },
+                width: { size: 45, type: WidthType.PERCENTAGE },
                 borders: noBorder,
                 verticalAlign: VerticalAlign.TOP,
-                children: rightCellChildren
+                children: [new Paragraph({ alignment: AlignmentType.RIGHT, spacing: { line: 240 }, children: rightCellRuns })]
               })
             ]
           })
         ]
       });
 
-      docElements.push(new Paragraph({ spacing: { before: 140 } }));
+      docElements.push(new Paragraph({ spacing: { before: 100 } }));
       docElements.push(signTable);
 
       // Сборка документа
