@@ -563,7 +563,7 @@
       font-size: 10pt;
     }
 
-    /* Блок умного срока поставки (общий для ООО и ИП) */
+    /* Блок умного срока поставки */
     .delivery-builder-box {
       display: flex;
       gap: 6px;
@@ -608,8 +608,9 @@
     .ip-custom-cond-row {
       display: flex;
       align-items: baseline;
-      gap: 6px;
+      gap: 0;
       margin-top: 4px;
+      font-size: 11pt;
     }
     .ip-cond-lbl-input {
       font-family: inherit;
@@ -619,7 +620,10 @@
       border-bottom: 1px dashed #777;
       background: transparent;
       outline: none;
-      width: 150px;
+      padding: 0;
+      margin: 0;
+      min-width: 40px;
+      field-sizing: content;
     }
 
     /* Подписи и подвал */
@@ -981,7 +985,7 @@
       <b>ИТОГО: 0 (ноль) рублей 00 копеек</b>, <b>в том числе НДС 22% 0 (ноль) рублей 00 копеек</b>.
     </div>
 
-    <!-- Умный конструктор срока поставки (работает и для ООО, и для ИП) -->
+    <!-- Умный конструктор срока поставки (общий для ООО и ИП) -->
     <div class="delivery-builder-box no-print">
       <span style="font-size:8.5pt; color:#475569; font-weight:600;">⚡ Срок поставки цифрами:</span>
       <input type="text" class="delivery-input-short" id="deliveryDaysInput" placeholder="5-10" value="5-10" oninput="onDeliveryBuilderChange()">
@@ -1089,7 +1093,12 @@
     let currentMarginMode = 'rub';
     let currentFinMode = 'days';
 
-    // Надёжный перевод чисел в слова (с поддержкой женского рода для недель: "одна", "две")
+    // Константы значений по умолчанию для условий
+    const DEFAULT_DELIVERY_TIME_OOO = '5-10 (пять-десять) рабочих дней';
+    const DEFAULT_PAY_OOO = '100% постоплата';
+    const DEFAULT_DELIVERY_TYPE_OOO = 'Доставка товара до адреса заказчика включена';
+    const DEFAULT_WARRANTY_OOO = '12 месяцев с возможностью расширения до 5 лет. Выезд инженера в рамках гарантийного ремонта по адресу Заказчика – опционально. Обслуживание On-site (на месте) / Keep Your Drive (KYD) ремонт с сохранением жестких дисков у клиента – опционально.';
+
     function parseNumberToWord(numStr, isFem = false) {
       const n = parseInt(numStr, 10);
       if (isNaN(n) || n < 0) return numStr;
@@ -1153,11 +1162,10 @@
       saveState();
     }
 
-    // Добавление дополнительных условий для активного юрлица
     function addCondRowForActiveCompany() {
       const isIp = document.getElementById('companySelect').value === 'ip';
       if (isIp) {
-        addCondRowIp('Гарантия', '12 месяцев');
+        addCondRowIp('Документы', 'УПД, Счет');
       } else {
         addCondRowOoo('Дополнительно', '');
       }
@@ -1182,16 +1190,24 @@
       saveState();
     }
 
-    function addCondRowIp(title = 'Гарантия', val = '') {
+    function adjustInputWidth(input) {
+      if (!input) return;
+      const length = (input.value || '').length || 1;
+      input.style.width = Math.max(30, length * 8.5 + 4) + 'px';
+    }
+
+    function addCondRowIp(title = 'Документы', val = 'УПД, Счет') {
       const container = document.getElementById('condIpCustomList');
       const div = document.createElement('div');
       div.className = 'ip-custom-cond-row';
       div.innerHTML = `
-        <input type="text" class="ip-cond-lbl-input" value="${escapeHtml(title)}" placeholder="Условие" oninput="saveState()"><b>:</b>
-        <input type="text" class="meta-input ip-cond-val-input" value="${escapeHtml(val)}" placeholder="значение" style="flex:1;" oninput="saveState()">
+        <b><input type="text" class="ip-cond-lbl-input" value="${escapeHtml(title)}" oninput="adjustInputWidth(this); saveState();">:</b>&nbsp;
+        <input type="text" class="meta-input ip-cond-val-input" value="${escapeHtml(val)}" placeholder="значение" style="width: 320px;" oninput="saveState()">&nbsp;
         <button type="button" class="btn-del no-print" onclick="deleteIpCondRow(this)">✕</button>
       `;
       container.appendChild(div);
+      const inp = div.querySelector('.ip-cond-lbl-input');
+      adjustInputWidth(inp);
       saveState();
     }
 
@@ -1614,7 +1630,6 @@
       saveState();
     }
 
-    // Безопасное разбиение суммы на рубли и копейки без ошибки 100 копеек
     function splitRubKop(amount) {
       const totalKop = Math.round((amount + Number.EPSILON) * 100);
       const rub = Math.floor(totalKop / 100);
@@ -1667,7 +1682,6 @@
       return forms[2];
     }
 
-    // Перевод числа в текст с поддержкой триллионов (1e12) и женского рода
     function num2words(n, baseFem = false) {
       n = Math.floor(Math.abs(Number(n) || 0));
       if (n === 0) return 'ноль';
@@ -1745,10 +1759,10 @@
 
       document.getElementById('deliveryDaysInput').value = '5-10';
       document.getElementById('deliveryUnitSelect').value = 'work_days';
-      document.getElementById('condOooDeliveryTime').value = '5-10 (пять-десять) рабочих дней';
-      document.getElementById('condOooPay').value = '100% постоплата';
-      document.getElementById('deliverySelectOoo').value = 'Доставка товара до адреса заказчика включена';
-      document.getElementById('condOooWarranty').value = '12 месяцев с возможностью расширения до 5 лет. Выезд инженера в рамках гарантийного ремонта по адресу Заказчика – опционально. Обслуживание On-site (на месте) / Keep Your Drive (KYD) ремонт с сохранением жестких дисков у клиента – опционально.';
+      document.getElementById('condOooDeliveryTime').value = DEFAULT_DELIVERY_TIME_OOO;
+      document.getElementById('condOooPay').value = DEFAULT_PAY_OOO;
+      document.getElementById('deliverySelectOoo').value = DEFAULT_DELIVERY_TYPE_OOO;
+      document.getElementById('condOooWarranty').value = DEFAULT_WARRANTY_OOO;
 
       document.querySelectorAll('#condOooTbody tr.custom-cond-row').forEach(tr => tr.remove());
       document.getElementById('condIpCustomList').innerHTML = '';
@@ -1859,7 +1873,14 @@
     function loadState() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return false;
+        if (!raw) {
+          // Инициализация дефолтов если хранилище абсолютно пустое
+          document.getElementById('condOooDeliveryTime').value = DEFAULT_DELIVERY_TIME_OOO;
+          document.getElementById('condOooPay').value = DEFAULT_PAY_OOO;
+          document.getElementById('deliverySelectOoo').value = DEFAULT_DELIVERY_TYPE_OOO;
+          document.getElementById('condOooWarranty').value = DEFAULT_WARRANTY_OOO;
+          return false;
+        }
         const state = JSON.parse(raw);
 
         if (state.company) {
@@ -1872,11 +1893,17 @@
         if (state.clientOoo) document.getElementById('clientBox').value = state.clientOoo;
         if (state.clientIp) document.getElementById('clientBoxIp').value = state.clientIp;
 
-        if (state.condOoo) {
-          document.getElementById('condOooDeliveryTime').value = state.condOoo[0] || '';
-          document.getElementById('condOooPay').value = state.condOoo[1] || '';
-          document.getElementById('deliverySelectOoo').value = state.condOoo[2] || 'Доставка товара до адреса заказчика включена';
-          document.getElementById('condOooWarranty').value = state.condOoo[3] || '';
+        // Строгая защита от пустых условий: если значение пустая строка, подставляется дефолт
+        if (state.condOoo && Array.isArray(state.condOoo)) {
+          document.getElementById('condOooDeliveryTime').value = (state.condOoo[0] && state.condOoo[0].trim()) ? state.condOoo[0] : DEFAULT_DELIVERY_TIME_OOO;
+          document.getElementById('condOooPay').value = (state.condOoo[1] && state.condOoo[1].trim()) ? state.condOoo[1] : DEFAULT_PAY_OOO;
+          document.getElementById('deliverySelectOoo').value = (state.condOoo[2] && state.condOoo[2].trim()) ? state.condOoo[2] : DEFAULT_DELIVERY_TYPE_OOO;
+          document.getElementById('condOooWarranty').value = (state.condOoo[3] && state.condOoo[3].trim()) ? state.condOoo[3] : DEFAULT_WARRANTY_OOO;
+        } else {
+          document.getElementById('condOooDeliveryTime').value = DEFAULT_DELIVERY_TIME_OOO;
+          document.getElementById('condOooPay').value = DEFAULT_PAY_OOO;
+          document.getElementById('deliverySelectOoo').value = DEFAULT_DELIVERY_TYPE_OOO;
+          document.getElementById('condOooWarranty').value = DEFAULT_WARRANTY_OOO;
         }
 
         if (state.deliveryDaysInput) document.getElementById('deliveryDaysInput').value = state.deliveryDaysInput;
@@ -1892,9 +1919,9 @@
           state.customCondsIp.forEach(c => addCondRowIp(c.lbl, c.val));
         }
 
-        if (state.condIp) {
-          document.getElementById('ipDeliveryTime').value = state.condIp[0] || '1-2 недели';
-          document.getElementById('deliverySelectIp').value = state.condIp[1] || 'Доставка включена в стоимость';
+        if (state.condIp && Array.isArray(state.condIp)) {
+          document.getElementById('ipDeliveryTime').value = (state.condIp[0] && state.condIp[0].trim()) ? state.condIp[0] : '1-2 недели';
+          document.getElementById('deliverySelectIp').value = (state.condIp[1] && state.condIp[1].trim()) ? state.condIp[1] : 'Доставка включена в стоимость';
         }
 
         if (state.calcCostVat) document.getElementById('calcCostVat').value = state.calcCostVat;
