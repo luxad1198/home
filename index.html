@@ -539,8 +539,8 @@
       border-collapse: collapse; 
       font-size: 10pt; 
       margin-bottom: 6px; 
-      page-break-inside: avoid !important;
-      break-inside: avoid !important;
+      page-break-inside: auto !important;
+      break-inside: auto !important;
     }
     table.cond td { 
       border: 1px solid #000; 
@@ -1093,7 +1093,6 @@
     let currentMarginMode = 'rub';
     let currentFinMode = 'days';
 
-    // Константы значений по умолчанию для условий
     const DEFAULT_DELIVERY_TIME_OOO = '5-10 (пять-десять) рабочих дней';
     const DEFAULT_PAY_OOO = '100% постоплата';
     const DEFAULT_DELIVERY_TYPE_OOO = 'Доставка товара до адреса заказчика включена';
@@ -1372,7 +1371,6 @@
       const finCost = cVat * (0.28 / 365) * days;
       document.getElementById('calcFinCostVal').textContent = `Стоимость денег: ${fmt(finCost)} ₽ (${days} дн.)`;
 
-      // Проверка условия доставки (включена или самовывоз)
       const activeDelSelect = isIp ? document.getElementById('deliverySelectIp') : document.getElementById('deliverySelectOoo');
       const isPickup = activeDelSelect && activeDelSelect.value.toLowerCase().includes('самовывоз');
       
@@ -1471,7 +1469,6 @@
     function onTextareaInput() { autoResizeTextarea(this); }
 
     function prepareForPrint() {
-      // Синхронизация зеркал для таблицы товаров
       document.querySelectorAll('#tableBody tr').forEach(row => {
         const textCells = row.querySelectorAll('td.col-text-cell');
         textCells.forEach(cell => {
@@ -1493,7 +1490,6 @@
         }
       });
 
-      // Синхронизация зеркал для таблицы условий ООО
       document.querySelectorAll('#condOooTbody tr').forEach(row => {
         const ta = row.querySelector('textarea.auto-grow');
         const mirror = row.querySelector('.print-text-mirror');
@@ -2033,7 +2029,7 @@
     async function exportToWord() {
       const docxLib = window.docx;
       if (!docxLib || !docxLib.Document) {
-        alert('Библиотека Word не загрузилась (возможно, блокируется доступ к CDN). Попробуйте сохранить через кнопку PDF / Печать.');
+        alert('Библиотека Word не загрузилась. Попробуйте сохранить через кнопку PDF / Печать.');
         return;
       }
 
@@ -2067,10 +2063,10 @@
       };
 
       const strictlyNoBorder = {
-        top: { style: BorderStyle.NONE, size: 0, color: "auto" },
-        bottom: { style: BorderStyle.NONE, size: 0, color: "auto" },
-        left: { style: BorderStyle.NONE, size: 0, color: "auto" },
-        right: { style: BorderStyle.NONE, size: 0, color: "auto" }
+        top: { style: BorderStyle.NONE, size: 0 },
+        bottom: { style: BorderStyle.NONE, size: 0 },
+        left: { style: BorderStyle.NONE, size: 0 },
+        right: { style: BorderStyle.NONE, size: 0 }
       };
 
       const docElements = [];
@@ -2102,12 +2098,12 @@
         docElements.push(new Table({
           width: { size: 100, type: WidthType.PERCENTAGE },
           borders: {
-            top: { style: BorderStyle.NONE, size: 0, color: "auto" },
-            bottom: { style: BorderStyle.NONE, size: 0, color: "auto" },
-            left: { style: BorderStyle.NONE, size: 0, color: "auto" },
-            right: { style: BorderStyle.NONE, size: 0, color: "auto" },
-            insideH: { style: BorderStyle.NONE, size: 0, color: "auto" },
-            insideV: { style: BorderStyle.NONE, size: 0, color: "auto" }
+            top: { style: BorderStyle.NONE, size: 0 },
+            bottom: { style: BorderStyle.NONE, size: 0 },
+            left: { style: BorderStyle.NONE, size: 0 },
+            right: { style: BorderStyle.NONE, size: 0 },
+            insideH: { style: BorderStyle.NONE, size: 0 },
+            insideV: { style: BorderStyle.NONE, size: 0 }
           },
           rows: [
             new TableRow({
