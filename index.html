@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>КП — ООО «РТСтандарт»</title>
-  <!-- Стабильные UMD-библиотеки для Word (.docx) -->
+  <!-- Стабильные библиотеки для Word (.docx) -->
   <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
   <style>
@@ -574,7 +574,7 @@
       margin-top: 15px;
     }
     
-    /* Печать ООО */
+    /* Печать ООО на экране и печати браузера */
     .stamp-box { 
       position: absolute; 
       top: -38px; 
@@ -1669,7 +1669,7 @@
     async function exportToWord(includeStamp = true) {
       const docxLib = window.docx;
       if (!docxLib || !docxLib.Document) {
-        alert('Библиотека Word не смогла загрузиться с CDN. Пожалуйста, обновите страницу.');
+        alert('Библиотека Word ещё не загрузилась. Пожалуйста, подождите 2-3 секунды или обновите страницу.');
         return;
       }
 
@@ -1742,10 +1742,12 @@
                   borders: noBorder,
                   children: [
                     new Paragraph({
-                      spacing: { line: 260 },
+                      spacing: { line: 240 },
                       children: [
-                        new TextRun({ text: "ООО \"РТСТАНДАРТ\"", bold: true, size: 23, font: "Times New Roman" }),
-                        new TextRun({ text: "\nг. Санкт-Петербург, наб. Обводного канала, д. 23, лит. Г\nИНН 7842228552\n+7 (812) 983-44-33", size: 22, font: "Times New Roman" })
+                        new TextRun({ text: "ООО \"РТСТАНДАРТ\"", bold: true, size: 22, font: "Times New Roman" }),
+                        new TextRun({ text: "г. Санкт-Петербург, наб. Обводного канала, д. 23, лит. Г", break: 1, size: 21, font: "Times New Roman" }),
+                        new TextRun({ text: "ИНН 7842228552", break: 1, size: 21, font: "Times New Roman" }),
+                        new TextRun({ text: "+7 (812) 983-44-33", break: 1, size: 21, font: "Times New Roman" })
                       ]
                     })
                   ]
@@ -1759,10 +1761,10 @@
                   borders: noBorder,
                   children: [
                     new Paragraph({
-                      spacing: { before: 140, line: 260 },
+                      spacing: { before: 120, line: 240 },
                       children: [
-                        new TextRun({ text: `КП № ${fullNum}\n`, bold: true, size: 22, font: "Times New Roman" }),
-                        new TextRun({ text: `От ${dateVal}`, size: 22, font: "Times New Roman" })
+                        new TextRun({ text: `КП № ${fullNum}`, bold: true, size: 22, font: "Times New Roman" }),
+                        new TextRun({ text: `От ${dateVal}`, break: 1, size: 22, font: "Times New Roman" })
                       ]
                     })
                   ]
@@ -1772,10 +1774,10 @@
                   borders: noBorder,
                   children: clientVal.trim() ? [
                     new Paragraph({
-                      spacing: { before: 140, line: 260 },
+                      spacing: { before: 120, line: 240 },
                       children: [
-                        new TextRun({ text: "Заказчику:\n", size: 22, font: "Times New Roman" }),
-                        new TextRun({ text: clientVal, size: 22, font: "Times New Roman" })
+                        new TextRun({ text: "Заказчику:", size: 22, font: "Times New Roman" }),
+                        ...clientVal.split('\n').map(line => new TextRun({ text: line, break: 1, size: 22, font: "Times New Roman" }))
                       ]
                     })
                   ] : []
@@ -1788,15 +1790,41 @@
       } else {
         // Шапка ИП
         docElements.push(new Paragraph({
+          spacing: { line: 240, after: 80 },
           children: [
-            new TextRun({ text: "Индивидуальный предприниматель Захаров Михаил Сергеевич\n", bold: true, size: 22, font: "Times New Roman" }),
-            new TextRun({ text: "ОГРНИП: 325110000002538", bold: true, size: 22, font: "Times New Roman" }),
+            new TextRun({ text: "Индивидуальный предприниматель Захаров Михаил Сергеевич", bold: true, size: 22, font: "Times New Roman" }),
+            new TextRun({ text: "ОГРНИП: 325110000002538", bold: true, break: 1, size: 22, font: "Times New Roman" }),
             new TextRun({ text: " / ", size: 22, font: "Times New Roman" }),
-            new TextRun({ text: "ИНН: 110214010407\n", bold: true, size: 22, font: "Times New Roman" }),
-            new TextRun({ text: "Тел.: +7 (981) 208-62-36\ne-mail: m.zakharov0811@gmail.com", size: 22, font: "Times New Roman" })
-          ],
-          border: { bottom: { style: BorderStyle.SINGLE, size: 12, color: "000000", space: 4 } }
+            new TextRun({ text: "ИНН: 110214010407", bold: true, size: 22, font: "Times New Roman" }),
+            new TextRun({ text: "Тел.: +7 (981) 208-62-36", break: 1, size: 22, font: "Times New Roman" }),
+            new TextRun({ text: "e-mail: m.zakharov0811@gmail.com", break: 1, size: 22, font: "Times New Roman" })
+          ]
         }));
+
+        docElements.push(new Table({
+          width: { size: 100, type: WidthType.PERCENTAGE },
+          borders: {
+            top: { style: BorderStyle.SINGLE, size: 12, color: "000000" },
+            bottom: { style: BorderStyle.NONE, size: 0, color: "auto" },
+            left: { style: BorderStyle.NONE, size: 0, color: "auto" },
+            right: { style: BorderStyle.NONE, size: 0, color: "auto" }
+          },
+          rows: [
+            new TableRow({
+              children: [
+                new TableCell({
+                  borders: noBorder,
+                  children: [new Paragraph({ spacing: { before: 20 } })]
+                })
+              ]
+            })
+          ]
+        }));
+
+        const ipClientRuns = clientVal.trim() ? [
+          new TextRun({ text: "Заказчику:", size: 22, font: "Times New Roman" }),
+          ...clientVal.split('\n').map(line => new TextRun({ text: line, break: 1, size: 22, font: "Times New Roman" }))
+        ] : [];
 
         const ipMetaTable = new Table({
           width: { size: 100, type: WidthType.PERCENTAGE },
@@ -1809,7 +1837,7 @@
                   borders: noBorder,
                   children: [
                     new Paragraph({
-                      spacing: { before: 120, line: 260 },
+                      spacing: { before: 80, line: 240 },
                       children: [
                         new TextRun({ text: `Исх. № ${fullNum}        От ${dateVal}`, size: 22, font: "Times New Roman" })
                       ]
@@ -1819,15 +1847,12 @@
                 new TableCell({
                   width: { size: 50, type: WidthType.PERCENTAGE },
                   borders: noBorder,
-                  children: clientVal.trim() ? [
+                  children: [
                     new Paragraph({
-                      spacing: { before: 120, line: 260 },
-                      children: [
-                        new TextRun({ text: "Заказчику:\n", size: 22, font: "Times New Roman" }),
-                        new TextRun({ text: clientVal, size: 22, font: "Times New Roman" })
-                      ]
+                      spacing: { before: 80, line: 240 },
+                      children: ipClientRuns
                     })
-                  ] : []
+                  ]
                 })
               ]
             })
@@ -1839,7 +1864,7 @@
       // 2. Заголовок и вводный текст
       docElements.push(new Paragraph({
         alignment: AlignmentType.CENTER,
-        spacing: { before: 200, after: 120 },
+        spacing: { before: 220, after: 120 },
         children: [new TextRun({ text: "КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ", bold: true, size: 24, font: "Times New Roman" })]
       }));
 
@@ -1905,16 +1930,29 @@
         const price = tr.querySelector('.col-price')?.value || '0,00';
         const total = tr.querySelector('.col-total')?.textContent || '0,00';
 
-        const makeDataCell = (content, align = AlignmentType.LEFT, idx = 0) => new TableCell({
-          width: { size: colWidths[idx].dxa, type: WidthType.DXA },
-          borders: tableBorders,
-          verticalAlign: VerticalAlign.TOP,
-          children: [new Paragraph({
-            alignment: align,
-            spacing: { line: 230 },
-            children: [new TextRun({ text: String(content), size: 19, font: "Times New Roman" })]
-          })]
-        });
+        const makeDataCell = (content, align = AlignmentType.LEFT, idx = 0) => {
+          const lines = String(content).split('\n');
+          const runs = [];
+          lines.forEach((line, lineIdx) => {
+            runs.push(new TextRun({
+              text: line,
+              break: lineIdx > 0 ? 1 : 0,
+              size: 19,
+              font: "Times New Roman"
+            }));
+          });
+
+          return new TableCell({
+            width: { size: colWidths[idx].dxa, type: WidthType.DXA },
+            borders: tableBorders,
+            verticalAlign: VerticalAlign.TOP,
+            children: [new Paragraph({
+              alignment: align,
+              spacing: { line: 230 },
+              children: runs
+            })]
+          });
+        };
 
         tableRows.push(new TableRow({
           cantSplit: true,
@@ -1966,12 +2004,11 @@
       // 4. Сумма прописью
       const textTotalBlock = document.getElementById('textTotalBlock')?.innerText || '';
       docElements.push(new Paragraph({
-        spacing: { before: 140, after: 180, line: 260 },
+        spacing: { before: 140, after: 160, line: 260 },
         children: [new TextRun({ text: textTotalBlock, bold: true, size: 22, font: "Times New Roman" })]
       }));
 
       // 5. Условия сделки
-      const condRows = [];
       if (!isIp) {
         const condFields = [
           { lbl: "Срок поставки", val: document.getElementById('condOooDeliveryTime')?.value || '' },
@@ -1979,26 +2016,24 @@
           { lbl: "Доставка", val: document.getElementById('deliverySelectOoo')?.value || '' },
           { lbl: "Гарантия", val: document.getElementById('condOooWarranty')?.value || '' }
         ];
-        condFields.forEach(item => {
-          condRows.push(new TableRow({
-            cantSplit: true,
-            children: [
-              new TableCell({
-                width: { size: 2200, type: WidthType.DXA },
-                borders: tableBorders,
-                shading: { fill: "ACB9CA", type: ShadingType.CLEAR },
-                verticalAlign: VerticalAlign.CENTER,
-                children: [new Paragraph({ children: [new TextRun({ text: item.lbl, bold: true, size: 20, font: "Times New Roman" })] })]
-              }),
-              new TableCell({
-                width: { size: 7400, type: WidthType.DXA },
-                borders: tableBorders,
-                verticalAlign: VerticalAlign.CENTER,
-                children: [new Paragraph({ spacing: { line: 240 }, children: [new TextRun({ text: item.val, size: 20, font: "Times New Roman" })] })]
-              })
-            ]
-          }));
-        });
+        const condRows = condFields.map(item => new TableRow({
+          cantSplit: true,
+          children: [
+            new TableCell({
+              width: { size: 2200, type: WidthType.DXA },
+              borders: tableBorders,
+              shading: { fill: "ACB9CA", type: ShadingType.CLEAR },
+              verticalAlign: VerticalAlign.CENTER,
+              children: [new Paragraph({ children: [new TextRun({ text: item.lbl, bold: true, size: 20, font: "Times New Roman" })] })]
+            }),
+            new TableCell({
+              width: { size: 7400, type: WidthType.DXA },
+              borders: tableBorders,
+              verticalAlign: VerticalAlign.CENTER,
+              children: [new Paragraph({ spacing: { line: 240 }, children: [new TextRun({ text: item.val, size: 20, font: "Times New Roman" })] })]
+            })
+          ]
+        }));
         docElements.push(new Table({
           width: { size: 100, type: WidthType.PERCENTAGE },
           borders: tableBorders,
@@ -2008,14 +2043,14 @@
         const ipTime = document.getElementById('ipDeliveryTime')?.value || '';
         const ipDel = document.getElementById('deliverySelectIp')?.value || '';
         docElements.push(new Paragraph({
-          spacing: { after: 60, line: 260 },
+          spacing: { after: 50, line: 240 },
           children: [
             new TextRun({ text: "Срок поставки: ", bold: true, size: 22, font: "Times New Roman" }),
             new TextRun({ text: ipTime, size: 22, font: "Times New Roman" })
           ]
         }));
         docElements.push(new Paragraph({
-          spacing: { after: 180, line: 260 },
+          spacing: { after: 140, line: 240 },
           children: [
             new TextRun({ text: "Доставка: ", bold: true, size: 22, font: "Times New Roman" }),
             new TextRun({ text: ipDel, size: 22, font: "Times New Roman" })
@@ -2029,52 +2064,99 @@
       const stampEl = document.getElementById('stampImg');
       const stampFile = isIp ? 'stamp-ip.png' : 'stamp.png';
 
-      let stampImageRun = null;
+      let stampBuffer = null;
       if (includeStamp) {
-        const stampBuffer = await getImageBufferFromElement(stampEl, stampFile);
-        if (stampBuffer) {
-          stampImageRun = new ImageRun({
-            data: stampBuffer,
-            transformation: { width: 140, height: 75 }
-          });
-        }
+        stampBuffer = await getImageBufferFromElement(stampEl, stampFile);
       }
 
-      const leftSignChildren = [
-        new Paragraph({
-          spacing: { line: 240 },
-          children: [new TextRun({ text: signTitle, size: 22, font: "Times New Roman" })]
-        })
-      ];
+      const leftSignRuns = [new TextRun({ text: signTitle, size: 22, font: "Times New Roman" })];
 
       if (!isIp) {
-        leftSignChildren.push(new Paragraph({
-          spacing: { before: 140, line: 240 },
-          children: [
-            new TextRun({ text: "Исп.\nКоммерческий департамент\nООО «РТСтандарт»\nE-mail: info@liscorp.ru\n+7 (981) 040-10-70\n+7 (812) 983-44-33\nhttps://liscorp.ru/", size: 20, font: "Times New Roman" })
-          ]
-        }));
+        leftSignRuns.push(
+          new TextRun({ text: "Исп.", break: 2, size: 20, font: "Times New Roman" }),
+          new TextRun({ text: "Коммерческий департамент", break: 1, size: 20, font: "Times New Roman" }),
+          new TextRun({ text: "ООО «РТСтандарт»", break: 1, size: 20, font: "Times New Roman" }),
+          new TextRun({ text: "E-mail: info@liscorp.ru", break: 1, size: 20, font: "Times New Roman" }),
+          new TextRun({ text: "+7 (981) 040-10-70", break: 1, size: 20, font: "Times New Roman" }),
+          new TextRun({ text: "+7 (812) 983-44-33", break: 1, size: 20, font: "Times New Roman" }),
+          new TextRun({ text: "https://liscorp.ru/", break: 1, size: 20, font: "Times New Roman" })
+        );
       } else {
-        leftSignChildren.push(new Paragraph({
-          spacing: { before: 40, line: 240 },
-          children: [
-            new TextRun({ text: "Захаров Михаил Сергеевич\nТелефон: +7 981 208-62-36\nEmail: m.zakharov0811@gmail.com", size: 21, font: "Times New Roman" })
-          ]
-        }));
+        leftSignRuns.push(
+          new TextRun({ text: "Захаров Михаил Сергеевич", break: 1, size: 21, font: "Times New Roman" }),
+          new TextRun({ text: "Телефон: +7 981 208-62-36", break: 1, size: 21, font: "Times New Roman" }),
+          new TextRun({ text: "Email: m.zakharov0811@gmail.com", break: 1, size: 21, font: "Times New Roman" })
+        );
       }
 
-      const rightSignChildren = [
-        new Paragraph({
-          alignment: AlignmentType.RIGHT,
-          children: [new TextRun({ text: `_________________ / ${signPerson}`, size: 22, font: "Times New Roman" })]
-        })
-      ];
+      // Формирование блока подписи и точной посадки печати
+      const rightCellChildren = [];
 
-      if (stampImageRun) {
-        rightSignChildren.push(new Paragraph({
+      if (includeStamp && stampBuffer) {
+        // Таблица-наложение в Word: слева линия и подпись, справа печать с отрицательным подъемом
+        const stampTable = new Table({
+          width: { size: 100, type: WidthType.PERCENTAGE },
+          borders: noBorder,
+          rows: [
+            new TableRow({
+              children: [
+                new TableCell({
+                  width: { size: 55, type: WidthType.PERCENTAGE },
+                  borders: noBorder,
+                  verticalAlign: VerticalAlign.BOTTOM,
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.RIGHT,
+                      children: [
+                        new TextRun({ text: "_________________ /", size: 22, font: "Times New Roman" })
+                      ]
+                    })
+                  ]
+                }),
+                new TableCell({
+                  width: { size: 45, type: WidthType.PERCENTAGE },
+                  borders: noBorder,
+                  verticalAlign: VerticalAlign.BOTTOM,
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.LEFT,
+                      children: [
+                        new TextRun({ text: ` ${signPerson}`, size: 22, font: "Times New Roman" })
+                      ]
+                    })
+                  ]
+                })
+              ]
+            }),
+            new TableRow({
+              children: [
+                new TableCell({
+                  columnSpan: 2,
+                  borders: noBorder,
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.RIGHT,
+                      spacing: { before: -750 }, // Поднимаем печать точно на черту подписи
+                      children: [
+                        new ImageRun({
+                          data: stampBuffer,
+                          transformation: { width: 145, height: 75 }
+                        })
+                      ]
+                    })
+                  ]
+                })
+              ]
+            })
+          ]
+        });
+        rightCellChildren.push(stampTable);
+      } else {
+        // Без печати: просто линия и фамилия
+        rightCellChildren.push(new Paragraph({
           alignment: AlignmentType.RIGHT,
           spacing: { before: 60 },
-          children: [stampImageRun]
+          children: [new TextRun({ text: `_________________ / ${signPerson}`, size: 22, font: "Times New Roman" })]
         }));
       }
 
@@ -2085,16 +2167,16 @@
           new TableRow({
             children: [
               new TableCell({
-                width: { size: 55, type: WidthType.PERCENTAGE },
+                width: { size: 52, type: WidthType.PERCENTAGE },
                 borders: noBorder,
                 verticalAlign: VerticalAlign.TOP,
-                children: leftSignChildren
+                children: [new Paragraph({ spacing: { line: 240 }, children: leftSignRuns })]
               }),
               new TableCell({
-                width: { size: 45, type: WidthType.PERCENTAGE },
+                width: { size: 48, type: WidthType.PERCENTAGE },
                 borders: noBorder,
                 verticalAlign: VerticalAlign.TOP,
-                children: rightSignChildren
+                children: rightCellChildren
               })
             ]
           })
@@ -2104,7 +2186,7 @@
       docElements.push(new Paragraph({ spacing: { before: 140 } }));
       docElements.push(signTable);
 
-      // Сборка и сохранение документа
+      // Сборка документа
       const wordDoc = new Document({
         sections: [{
           properties: {
