@@ -1,1 +1,825 @@
+{
+box-sizing: border-box;
+font-family: 'Times New Roman', Times, serif;
+-webkit-print-color-adjust: exact !important;
+print-color-adjust: exact !important;
+color-adjust: exact !important;
+}
 
+body {
+background: #52525b;
+margin: 0;
+padding: 20px 10px 40px;
+color: #000;
+min-height: 100vh;
+position: relative;
+}
+
+/* Боковые фоновые колонки */
+.bg-sidebar {
+position: fixed;
+top: 15px;
+bottom: 15px;
+width: calc((100vw - 210mm) / 2 - 25px);
+display: flex;
+flex-direction: column;
+justify-content: space-between;
+gap: 12px;
+z-index: 1;
+pointer-events: none;
+transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.bg-left { left: 12px; }
+.bg-right { right: 12px; }
+
+.bg-sidebar img {
+width: 100%;
+flex: 1 1 0;
+min-height: 0;
+object-fit: cover;
+object-position: center;
+border-radius: 8px;
+box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+border: 1px solid rgba(255, 255, 255, 0.15);
+background: #27272a;
+}
+
+body.hide-bg-sidebar .bg-sidebar {
+opacity: 0 !important;
+pointer-events: none !important;
+transform: scale(0.96);
+}
+
+/* Верхняя панель управления */
+.panel {
+width: 210mm;
+margin: 0 auto 12px;
+background: #fff;
+padding: 10px 16px;
+border-radius: 6px;
+display: flex;
+justify-content: space-between;
+align-items: center;
+font-family: Arial, sans-serif;
+position: relative;
+z-index: 20;
+box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+.panel-left {
+display: flex;
+gap: 6px;
+align-items: center;
+flex-wrap: wrap;
+}
+
+.panel-right {
+display: flex;
+gap: 6px;
+align-items: center;
+}
+
+.btn {
+padding: 7px 12px;
+border-radius: 4px;
+cursor: pointer;
+font-weight: 600;
+font-size: 12.5px;
+font-family: Arial, sans-serif;
+border: 1px solid #1d4ed8;
+background: #1d4ed8;
+color: #fff;
+transition: opacity 0.15s, background-color 0.15s;
+}
+
+.btn:hover { opacity: 0.9; }
+.btn-add { background: #f3f4f6; color: #111; border-color: #cbd5e1; }
+.btn-toggle-bg { background: #f8fafc; color: #334155; border-color: #cbd5e1; }
+.btn-clear { background: #fff1f2; color: #e11d48; border-color: #fecdd3; }
+.btn-word { background: #0284c7; border-color: #0369a1; color: #fff; }
+.btn-del {
+background: #fee2e2;
+color: #b91c1c;
+border: 1px solid #f87171;
+padding: 2px 6px;
+font-size: 11px;
+cursor: pointer;
+border-radius: 3px;
+}
+
+.company-select {
+padding: 7px 8px;
+border-radius: 4px;
+border: 1px solid #94a3b8;
+font-family: Arial, sans-serif;
+font-size: 12px;
+font-weight: bold;
+background: #f8fafc;
+color: #0f172a;
+cursor: pointer;
+outline: none;
+}
+
+/* Калькулятор наценки и налогов */
+.calc-sidebar {
+position: fixed;
+left: calc(50% - 105mm - 330px);
+top: 60px;
+width: 310px;
+max-height: 88vh;
+overflow-y: auto;
+background: #ffffff;
+border-radius: 8px;
+padding: 14px;
+box-shadow: 0 4px 18px rgba(0,0,0,0.35);
+font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+font-size: 12px;
+line-height: 1.35;
+z-index: 30;
+transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+.calc-sidebar.collapsed {
+transform: translateX(-360px);
+opacity: 0;
+pointer-events: none;
+}
+
+.calc-toggle-panel-btn {
+position: fixed;
+left: calc(50% - 105mm - 330px);
+top: 18px;
+z-index: 35;
+padding: 6px 12px;
+background: #0f172a;
+color: #fff;
+border: none;
+border-radius: 4px;
+font-family: Arial, sans-serif;
+font-size: 12px;
+font-weight: 600;
+cursor: pointer;
+box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+@media (max-width: 1460px) {
+.calc-sidebar, .calc-toggle-panel-btn {
+left: 12px;
+}
+}
+
+.calc-title {
+font-size: 13px;
+font-weight: 700;
+color: #1e293b;
+margin-bottom: 10px;
+display: flex;
+align-items: center;
+justify-content: space-between;
+border-bottom: 2px solid #e2e8f0;
+padding-bottom: 6px;
+}
+
+.calc-field { margin-bottom: 10px; }
+
+.calc-label {
+font-size: 11px;
+font-weight: 600;
+color: #475569;
+margin-bottom: 3px;
+display: flex;
+justify-content: space-between;
+align-items: center;
+}
+
+.calc-input {
+width: 100%;
+padding: 6px 8px;
+border: 1px solid #cbd5e1;
+border-radius: 5px;
+font-size: 12px;
+font-family: inherit;
+outline: none;
+}
+
+.calc-input:focus { border-color: #2563eb; }
+
+.calc-input:disabled {
+background: #f1f5f9;
+color: #94a3b8;
+cursor: not-allowed;
+}
+
+.calc-toggle {
+display: inline-flex;
+background: #e2e8f0;
+border-radius: 4px;
+padding: 2px;
+gap: 2px;
+}
+
+.calc-toggle-btn {
+border: none;
+background: transparent;
+padding: 2px 7px;
+font-size: 10px;
+font-weight: 600;
+cursor: pointer;
+border-radius: 3px;
+color: #475569;
+font-family: inherit;
+}
+
+.calc-toggle-btn.active {
+background: #2563eb;
+color: #fff;
+}
+
+.calc-result-box {
+background: #f8fafc;
+border: 1px solid #e2e8f0;
+border-radius: 6px;
+padding: 8px;
+margin-top: 10px;
+}
+
+.calc-res-row {
+display: flex;
+justify-content: space-between;
+margin-bottom: 4px;
+font-size: 11px;
+color: #64748b;
+}
+
+.calc-res-row span:last-child {
+font-weight: 600;
+color: #1e293b;
+}
+
+.calc-highlight {
+border-top: 1px dashed #cbd5e1;
+padding-top: 6px;
+margin-top: 6px;
+display: flex;
+flex-direction: column;
+gap: 2px;
+}
+
+.calc-highlight-lbl {
+font-size: 10px;
+font-weight: 700;
+color: #1e40af;
+text-transform: uppercase;
+}
+
+.calc-highlight-val {
+font-size: 15px;
+font-weight: 800;
+color: #0f172a;
+}
+
+.btn-copy-calc {
+width: 100%;
+margin-top: 10px;
+padding: 8px;
+background: #2563eb;
+color: #fff;
+border: none;
+border-radius: 5px;
+font-size: 12px;
+font-weight: 600;
+cursor: pointer;
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 6px;
+}
+
+.btn-copy-calc:hover { background: #1d4ed8; }
+
+/* Лист А4 */
+.page {
+width: 210mm;
+min-height: 297mm;
+padding: 10mm 15mm 12mm 15mm;
+margin: 0 auto;
+background: #fff;
+box-shadow: 0 4px 25px rgba(0,0,0,0.45);
+position: relative;
+z-index: 10;
+font-size: 11.5pt;
+line-height: 1.15;
+}
+
+/* Шапка ООО */
+.head-grid {
+width: 100%;
+border-collapse: collapse;
+margin-bottom: 12px;
+}
+
+.head-grid td {
+border: none;
+padding: 0 0 8px 0;
+vertical-align: top;
+}
+
+.head-logo-cell { width: 50%; }
+
+.logo {
+height: 64px;
+max-width: 100%;
+object-fit: contain;
+display: block;
+}
+
+.head-req-cell {
+width: 50%;
+padding-left: 15px !important;
+font-size: 11.5pt;
+line-height: 1.3;
+}
+
+.head-meta-cell {
+width: 50%;
+font-size: 11pt;
+line-height: 1.35;
+padding-top: 6px !important;
+}
+
+.head-client-cell {
+width: 50%;
+padding-left: 15px !important;
+font-size: 11pt;
+line-height: 1.25;
+padding-top: 6px !important;
+}
+
+/* Шапка ИП */
+.head-ip-container {
+width: 100%;
+margin-bottom: 12px;
+display: none;
+}
+
+.head-ip-top {
+text-align: left;
+font-size: 11pt;
+line-height: 1.3;
+padding-bottom: 8px;
+border-bottom: 2px solid #000;
+}
+
+.head-ip-meta {
+display: flex;
+justify-content: space-between;
+margin-top: 8px;
+font-size: 11pt;
+}
+
+.head-ip-meta-left {
+display: flex;
+align-items: baseline;
+gap: 15px;
+flex-wrap: wrap;
+}
+
+.meta-input {
+font-family: inherit;
+font-size: 11pt;
+border: none;
+border-bottom: 1px dashed #777;
+background: transparent;
+outline: none;
+}
+
+.kp-num-wrapper {
+display: inline-flex;
+align-items: baseline;
+font-weight: bold;
+}
+
+.kp-prefix { font-weight: bold; margin-left: 2px; }
+
+.kp-user-input {
+font-family: inherit;
+font-size: 11pt;
+font-weight: bold;
+border: none;
+border-bottom: 1px dashed #777;
+background: transparent;
+outline: none;
+width: 45px;
+padding: 0 2px;
+}
+
+.kp-ip-wrapper {
+display: inline-flex;
+align-items: baseline;
+font-weight: normal;
+}
+
+.kp-ip-input {
+font-family: inherit;
+font-size: 11pt;
+font-weight: normal;
+border: none;
+border-bottom: 1px dashed #777;
+background: transparent;
+outline: none;
+width: 90px;
+padding: 0 2px;
+}
+
+.client-textarea {
+width: 100%;
+font-family: inherit;
+font-size: 11pt;
+border: none;
+border-bottom: 1px dashed #777;
+background: transparent;
+outline: none;
+resize: none;
+overflow: hidden;
+line-height: 1.25;
+}
+
+.title {
+text-align: center;
+font-size: 12pt;
+font-weight: bold;
+margin: 10px 0 6px;
+}
+
+.intro {
+text-align: justify;
+text-indent: 10mm;
+font-size: 11pt;
+margin-bottom: 8px;
+line-height: 1.15;
+}
+
+/* Таблица спецификации */
+table.spec {
+width: 100%;
+border-collapse: collapse;
+font-size: 9.5pt;
+margin-bottom: 6px;
+table-layout: fixed;
+page-break-inside: auto !important;
+break-inside: auto !important;
+box-sizing: border-box;
+}
+
+table.spec thead {
+display: table-header-group !important;
+}
+
+table.spec tbody {
+display: table-row-group !important;
+}
+
+table.spec tr {
+page-break-inside: auto !important;
+break-inside: auto !important;
+}
+
+table.spec th, table.spec td {
+border: 1px solid #000;
+padding: 3px 4px;
+line-height: 1.15;
+page-break-inside: auto !important;
+break-inside: auto !important;
+box-sizing: border-box;
+}
+
+table.spec td.col-text-cell {
+vertical-align: top;
+}
+
+table.spec td.col-num-cell {
+vertical-align: top;
+}
+
+table.spec th {
+background-color: #ACB9CA !important;
+text-align: center;
+font-weight: bold;
+padding: 4px 2px;
+word-break: break-word;
+overflow-wrap: break-word;
+}
+
+.t-tot {
+background-color: #ACB9CA !important;
+font-weight: normal;
+page-break-inside: avoid !important;
+break-inside: avoid !important;
+}
+
+body.is-ip table.spec th { background-color: #fff !important; }
+body.is-ip .t-tot { background-color: #fff !important; }
+
+.auto-grow {
+width: 100%;
+border: none;
+outline: none;
+font-family: inherit;
+font-size: 9.5pt;
+background: transparent;
+padding: 0;
+margin: 0;
+resize: none;
+overflow: hidden;
+line-height: 1.15;
+display: block;
+field-sizing: content;
+}
+
+.print-text-mirror {
+display: none;
+font-family: inherit;
+font-size: 9.5pt;
+line-height: 1.15;
+white-space: pre-wrap;
+word-break: break-word;
+overflow-wrap: break-word;
+}
+
+.inp-qty {
+width: 100%;
+border: none;
+outline: none;
+font-family: inherit;
+font-size: 9.5pt;
+background: transparent;
+padding: 0;
+margin: 0;
+text-align: center;
+}
+
+.inp-text {
+width: 100%;
+border: none;
+outline: none;
+font-family: inherit;
+font-size: 9.5pt;
+background: transparent;
+padding: 0;
+margin: 0;
+}
+
+.r { text-align: right; }
+.c { text-align: center; }
+
+.col-total {
+font-weight: normal !important;
+}
+
+.tot-phrase {
+font-size: 11pt;
+line-height: 1.25;
+margin: 6px 0 10px;
+page-break-inside: avoid !important;
+break-inside: avoid !important;
+}
+
+/* Таблица условий ООО */
+table.cond {
+width: 100%;
+border-collapse: collapse;
+font-size: 10pt;
+margin-bottom: 6px;
+page-break-inside: avoid !important;
+break-inside: avoid !important;
+}
+
+table.cond td {
+border: 1px solid #000;
+padding: 3px 6px;
+vertical-align: middle;
+line-height: 1.15;
+}
+
+.cond-lbl {
+width: 140px;
+background-color: #ACB9CA !important;
+font-weight: bold;
+}
+
+.cond-lbl-input {
+width: 100%;
+font-weight: bold;
+border: none;
+outline: none;
+background: transparent;
+font-family: inherit;
+font-size: 10pt;
+}
+
+/* Конструктор срока поставки */
+.delivery-builder-box {
+display: flex;
+gap: 6px;
+align-items: center;
+margin-bottom: 6px;
+background: #f8fafc;
+padding: 4px 8px;
+border-radius: 4px;
+border: 1px dashed #cbd5e1;
+width: fit-content;
+font-family: Arial, sans-serif;
+}
+
+.delivery-input-short {
+width: 75px;
+padding: 2px 6px;
+border: 1px solid #94a3b8;
+border-radius: 4px;
+font-family: Arial, sans-serif;
+font-size: 9pt;
+outline: none;
+}
+
+.delivery-select-unit {
+padding: 2px 4px;
+border: 1px solid #94a3b8;
+border-radius: 4px;
+font-family: Arial, sans-serif;
+font-size: 9pt;
+outline: none;
+background: #fff;
+cursor: pointer;
+}
+
+/* Условия ИП */
+.ip-cond-box {
+margin-bottom: 6px;
+font-size: 11pt;
+line-height: 1.35;
+display: none;
+page-break-inside: avoid !important;
+break-inside: avoid !important;
+}
+
+.ip-custom-cond-row {
+display: flex;
+align-items: baseline;
+gap: 0;
+margin-top: 4px;
+font-size: 11pt;
+}
+
+.ip-cond-lbl-input {
+font-family: inherit;
+font-size: 11pt;
+font-weight: bold;
+border: none;
+border-bottom: 1px dashed #777;
+background: transparent;
+outline: none;
+padding: 0;
+margin: 0;
+min-width: 40px;
+field-sizing: content;
+}
+
+/* Подписи и подвал */
+.sign-row {
+display: flex;
+justify-content: space-between;
+position: relative;
+margin-top: 20px;
+font-size: 11pt;
+page-break-inside: avoid !important;
+break-inside: avoid !important;
+}
+
+body.is-ip .sign-row {
+margin-top: 14px;
+}
+
+.stamp-box {
+position: absolute;
+top: -38px;
+right: 105px;
+width: 170px;
+pointer-events: none;
+opacity: 0.95;
+}
+
+.stamp-box img { width: 100%; display: block; }
+
+body.is-ip .stamp-box {
+top: -46px;
+right: 85px;
+width: 185px;
+}
+
+.contacts-ooo {
+margin-top: 16px;
+font-size: 10pt;
+line-height: 1.25;
+page-break-inside: avoid !important;
+break-inside: avoid !important;
+}
+
+.contacts-ip {
+margin-top: 2px;
+font-size: 10.5pt;
+line-height: 1.25;
+display: none;
+page-break-inside: avoid !important;
+break-inside: avoid !important;
+}
+
+@media (max-width: 1000px) {
+.bg-sidebar { display: none !important; }
+}
+
+/* Печать страницы */
+@page {
+size: A4 portrait;
+margin: 8mm 12mm 8mm 12mm;
+}
+
+@media print {
+
+{
+-webkit-print-color-adjust: exact !important;
+print-color-adjust: exact !important;
+}
+html, body {
+background: #fff !important;
+margin: 0 !important;
+padding: 0 !important;
+width: 100% !important;
+orphans: 3;
+widows: 3;
+}
+.panel, .no-print, .calc-sidebar, .calc-toggle-panel-btn, .bg-sidebar, .delivery-builder-box, .btn-cond-add {
+display: none !important;
+}
+
+.page {
+box-shadow: none !important;
+margin: 0 auto !important;
+padding: 4mm 2mm !important;
+width: 100% !important;
+max-width: 100% !important;
+min-height: 0 !important;
+height: auto !important;
+}
+
+th.no-print, td.no-print {
+display: none !important;
+width: 0 !important;
+padding: 0 !important;
+margin: 0 !important;
+border: none !important;
+}
+
+table.spec {
+width: 99.4% !important;
+margin-left: auto !important;
+margin-right: auto !important;
+table-layout: fixed !important;
+border-collapse: collapse !important;
+border-right: 1.5px solid #000 !important;
+}
+
+table.spec th#thTotalCol,
+table.spec td.col-total,
+table.spec tfoot td#grandTotal {
+border-right: 1.5px solid #000 !important;
+}
+
+table.spec textarea.auto-grow,
+table.cond textarea.auto-grow {
+display: none !important;
+}
+.print-text-mirror {
+display: block !important;
+}
+
+table.spec, table.spec tr, table.spec td {
+page-break-inside: auto !important;
+break-inside: auto !important;
+}
+
+.sign-row {
+margin-top: 12px !important;
+}
+
+.print-hide-client {
+display: none !important;
+}
+
+input, textarea, select {
+border-bottom: none !important;
+appearance: none;
+-webkit-appearance: none;
+}
+::placeholder { color: transparent !important; }
+}
