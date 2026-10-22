@@ -1,274 +1,339 @@
-📊 Калькулятор
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>КП — ООО «РТСтандарт»</title>
 
-<div class="calc-field">
-  <label class="calc-label" for="calcCostVat">Закупка товара с НДС, ₽</label>
-  <input type="text" id="calcCostVat" class="calc-input" placeholder="например 100 000" oninput="calculateMargin(); saveState();">
-</div>
+  <!-- Подключение стилей -->
+  <link rel="stylesheet" href="./style.css">
 
-<div class="calc-field">
-  <div class="calc-label">
-    <span>Финансирование (28% год.)</span>
-    <div class="calc-toggle">
-      <button type="button" class="calc-toggle-btn active" id="btnFinDays" onclick="setFinMode('days')">Дни</button>
-      <button type="button" class="calc-toggle-btn" id="btnFinWeeks" onclick="setFinMode('weeks')">Недели</button>
+  <!-- Вспомогательные библиотеки для Word (.docx) -->
+  <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+</head>
+<body>
+
+  <!-- Кнопка вызова калькулятора -->
+  <button class="calc-toggle-panel-btn no-print" onclick="toggleCalcPanel()">📊 Калькулятор</button>
+
+  <!-- Калькулятор -->
+  <div class="calc-sidebar no-print" id="calcSidebar">
+    <div class="calc-title">
+      <span>📊 Расчет цен и налогов</span>
+      <span style="cursor:pointer; font-size:16px;" onclick="toggleCalcPanel()">✕</span>
     </div>
-  </div>
-  <div style="display: flex; gap: 6px; align-items: center;">
-    <input type="number" id="calcFinDaysInput" class="calc-input" placeholder="дней (напр. 30)" value="0" min="0" oninput="calculateMargin(); saveState();">
-    <button type="button" id="btnWeekMinus" style="display:none; padding:5px 8px; cursor:pointer;" onclick="stepFinWeeks(-1)">-1н</button>
-    <button type="button" id="btnWeekPlus" style="display:none; padding:5px 8px; cursor:pointer;" onclick="stepFinWeeks(1)">+1н</button>
-  </div>
-  <div style="font-size:11px; color:#64748b; margin-top:2px;" id="calcFinCostVal">Стоимость денег: 0,00 ₽</div>
-</div>
 
-<div class="calc-field" id="calcDeliveryRow">
-  <label class="calc-label" for="calcDeliveryCost" id="lblDeliveryTitle">Доставка до клиента с НДС 22%, ₽</label>
-  <input type="text" id="calcDeliveryCost" class="calc-input" placeholder="например 3 500" oninput="calculateMargin(); saveState();">
-  <div id="calcDeliveryPickupNote" style="display:none; font-size:10px; color:#d97706; margin-top:2px;">В КП выбран самовывоз (доставка 0 ₽)</div>
-</div>
-
-<div class="calc-field">
-  <div class="calc-label">
-    <span>Желаемая прибыль</span>
-    <div class="calc-toggle">
-      <button type="button" class="calc-toggle-btn active" id="btnModeRub" onclick="setMarginMode('rub')">₽</button>
-      <button type="button" class="calc-toggle-btn" id="btnModePct" onclick="setMarginMode('pct')">%</button>
+    <div class="calc-field">
+      <label class="calc-label" for="calcCostVat">Закупка товара с НДС, ₽</label>
+      <input type="text" id="calcCostVat" class="calc-input" placeholder="например 100 000" oninput="calculateMargin(); saveState();">
     </div>
-  </div>
-  <input type="text" id="calcProfitTarget" class="calc-input" placeholder="15 000" oninput="calculateMargin(); saveState();">
-</div>
 
-<div class="calc-result-box">
-  <div class="calc-res-row">
-    <span>Себестоимость полная:</span>
-    <span id="resCostNet">0,00 ₽</span>
-  </div>
-  <div class="calc-res-row">
-    <span>Чистая прибыль:</span>
-    <span id="resNetProfit" style="color: #16a34a;">0,00 ₽</span>
-  </div>
-  <div class="calc-res-row">
-    <span id="lblTaxType">Налог на прибыль (25%):</span>
-    <span id="resProfitTax">0,00 ₽</span>
-  </div>
-  <div class="calc-res-row">
-    <span id="lblVatType">НДС к доплате (22%):</span>
-    <span id="resVatPayable">0,00 ₽</span>
-  </div>
-
-  <div class="calc-highlight">
-    <span class="calc-highlight-lbl">Итоговая сумма для КП:</span>
-    <span class="calc-highlight-val" id="resSaleVat">0,00 ₽</span>
-  </div>
-</div>
-
-<button type="button" class="btn-copy-calc" onclick="copyCalcPrice()">📋 Скопировать цену в буфер</button>
-
-
-<!-- Шапка ООО -->
-<table class="head-grid" id="headOoo">
-  <tr>
-    <td class="head-logo-cell">
-      <img src="logo.png" alt="РТСТАНДАРТ" class="logo" id="logoImgOoo" onerror="this.outerHTML='<b style=\'font-size:16pt;\'>РТСТАНДАРТ</b>'">
-    </td>
-    <td class="head-req-cell">
-      <b>ООО "РТСТАНДАРТ"</b><br>
-      г. Санкт-Петербург, наб. Обводного канала, д. 23, лит. Г<br>
-      ИНН 7842228552<br>
-      +7 (812) 983-44-33
-    </td>
-  </tr>
-  <tr>
-    <td class="head-meta-cell">
-      <div class="kp-num-wrapper">
-        КП № <span class="kp-prefix" id="kpPrefix">10-20/</span>
-        <input type="text" class="kp-user-input" id="kpNumInput" placeholder="1" value="1" oninput="saveState(); updateDocumentTitle();">
-      </div><br>
-      От <input type="text" id="docDate" class="meta-input" style="width: 155px;" oninput="onDateInput(this)">
-    </td>
-    <td class="head-client-cell" id="clientContainerOoo">
-      Заказчику:
-      <textarea rows="2" class="auto-grow client-textarea" id="clientBox" placeholder="можете вписать наименование заказчика" oninput="saveState(); updateDocumentTitle();"></textarea>
-    </td>
-  </tr>
-</table>
-
-<!-- Шапка ИП -->
-<div class="head-ip-container" id="headIp">
-  <div class="head-ip-top">
-    <b>Индивидуальный предприниматель Захаров Михаил Сергеевич</b><br>
-    <b>ОГРНИП: 325110000002538</b> / <b>ИНН: 110214010407</b><br>
-    Тел.: +7 (981) 208-62-36<br>
-    e-mail: m.zakharov0811@gmail.com
-  </div>
-  <div class="head-ip-meta">
-    <div class="head-ip-meta-left">
-      <div class="kp-ip-wrapper">
-        Исх. №&nbsp;
-        <input type="text" class="kp-ip-input" id="kpNumInputIp" placeholder="номер" value="" oninput="saveState(); updateDocumentTitle();">
+    <div class="calc-field">
+      <div class="calc-label">
+        <span>Финансирование (28% год.)</span>
+        <div class="calc-toggle">
+          <button type="button" class="calc-toggle-btn active" id="btnFinDays" onclick="setFinMode('days')">Дни</button>
+          <button type="button" class="calc-toggle-btn" id="btnFinWeeks" onclick="setFinMode('weeks')">Недели</button>
+        </div>
       </div>
-      <div>
-        От <input type="text" id="docDateIp" class="meta-input" style="width: 155px;" oninput="onDateInput(this)">
+      <div style="display: flex; gap: 6px; align-items: center;">
+        <input type="number" id="calcFinDaysInput" class="calc-input" placeholder="дней (напр. 30)" value="0" min="0" oninput="calculateMargin(); saveState();">
+        <button type="button" id="btnWeekMinus" style="display:none; padding:5px 8px; cursor:pointer;" onclick="stepFinWeeks(-1)">-1н</button>
+        <button type="button" id="btnWeekPlus" style="display:none; padding:5px 8px; cursor:pointer;" onclick="stepFinWeeks(1)">+1н</button>
+      </div>
+      <div style="font-size:11px; color:#64748b; margin-top:2px;" id="calcFinCostVal">Стоимость денег: 0,00 ₽</div>
+    </div>
+
+    <div class="calc-field" id="calcDeliveryRow">
+      <label class="calc-label" for="calcDeliveryCost" id="lblDeliveryTitle">Доставка до клиента с НДС 22%, ₽</label>
+      <input type="text" id="calcDeliveryCost" class="calc-input" placeholder="например 3 500" oninput="calculateMargin(); saveState();">
+      <div id="calcDeliveryPickupNote" style="display:none; font-size:10px; color:#d97706; margin-top:2px;">В КП выбран самовывоз (доставка 0 ₽)</div>
+    </div>
+
+    <div class="calc-field">
+      <div class="calc-label">
+        <span>Желаемая прибыль</span>
+        <div class="calc-toggle">
+          <button type="button" class="calc-toggle-btn active" id="btnModeRub" onclick="setMarginMode('rub')">₽</button>
+          <button type="button" class="calc-toggle-btn" id="btnModePct" onclick="setMarginMode('pct')">%</button>
+        </div>
+      </div>
+      <input type="text" id="calcProfitTarget" class="calc-input" placeholder="15 000" oninput="calculateMargin(); saveState();">
+    </div>
+
+    <div class="calc-result-box">
+      <div class="calc-res-row">
+        <span>Себестоимость полная:</span>
+        <span id="resCostNet">0,00 ₽</span>
+      </div>
+      <div class="calc-res-row">
+        <span>Чистая прибыль:</span>
+        <span id="resNetProfit" style="color: #16a34a;">0,00 ₽</span>
+      </div>
+      <div class="calc-res-row">
+        <span id="lblTaxType">Налог на прибыль (25%):</span>
+        <span id="resProfitTax">0,00 ₽</span>
+      </div>
+      <div class="calc-res-row">
+        <span id="lblVatType">НДС к доплате (22%):</span>
+        <span id="resVatPayable">0,00 ₽</span>
+      </div>
+
+      <div class="calc-highlight">
+        <span class="calc-highlight-lbl">Итоговая сумма для КП:</span>
+        <span class="calc-highlight-val" id="resSaleVat">0,00 ₽</span>
       </div>
     </div>
-    <div style="width: 48%; padding-left: 15px;" id="clientContainerIp">
-      Заказчику:
-      <textarea rows="2" class="auto-grow client-textarea" id="clientBoxIp" placeholder="можете вписать наименование заказчика" oninput="saveState(); updateDocumentTitle();"></textarea>
+
+    <button type="button" class="btn-copy-calc" onclick="copyCalcPrice()">📋 Скопировать цену в буфер</button>
+  </div>
+
+  <!-- Фоновые миниатюры слева -->
+  <div class="bg-sidebar bg-left no-print" id="bgLeft">
+    <img src="bg-thumb1.png" alt="">
+    <img src="bg-thumb2.png" alt="">
+    <img src="bg-thumb3.png" alt="">
+  </div>
+
+  <!-- Фоновые миниатюры справа -->
+  <div class="bg-sidebar bg-right no-print" id="bgRight">
+    <img src="bg-thumb4.png" alt="">
+    <img src="bg-thumb5.png" alt="">
+    <img src="bg-thumb6.png" alt="">
+  </div>
+
+  <!-- Панель действий -->
+  <div class="panel no-print">
+    <div class="panel-left">
+      <select class="company-select" id="companySelect" onchange="onCompanyChange()">
+        <option value="ooo">🏢 ООО «РТСтандарт» (НДС 22%)</option>
+        <option value="ip">👤 ИП Захаров М.С. (УСН + НДС 5%)</option>
+      </select>
+      <button class="btn btn-add" onclick="addRow()">+ Добавить позицию</button>
+      <button class="btn btn-toggle-bg" id="btnToggleBg" onclick="toggleBackgroundImages()">🖼️ Скрыть картинки</button>
+      <button class="btn btn-clear" onclick="clearForm()">🗑️ Очистить бланк</button>
+    </div>
+    <div class="panel-right">
+      <button class="btn btn-word" onclick="exportToWord()" title="Скачать чистый документ Word">📝 Скачать Word</button>
+      <button class="btn" onclick="prepareAndPrint()">🖨️ PDF / Печать</button>
     </div>
   </div>
-</div>
 
-<div class="title">КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ</div>
-<div class="intro" id="docIntro">
-  Общество с ограниченной ответственностью «РТСтандарт», в лице генерального директора Маркова Дмитрия Евгеньевича, действующего на основании Устава, предлагает рассмотреть возможность поставки следующего оборудования:
-</div>
+  <!-- Лист А4 -->
+  <div class="page">
+    
+    <!-- Шапка ООО -->
+    <table class="head-grid" id="headOoo">
+      <tr>
+        <td class="head-logo-cell">
+          <img src="logo.png" alt="РТСТАНДАРТ" class="logo" id="logoImgOoo" onerror="this.outerHTML='<b style=\'font-size:16pt;\'>РТСТАНДАРТ</b>'">
+        </td>
+        <td class="head-req-cell">
+          <b>ООО "РТСТАНДАРТ"</b><br>
+          г. Санкт-Петербург, наб. Обводного канала, д. 23, лит. Г<br>
+          ИНН 7842228552<br>
+          +7 (812) 983-44-33
+        </td>
+      </tr>
+      <tr>
+        <td class="head-meta-cell">
+          <div class="kp-num-wrapper">
+            КП № <span class="kp-prefix" id="kpPrefix">10-20/</span>
+            <input type="text" class="kp-user-input" id="kpNumInput" placeholder="1" value="1" oninput="saveState(); updateDocumentTitle();">
+          </div><br>
+          От <input type="text" id="docDate" class="meta-input" style="width: 155px;" oninput="onDateInput(this)">
+        </td>
+        <td class="head-client-cell" id="clientContainerOoo">
+          Заказчику:
+          <textarea rows="2" class="auto-grow client-textarea" id="clientBox" placeholder="можете вписать наименование заказчика" oninput="saveState(); updateDocumentTitle();"></textarea>
+        </td>
+      </tr>
+    </table>
 
-<!-- Таблица спецификации -->
-<table class="spec" id="itemsTable">
-  <thead>
-    <tr>
-      <th style="width: 4%;">№</th>
-      <th style="width: 25%;">Наименование товара</th>
-      <th style="width: 30%;" id="thDescCol">Основные характеристики предложенного товара</th>
-      <th style="width: 8%;" id="thCountryCol">Страна</th>
-      <th style="width: 7%;">Кол-во</th>
-      <th style="width: 12%;" id="thPriceCol">Цена за ед. руб., с НДС 22%</th>
-      <th style="width: 14%;" id="thTotalCol">Сумма руб., с НДС 22%</th>
-      <th class="no-print" style="width: 25px; border: none; background: #fff;"></th>
-    </tr>
-  </thead>
-  <tbody id="tableBody">
-    <tr>
-      <td class="c col-num-cell row-idx">1</td>
-      <td class="col-text-cell">
-        <textarea class="auto-grow col-name" placeholder="Впиши наименование" oninput="saveState()"></textarea>
-        <div class="print-text-mirror"></div>
-      </td>
-      <td class="col-text-cell">
-        <textarea class="auto-grow col-desc" placeholder="впиши характеристики" oninput="saveState()"></textarea>
-        <div class="print-text-mirror"></div>
-      </td>
-      <td class="c col-num-cell"><input type="text" class="inp-text c col-country" placeholder="Китай" value="Китай" oninput="saveState()"></td>
-      <td class="c col-num-cell"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1" oninput="recalc(); saveState();"></td>
-      <td class="c col-num-cell">
-        <input type="text" class="inp-text r col-price" placeholder="500,00" data-raw="0" value=""
-               onfocus="onPriceFocus(this)" 
-               onblur="onPriceBlur(this)" 
-               oninput="onPriceInput(this)">
-      </td>
-      <td class="r col-num-cell col-total">0,00</td>
-      <td class="no-print c" style="border:none;"><button class="btn-del" onclick="deleteRow(this)">✕</button></td>
-    </tr>
-  </tbody>
-  <tfoot>
-    <tr class="t-tot">
-      <td colspan="6" class="r" style="padding-right: 8px;">ИТОГО:</td>
-      <td id="grandTotal" class="r col-total">0,00</td>
-      <td class="no-print" style="border:none; background:#fff;"></td>
-    </tr>
-  </tfoot>
-</table>
+    <!-- Шапка ИП -->
+    <div class="head-ip-container" id="headIp">
+      <div class="head-ip-top">
+        <b>Индивидуальный предприниматель Захаров Михаил Сергеевич</b><br>
+        <b>ОГРНИП: 325110000002538</b> / <b>ИНН: 110214010407</b><br>
+        Тел.: +7 (981) 208-62-36<br>
+        e-mail: m.zakharov0811@gmail.com
+      </div>
+      <div class="head-ip-meta">
+        <div class="head-ip-meta-left">
+          <div class="kp-ip-wrapper">
+            Исх. №&nbsp;
+            <input type="text" class="kp-ip-input" id="kpNumInputIp" placeholder="номер" value="" oninput="saveState(); updateDocumentTitle();">
+          </div>
+          <div>
+            От <input type="text" id="docDateIp" class="meta-input" style="width: 155px;" oninput="onDateInput(this)">
+          </div>
+        </div>
+        <div style="width: 48%; padding-left: 15px;" id="clientContainerIp">
+          Заказчику:
+          <textarea rows="2" class="auto-grow client-textarea" id="clientBoxIp" placeholder="можете вписать наименование заказчика" oninput="saveState(); updateDocumentTitle();"></textarea>
+        </div>
+      </div>
+    </div>
 
-<div class="tot-phrase" id="textTotalBlock">
-  <b>ИТОГО: 0 (ноль) рублей 00 копеек</b>, <b>в том числе НДС 22% 0 (ноль) рублей 00 копеек</b>.
-</div>
+    <div class="title">КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ</div>
+    <div class="intro" id="docIntro">
+      Общество с ограниченной ответственностью «РТСтандарт», в лице генерального директора Маркова Дмитрия Евгеньевича, действующего на основании Устава, предлагает рассмотреть возможность поставки следующего оборудования:
+    </div>
 
-<!-- Умный конструктор срока поставки -->
-<div class="delivery-builder-box no-print">
-  <span style="font-size:8.5pt; color:#475569; font-weight:600;">⚡ Срок поставки цифрами:</span>
-  <input type="text" class="delivery-input-short" id="deliveryDaysInput" placeholder="5-10" value="5-10" oninput="onDeliveryBuilderChange()">
-  <select class="delivery-select-unit" id="deliveryUnitSelect" onchange="onDeliveryBuilderChange()">
-    <option value="work_days">рабочих дней</option>
-    <option value="cal_days">календарных дней</option>
-    <option value="weeks">недель</option>
-  </select>
-</div>
+    <!-- Таблица спецификации -->
+    <table class="spec" id="itemsTable">
+      <thead>
+        <tr>
+          <th style="width: 4%;">№</th>
+          <th style="width: 25%;">Наименование товара</th>
+          <th style="width: 30%;" id="thDescCol">Основные характеристики предложенного товара</th>
+          <th style="width: 8%;" id="thCountryCol">Страна</th>
+          <th style="width: 7%;">Кол-во</th>
+          <th style="width: 12%;" id="thPriceCol">Цена за ед. руб., с НДС 22%</th>
+          <th style="width: 14%;" id="thTotalCol">Сумма руб., с НДС 22%</th>
+          <th class="no-print" style="width: 25px; border: none; background: #fff;"></th>
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+        <tr>
+          <td class="c col-num-cell row-idx">1</td>
+          <td class="col-text-cell">
+            <textarea class="auto-grow col-name" placeholder="Впиши наименование" oninput="saveState()"></textarea>
+            <div class="print-text-mirror"></div>
+          </td>
+          <td class="col-text-cell">
+            <textarea class="auto-grow col-desc" placeholder="впиши характеристики" oninput="saveState()"></textarea>
+            <div class="print-text-mirror"></div>
+          </td>
+          <td class="c col-num-cell"><input type="text" class="inp-text c col-country" placeholder="Китай" value="Китай" oninput="saveState()"></td>
+          <td class="c col-num-cell"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1" oninput="recalc(); saveState();"></td>
+          <td class="c col-num-cell">
+            <input type="text" class="inp-text r col-price" placeholder="500,00" data-raw="0" value=""
+                   onfocus="onPriceFocus(this)" 
+                   onblur="onPriceBlur(this)" 
+                   oninput="onPriceInput(this)">
+          </td>
+          <td class="r col-num-cell col-total">0,00</td>
+          <td class="no-print c" style="border:none;"><button class="btn-del" onclick="deleteRow(this)">✕</button></td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr class="t-tot">
+          <td colspan="6" class="r" style="padding-right: 8px;">ИТОГО:</td>
+          <td id="grandTotal" class="r col-total">0,00</td>
+          <td class="no-print" style="border:none; background:#fff;"></td>
+        </tr>
+      </tfoot>
+    </table>
 
-<!-- Условия ООО -->
-<table class="cond" id="condOooTable">
-  <tbody id="condOooTbody">
-    <tr id="rowDeliveryTime">
-      <td class="cond-lbl">Срок поставки</td>
-      <td>
-        <textarea class="auto-grow cond-val" id="condOooDeliveryTime" oninput="saveState()">5-10 (пять-десять) рабочих дней</textarea>
-        <div class="print-text-mirror"></div>
-      </td>
-      <td class="no-print" style="width:25px; border:none; background:#fff;"></td>
-    </tr>
-    <tr>
-      <td class="cond-lbl">Условия оплаты</td>
-      <td>
-        <textarea class="auto-grow cond-val" id="condOooPay" oninput="saveState()">100% постоплата</textarea>
-        <div class="print-text-mirror"></div>
-      </td>
-      <td class="no-print" style="width:25px; border:none; background:#fff;"></td>
-    </tr>
-    <tr>
-      <td class="cond-lbl">Доставка</td>
-      <td>
-        <select class="auto-grow cond-val" id="deliverySelectOoo" onchange="calculateMargin(); saveState();">
-          <option value="Доставка товара до адреса заказчика включена">Доставка товара до адреса заказчика включена</option>
+    <div class="tot-phrase" id="textTotalBlock">
+      <b>ИТОГО: 0 (ноль) рублей 00 копеек</b>, <b>в том числе НДС 22% 0 (ноль) рублей 00 копеек</b>.
+    </div>
+
+    <!-- Умный конструктор срока поставки -->
+    <div class="delivery-builder-box no-print">
+      <span style="font-size:8.5pt; color:#475569; font-weight:600;">⚡ Срок поставки цифрами:</span>
+      <input type="text" class="delivery-input-short" id="deliveryDaysInput" placeholder="5-10" value="5-10" oninput="onDeliveryBuilderChange()">
+      <select class="delivery-select-unit" id="deliveryUnitSelect" onchange="onDeliveryBuilderChange()">
+        <option value="work_days">рабочих дней</option>
+        <option value="cal_days">календарных дней</option>
+        <option value="weeks">недель</option>
+      </select>
+    </div>
+
+    <!-- Условия ООО -->
+    <table class="cond" id="condOooTable">
+      <tbody id="condOooTbody">
+        <tr id="rowDeliveryTime">
+          <td class="cond-lbl">Срок поставки</td>
+          <td>
+            <textarea class="auto-grow cond-val" id="condOooDeliveryTime" oninput="saveState()">5-10 (пять-десять) рабочих дней</textarea>
+            <div class="print-text-mirror"></div>
+          </td>
+          <td class="no-print" style="width:25px; border:none; background:#fff;"></td>
+        </tr>
+        <tr>
+          <td class="cond-lbl">Условия оплаты</td>
+          <td>
+            <textarea class="auto-grow cond-val" id="condOooPay" oninput="saveState()">100% постоплата</textarea>
+            <div class="print-text-mirror"></div>
+          </td>
+          <td class="no-print" style="width:25px; border:none; background:#fff;"></td>
+        </tr>
+        <tr>
+          <td class="cond-lbl">Доставка</td>
+          <td>
+            <select class="auto-grow cond-val" id="deliverySelectOoo" onchange="calculateMargin(); saveState();">
+              <option value="Доставка товара до адреса заказчика включена">Доставка товара до адреса заказчика включена</option>
+              <option value="Самовывоз со склада продавца">Самовывоз со склада продавца</option>
+            </select>
+          </td>
+          <td class="no-print" style="width:25px; border:none; background:#fff;"></td>
+        </tr>
+        <tr>
+          <td class="cond-lbl">Гарантия</td>
+          <td>
+            <textarea class="auto-grow cond-val" id="condOooWarranty" oninput="saveState()">12 месяцев с возможностью расширения до 5 лет. Выезд инженера в рамках гарантийного ремонта по адресу Заказчика – опционально. Обслуживание On-site (на месте) / Keep Your Drive (KYD) ремонт с сохранением жестких дисков у клиента – опционально.</textarea>
+            <div class="print-text-mirror"></div>
+          </td>
+          <td class="no-print" style="width:25px; border:none; background:#fff;"></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Условия ИП -->
+    <div class="ip-cond-box" id="condIpBox">
+      <div><b>Срок поставки:</b> <input type="text" id="ipDeliveryTime" class="meta-input" value="1-2 недели" style="width: 340px;" oninput="saveState()"></div>
+      <div style="margin-top: 4px;"><b>Доставка:</b> 
+        <select class="meta-input" id="deliverySelectIp" onchange="calculateMargin(); saveState();">
+          <option value="Доставка включена в стоимость">Доставка включена в стоимость</option>
           <option value="Самовывоз со склада продавца">Самовывоз со склада продавца</option>
         </select>
-      </td>
-      <td class="no-print" style="width:25px; border:none; background:#fff;"></td>
-    </tr>
-    <tr>
-      <td class="cond-lbl">Гарантия</td>
-      <td>
-        <textarea class="auto-grow cond-val" id="condOooWarranty" oninput="saveState()">12 месяцев с возможностью расширения до 5 лет. Выезд инженера в рамках гарантийного ремонта по адресу Заказчика – опционально. Обслуживание On-site (на месте) / Keep Your Drive (KYD) ремонт с сохранением жестких дисков у клиента – опционально.</textarea>
-        <div class="print-text-mirror"></div>
-      </td>
-      <td class="no-print" style="width:25px; border:none; background:#fff;"></td>
-    </tr>
-  </tbody>
-</table>
-
-<!-- Условия ИП -->
-<div class="ip-cond-box" id="condIpBox">
-  <div><b>Срок поставки:</b> <input type="text" id="ipDeliveryTime" class="meta-input" value="1-2 недели" style="width: 340px;" oninput="saveState()"></div>
-  <div style="margin-top: 4px;"><b>Доставка:</b> 
-    <select class="meta-input" id="deliverySelectIp" onchange="calculateMargin(); saveState();">
-      <option value="Доставка включена в стоимость">Доставка включена в стоимость</option>
-      <option value="Самовывоз со склада продавца">Самовывоз со склада продавца</option>
-    </select>
-  </div>
-  <div id="condIpCustomList"></div>
-</div>
-
-<div style="margin-bottom: 14px;" class="no-print">
-  <button type="button" class="btn btn-add btn-cond-add" onclick="addCondRowForActiveCompany()">+ Добавить условие</button>
-</div>
-
-<!-- Подписи и контакты -->
-<div class="sign-row">
-  <div>
-    <div id="signTitleBlock">Генеральный директор ООО «РТСтандарт»</div>
-    
-    <!-- Контакты ООО -->
-    <div class="contacts-ooo" id="contactsOoo">
-      Исп.<br>
-      Коммерческий департамент<br>
-      ООО «РТСтандарт»<br>
-      E-mail: info@liscorp.ru<br>
-      +7 (981) 040-10-70<br>
-      +7 (812) 983-44-33<br>
-      https://liscorp.ru/
+      </div>
+      <div id="condIpCustomList"></div>
     </div>
 
-    <!-- Контакты ИП -->
-    <div class="contacts-ip" id="contactsIp">
-      Захаров Михаил Сергеевич<br>
-      Телефон: +7 981 208-62-36<br>
-      Email: m.zakharov0811@gmail.com
+    <div style="margin-bottom: 14px;" class="no-print">
+      <button type="button" class="btn btn-add btn-cond-add" onclick="addCondRowForActiveCompany()">+ Добавить условие</button>
     </div>
+
+    <!-- Подписи и контакты -->
+    <div class="sign-row">
+      <div>
+        <div id="signTitleBlock">Генеральный директор ООО «РТСтандарт»</div>
+        
+        <!-- Контакты ООО -->
+        <div class="contacts-ooo" id="contactsOoo">
+          Исп.<br>
+          Коммерческий департамент<br>
+          ООО «РТСтандарт»<br>
+          E-mail: info@liscorp.ru<br>
+          +7 (981) 040-10-70<br>
+          +7 (812) 983-44-33<br>
+          https://liscorp.ru/
+        </div>
+
+        <!-- Контакты ИП -->
+        <div class="contacts-ip" id="contactsIp">
+          Захаров Михаил Сергеевич<br>
+          Телефон: +7 981 208-62-36<br>
+          Email: m.zakharov0811@gmail.com
+        </div>
+      </div>
+
+      <div style="position: relative; width: 320px; text-align: right; padding-top: 10px;">
+        <span style="border-bottom: 1px solid #000; display: inline-block; width: 140px;"></span>
+        &nbsp;/ <span id="signPersonName">Марков Д.Е.</span>
+        <div class="stamp-box">
+          <img src="stamp.png" alt="Печать" id="stampImg" onerror="this.style.display='none'">
+        </div>
+      </div>
+    </div>
+
   </div>
 
-  <div style="position: relative; width: 320px; text-align: right; padding-top: 10px;">
-    <span style="border-bottom: 1px solid #000; display: inline-block; width: 140px;"></span>
-    &nbsp;/ <span id="signPersonName">Марков Д.Е.</span>
-    <div class="stamp-box">
-      <img src="stamp.png" alt="Печать" id="stampImg" onerror="this.style.display='none'">
-    </div>
-  </div>
-</div>
+  <!-- Подключение основного скрипта логики -->
+  <script src="./app.js"></script>
+</body>
+</html>
