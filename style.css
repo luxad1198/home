@@ -413,8 +413,6 @@ table.spec {
   font-size: 9.5pt; 
   margin-bottom: 6px; 
   table-layout: fixed; 
-  page-break-inside: auto !important;
-  break-inside: auto !important;
   box-sizing: border-box;
 }
 table.spec thead {
@@ -423,16 +421,10 @@ table.spec thead {
 table.spec tbody {
   display: table-row-group !important;
 }
-table.spec tr {
-  page-break-inside: auto !important;
-  break-inside: auto !important;
-}
 table.spec th, table.spec td { 
   border: 1px solid #000; 
   padding: 3px 4px; 
   line-height: 1.15; 
-  page-break-inside: auto !important;
-  break-inside: auto !important;
   box-sizing: border-box;
 }
 table.spec td.col-text-cell { 
@@ -531,7 +523,7 @@ table.cond {
   font-size: 10pt; 
   margin-bottom: 6px; 
   page-break-inside: avoid !important;
-  break-inside: auto !important;
+  break-inside: avoid !important;
 }
 table.cond td { 
   border: 1px solid #000; 
@@ -602,6 +594,8 @@ table.cond td {
   gap: 0;
   margin-top: 4px;
   font-size: 11pt;
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
 }
 .ip-cond-lbl-input {
   font-family: inherit;
@@ -632,7 +626,7 @@ body.is-ip .sign-row {
   margin-top: 14px;
 }
 
-/* Печать ООО на экране и печати браузера */
+/* Печать ООО */
 .stamp-box { 
   position: absolute; 
   top: -38px; 
@@ -697,7 +691,7 @@ body.is-ip .stamp-box {
   .page {
     box-shadow: none !important;
     margin: 0 auto !important;
-    padding: 4mm 2mm !important;
+    padding: 2mm 2mm 6mm !important;
     width: 100% !important;
     max-width: 100% !important;
     min-height: 0 !important;
@@ -721,6 +715,11 @@ body.is-ip .stamp-box {
     border-right: 1.5px solid #000 !important;
   }
 
+  table.spec tr {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
   table.spec th#thTotalCol,
   table.spec td.col-total,
   table.spec tfoot td#grandTotal {
@@ -735,13 +734,10 @@ body.is-ip .stamp-box {
     display: block !important;
   }
 
-  table.spec, table.spec tr, table.spec td {
-    page-break-inside: auto !important;
-    break-inside: auto !important;
-  }
-
   .sign-row {
-    margin-top: 12px !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    margin-top: 18px !important;
   }
 
   .print-hide-client {
