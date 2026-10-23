@@ -933,6 +933,16 @@
       right: { style: BorderStyle.SINGLE, size: 4, color: "000000" }
     };
 
+    const noBorder = { style: BorderStyle.NONE, size: 0, color: "auto" };
+    const transparentBorders = {
+      top: noBorder,
+      bottom: noBorder,
+      left: noBorder,
+      right: noBorder,
+      insideH: noBorder,
+      insideV: noBorder
+    };
+
     const docElements = [];
 
     // 1. Шапка документа
@@ -940,57 +950,87 @@
       const logoEl = document.getElementById('logoImgOoo');
       const logoBuffer = await getImageBufferFromElement(logoEl, 'logo.png');
 
-      const row1Runs = [];
+      const leftCellChildren = [];
       if (logoBuffer) {
-        row1Runs.push(new ImageRun({
-          data: logoBuffer,
-          transformation: { width: 195, height: 45 }
+        leftCellChildren.push(new Paragraph({
+          spacing: { after: 120 },
+          children: [
+            new ImageRun({
+              data: logoBuffer,
+              transformation: { width: 248, height: 66 }
+            })
+          ]
         }));
       } else {
-        row1Runs.push(new TextRun({ text: "ООО \"РТСТАНДАРТ\"", bold: true, size: 24, font: "Times New Roman" }));
+        leftCellChildren.push(new Paragraph({
+          children: [new TextRun({ text: "РТСТАНДАРТ", bold: true, size: 28, font: "Times New Roman" })]
+        }));
       }
 
-      row1Runs.push(
-        new TextRun({ text: "\tООО \"РТСТАНДАРТ\"", bold: true, size: 23, font: "Times New Roman" })
+      leftCellChildren.push(
+        new Paragraph({
+          spacing: { line: 240 },
+          children: [
+            new TextRun({ text: `КП № ${fullNum}`, bold: true, size: 22, font: "Times New Roman" })
+          ]
+        }),
+        new Paragraph({
+          spacing: { line: 240 },
+          children: [
+            new TextRun({ text: `От ${dateVal}`, size: 22, font: "Times New Roman" })
+          ]
+        })
       );
 
-      docElements.push(new Paragraph({
-        tabStops: [{ type: TabStopType.RIGHT, position: 9600 }],
-        spacing: { line: 240 },
-        children: row1Runs
-      }));
+      const rightCellChildren = [
+        new Paragraph({
+          spacing: { line: 240 },
+          children: [
+            new TextRun({ text: "ООО \"РТСТАНДАРТ\"", bold: true, size: 23, font: "Times New Roman" }),
+            new TextRun({ text: "г. Санкт-Петербург, наб. Обводного канала, д. 23, лит. Г", break: 1, size: 21, font: "Times New Roman" }),
+            new TextRun({ text: "ИНН 7842228552", break: 1, size: 21, font: "Times New Roman" }),
+            new TextRun({ text: "+7 (812) 983-44-33", break: 1, size: 21, font: "Times New Roman" })
+          ]
+        })
+      ];
 
-      docElements.push(new Paragraph({
-        alignment: AlignmentType.RIGHT,
-        spacing: { line: 240 },
-        children: [
-          new TextRun({ text: "г. Санкт-Петербург, наб. Обводного канала, д. 23, лит. Г", size: 21, font: "Times New Roman" }),
-          new TextRun({ text: "ИНН 7842228552", break: 1, size: 21, font: "Times New Roman" }),
-          new TextRun({ text: "+7 (812) 983-44-33", break: 1, size: 21, font: "Times New Roman" })
-        ]
-      }));
+      if (clientVal.trim()) {
+        const clientLines = clientVal.split('\n');
+        rightCellChildren.push(new Paragraph({
+          spacing: { before: 100, line: 240 },
+          children: [
+            new TextRun({ text: "Заказчику:", size: 21, font: "Times New Roman" }),
+            ...clientLines.map(line => new TextRun({ text: line, break: 1, size: 21, font: "Times New Roman" }))
+          ]
+        }));
+      }
 
-      const clientFirstLine = clientVal.trim() ? `Заказчику: ${clientVal.split('\n')[0]}` : "";
-      docElements.push(new Paragraph({
-        tabStops: [{ type: TabStopType.RIGHT, position: 9600 }],
-        spacing: { before: 140, line: 240 },
-        children: [
-          new TextRun({ text: `КП № ${fullNum}`, bold: true, size: 22, font: "Times New Roman" }),
-          ...(clientFirstLine ? [new TextRun({ text: `\t${clientFirstLine}`, size: 22, font: "Times New Roman" })] : [])
-        ]
-      }));
-
-      const clientOtherLines = clientVal.trim() ? clientVal.split('\n').slice(1).join(' ') : "";
-      docElements.push(new Paragraph({
-        tabStops: [{ type: TabStopType.RIGHT, position: 9600 }],
-        spacing: { line: 240 },
-        children: [
-          new TextRun({ text: `От ${dateVal}`, size: 22, font: "Times New Roman" }),
-          ...(clientOtherLines ? [new TextRun({ text: `\t${clientOtherLines}`, size: 22, font: "Times New Roman" })] : [])
+      docElements.push(new Table({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        borders: transparentBorders,
+        rows: [
+          new TableRow({
+            cantSplit: true,
+            children: [
+              new TableCell({
+                width: { size: 4800, type: WidthType.DXA },
+                borders: transparentBorders,
+                verticalAlign: VerticalAlign.TOP,
+                children: leftCellChildren
+              }),
+              new TableCell({
+                width: { size: 4800, type: WidthType.DXA },
+                borders: transparentBorders,
+                verticalAlign: VerticalAlign.TOP,
+                children: rightCellChildren
+              })
+            ]
+          })
         ]
       }));
 
     } else {
+      // Шапка ИП
       docElements.push(new Paragraph({
         spacing: { line: 240, after: 60 },
         children: [
