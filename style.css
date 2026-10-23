@@ -1,16 +1,15 @@
-* {
-  box-sizing: border-box;
-  font-family: 'Times New Roman', Times, serif;
+* { 
+  box-sizing: border-box; 
+  font-family: 'Times New Roman', Times, serif; 
   -webkit-print-color-adjust: exact !important;
   print-color-adjust: exact !important;
   color-adjust: exact !important;
 }
-
-body {
-  background: #52525b;
-  margin: 0;
-  padding: 20px 10px 40px;
-  color: #000;
+body { 
+  background: #52525b; 
+  margin: 0; 
+  padding: 20px 10px 40px; 
+  color: #000; 
   min-height: 100vh;
   position: relative;
 }
@@ -29,7 +28,6 @@ body {
   pointer-events: none;
   transition: opacity 0.2s ease, transform 0.2s ease;
 }
-
 .bg-left { left: 12px; }
 .bg-right { right: 12px; }
 
@@ -51,7 +49,7 @@ body.hide-bg-sidebar .bg-sidebar {
   transform: scale(0.96);
 }
 
-/* Верхняя панель управления */
+/* Верхняя панель */
 .panel {
   width: 210mm;
   margin: 0 auto 12px;
@@ -66,20 +64,17 @@ body.hide-bg-sidebar .bg-sidebar {
   z-index: 20;
   box-shadow: 0 2px 10px rgba(0,0,0,0.2);
 }
-
-.panel-left {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-  flex-wrap: wrap;
+.panel-left { 
+  display: flex; 
+  gap: 6px; 
+  align-items: center; 
+  flex-wrap: wrap; 
 }
-
-.panel-right {
-  display: flex;
-  gap: 6px;
-  align-items: center;
+.panel-right { 
+  display: flex; 
+  gap: 6px; 
+  align-items: center; 
 }
-
 .btn {
   padding: 7px 12px;
   border-radius: 4px;
@@ -92,21 +87,12 @@ body.hide-bg-sidebar .bg-sidebar {
   color: #fff;
   transition: opacity 0.15s, background-color 0.15s;
 }
-
 .btn:hover { opacity: 0.9; }
 .btn-add { background: #f3f4f6; color: #111; border-color: #cbd5e1; }
 .btn-toggle-bg { background: #f8fafc; color: #334155; border-color: #cbd5e1; }
 .btn-clear { background: #fff1f2; color: #e11d48; border-color: #fecdd3; }
 .btn-word { background: #0284c7; border-color: #0369a1; color: #fff; }
-.btn-del {
-  background: #fee2e2;
-  color: #b91c1c;
-  border: 1px solid #f87171;
-  padding: 2px 6px;
-  font-size: 11px;
-  cursor: pointer;
-  border-radius: 3px;
-}
+.btn-del { background: #fee2e2; color: #b91c1c; border: 1px solid #f87171; padding: 2px 6px; font-size: 11px; cursor: pointer; border-radius: 3px; }
 
 .company-select {
   padding: 7px 8px;
@@ -121,7 +107,7 @@ body.hide-bg-sidebar .bg-sidebar {
   outline: none;
 }
 
-/* Калькулятор наценки и налогов */
+/* Калькулятор */
 .calc-sidebar {
   position: fixed;
   left: calc(50% - 105mm - 330px);
@@ -139,7 +125,6 @@ body.hide-bg-sidebar .bg-sidebar {
   z-index: 30;
   transition: transform 0.25s ease, opacity 0.25s ease;
 }
-
 .calc-sidebar.collapsed {
   transform: translateX(-360px);
   opacity: 0;
@@ -180,9 +165,7 @@ body.hide-bg-sidebar .bg-sidebar {
   border-bottom: 2px solid #e2e8f0;
   padding-bottom: 6px;
 }
-
 .calc-field { margin-bottom: 10px; }
-
 .calc-label {
   font-size: 11px;
   font-weight: 600;
@@ -192,7 +175,6 @@ body.hide-bg-sidebar .bg-sidebar {
   justify-content: space-between;
   align-items: center;
 }
-
 .calc-input {
   width: 100%;
   padding: 6px 8px;
@@ -202,9 +184,7 @@ body.hide-bg-sidebar .bg-sidebar {
   font-family: inherit;
   outline: none;
 }
-
 .calc-input:focus { border-color: #2563eb; }
-
 .calc-input:disabled {
   background: #f1f5f9;
   color: #94a3b8;
@@ -218,7 +198,6 @@ body.hide-bg-sidebar .bg-sidebar {
   padding: 2px;
   gap: 2px;
 }
-
 .calc-toggle-btn {
   border: none;
   background: transparent;
@@ -230,7 +209,6 @@ body.hide-bg-sidebar .bg-sidebar {
   color: #475569;
   font-family: inherit;
 }
-
 .calc-toggle-btn.active {
   background: #2563eb;
   color: #fff;
@@ -243,7 +221,6 @@ body.hide-bg-sidebar .bg-sidebar {
   padding: 8px;
   margin-top: 10px;
 }
-
 .calc-res-row {
   display: flex;
   justify-content: space-between;
@@ -251,12 +228,10 @@ body.hide-bg-sidebar .bg-sidebar {
   font-size: 11px;
   color: #64748b;
 }
-
 .calc-res-row span:last-child {
   font-weight: 600;
   color: #1e293b;
 }
-
 .calc-highlight {
   border-top: 1px dashed #cbd5e1;
   padding-top: 6px;
@@ -265,20 +240,17 @@ body.hide-bg-sidebar .bg-sidebar {
   flex-direction: column;
   gap: 2px;
 }
-
 .calc-highlight-lbl {
   font-size: 10px;
   font-weight: 700;
   color: #1e40af;
   text-transform: uppercase;
 }
-
 .calc-highlight-val {
   font-size: 15px;
   font-weight: 800;
   color: #0f172a;
 }
-
 .btn-copy-calc {
   width: 100%;
   margin-top: 10px;
@@ -295,7 +267,6 @@ body.hide-bg-sidebar .bg-sidebar {
   justify-content: center;
   gap: 6px;
 }
-
 .btn-copy-calc:hover { background: #1d4ed8; }
 
 /* Лист А4 */
@@ -318,36 +289,30 @@ body.hide-bg-sidebar .bg-sidebar {
   border-collapse: collapse;
   margin-bottom: 12px;
 }
-
 .head-grid td {
   border: none;
   padding: 0 0 8px 0;
   vertical-align: top;
 }
-
 .head-logo-cell { width: 50%; }
-
 .logo {
   height: 64px;
   max-width: 100%;
   object-fit: contain;
   display: block;
 }
-
 .head-req-cell {
   width: 50%;
   padding-left: 15px !important;
   font-size: 11.5pt;
   line-height: 1.3;
 }
-
 .head-meta-cell {
   width: 50%;
   font-size: 11pt;
   line-height: 1.35;
   padding-top: 6px !important;
 }
-
 .head-client-cell {
   width: 50%;
   padding-left: 15px !important;
@@ -362,7 +327,6 @@ body.hide-bg-sidebar .bg-sidebar {
   margin-bottom: 12px;
   display: none;
 }
-
 .head-ip-top {
   text-align: left;
   font-size: 11pt;
@@ -370,14 +334,12 @@ body.hide-bg-sidebar .bg-sidebar {
   padding-bottom: 8px;
   border-bottom: 2px solid #000;
 }
-
 .head-ip-meta {
   display: flex;
   justify-content: space-between;
   margin-top: 8px;
   font-size: 11pt;
 }
-
 .head-ip-meta-left {
   display: flex;
   align-items: baseline;
@@ -393,15 +355,12 @@ body.hide-bg-sidebar .bg-sidebar {
   background: transparent;
   outline: none;
 }
-
 .kp-num-wrapper {
   display: inline-flex;
   align-items: baseline;
   font-weight: bold;
 }
-
 .kp-prefix { font-weight: bold; margin-left: 2px; }
-
 .kp-user-input {
   font-family: inherit;
   font-size: 11pt;
@@ -419,7 +378,6 @@ body.hide-bg-sidebar .bg-sidebar {
   align-items: baseline;
   font-weight: normal;
 }
-
 .kp-ip-input {
   font-family: inherit;
   font-size: 11pt;
@@ -445,75 +403,56 @@ body.hide-bg-sidebar .bg-sidebar {
   line-height: 1.25;
 }
 
-.title {
-  text-align: center;
-  font-size: 12pt;
-  font-weight: bold;
-  margin: 10px 0 6px;
-}
-
-.intro {
-  text-align: justify;
-  text-indent: 10mm;
-  font-size: 11pt;
-  margin-bottom: 8px;
-  line-height: 1.15;
-}
+.title { text-align: center; font-size: 12pt; font-weight: bold; margin: 10px 0 6px; }
+.intro { text-align: justify; text-indent: 10mm; font-size: 11pt; margin-bottom: 8px; line-height: 1.15; }
 
 /* Таблица спецификации */
-table.spec {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 9.5pt;
-  margin-bottom: 6px;
-  table-layout: fixed;
+table.spec { 
+  width: 100%; 
+  border-collapse: collapse; 
+  font-size: 9.5pt; 
+  margin-bottom: 6px; 
+  table-layout: fixed; 
   page-break-inside: auto !important;
   break-inside: auto !important;
   box-sizing: border-box;
 }
-
 table.spec thead {
   display: table-header-group !important;
 }
-
 table.spec tbody {
   display: table-row-group !important;
 }
-
 table.spec tr {
   page-break-inside: auto !important;
   break-inside: auto !important;
 }
-
-table.spec th, table.spec td {
-  border: 1px solid #000;
-  padding: 3px 4px;
-  line-height: 1.15;
+table.spec th, table.spec td { 
+  border: 1px solid #000; 
+  padding: 3px 4px; 
+  line-height: 1.15; 
   page-break-inside: auto !important;
   break-inside: auto !important;
   box-sizing: border-box;
 }
-
-table.spec td.col-text-cell {
-  vertical-align: top;
+table.spec td.col-text-cell { 
+  vertical-align: top; 
 }
-
-table.spec td.col-num-cell {
-  vertical-align: top;
+table.spec td.col-num-cell { 
+  vertical-align: top; 
 }
-
-table.spec th {
-  background-color: #ACB9CA !important;
-  text-align: center;
-  font-weight: bold;
-  padding: 4px 2px;
+table.spec th { 
+  background-color: #ACB9CA !important; 
+  text-align: center; 
+  font-weight: bold; 
+  padding: 4px 2px; 
   word-break: break-word;
   overflow-wrap: break-word;
 }
 
-.t-tot {
-  background-color: #ACB9CA !important;
-  font-weight: normal;
+.t-tot { 
+  background-color: #ACB9CA !important; 
+  font-weight: normal; 
   page-break-inside: avoid !important;
   break-inside: avoid !important;
 }
@@ -577,37 +516,34 @@ body.is-ip .t-tot { background-color: #fff !important; }
   font-weight: normal !important;
 }
 
-.tot-phrase {
-  font-size: 11pt;
-  line-height: 1.25;
-  margin: 6px 0 10px;
+.tot-phrase { 
+  font-size: 11pt; 
+  line-height: 1.25; 
+  margin: 6px 0 10px; 
   page-break-inside: avoid !important;
   break-inside: avoid !important;
 }
 
 /* Таблица условий ООО */
-table.cond {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 10pt;
-  margin-bottom: 6px;
-  page-break-inside: auto !important;
+table.cond { 
+  width: 100%; 
+  border-collapse: collapse; 
+  font-size: 10pt; 
+  margin-bottom: 6px; 
+  page-break-inside: avoid !important;
   break-inside: auto !important;
 }
-
-table.cond td {
-  border: 1px solid #000;
-  padding: 3px 6px;
-  vertical-align: middle;
-  line-height: 1.15;
+table.cond td { 
+  border: 1px solid #000; 
+  padding: 3px 6px; 
+  vertical-align: middle; 
+  line-height: 1.15; 
 }
-
-.cond-lbl {
-  width: 140px;
-  background-color: #ACB9CA !important;
-  font-weight: bold;
+.cond-lbl { 
+  width: 140px; 
+  background-color: #ACB9CA !important; 
+  font-weight: bold; 
 }
-
 .cond-lbl-input {
   width: 100%;
   font-weight: bold;
@@ -618,7 +554,7 @@ table.cond td {
   font-size: 10pt;
 }
 
-/* Конструктор срока поставки */
+/* Блок умного срока поставки */
 .delivery-builder-box {
   display: flex;
   gap: 6px;
@@ -631,7 +567,6 @@ table.cond td {
   width: fit-content;
   font-family: Arial, sans-serif;
 }
-
 .delivery-input-short {
   width: 75px;
   padding: 2px 6px;
@@ -641,7 +576,6 @@ table.cond td {
   font-size: 9pt;
   outline: none;
 }
-
 .delivery-select-unit {
   padding: 2px 4px;
   border: 1px solid #94a3b8;
@@ -662,7 +596,6 @@ table.cond td {
   page-break-inside: avoid !important;
   break-inside: avoid !important;
 }
-
 .ip-custom-cond-row {
   display: flex;
   align-items: baseline;
@@ -670,7 +603,6 @@ table.cond td {
   margin-top: 4px;
   font-size: 11pt;
 }
-
 .ip-cond-lbl-input {
   font-family: inherit;
   font-size: 11pt;
@@ -686,12 +618,12 @@ table.cond td {
 }
 
 /* Подписи и подвал */
-.sign-row {
-  display: flex;
-  justify-content: space-between;
-  position: relative;
-  margin-top: 20px;
-  font-size: 11pt;
+.sign-row { 
+  display: flex; 
+  justify-content: space-between; 
+  position: relative; 
+  margin-top: 20px; 
+  font-size: 11pt; 
   page-break-inside: avoid !important;
   break-inside: avoid !important;
 }
@@ -700,36 +632,38 @@ body.is-ip .sign-row {
   margin-top: 14px;
 }
 
-.stamp-box {
-  position: absolute;
-  top: -38px;
-  right: 105px;
-  width: 170px;
-  pointer-events: none;
-  opacity: 0.95;
+/* Печать ООО на экране и печати браузера */
+.stamp-box { 
+  position: absolute; 
+  top: -38px; 
+  right: 105px; 
+  width: 170px; 
+  pointer-events: none; 
+  opacity: 0.95; 
 }
-
 .stamp-box img { width: 100%; display: block; }
 
+/* Позиционирование печати ИП */
 body.is-ip .stamp-box {
   top: -46px;
   right: 85px;
   width: 185px;
 }
 
-.contacts-ooo {
-  margin-top: 16px;
-  font-size: 10pt;
-  line-height: 1.25;
+.contacts-ooo { 
+  margin-top: 16px; 
+  font-size: 10pt; 
+  line-height: 1.25; 
   page-break-inside: avoid !important;
   break-inside: avoid !important;
 }
 
-.contacts-ip {
-  margin-top: 2px;
-  font-size: 10.5pt;
-  line-height: 1.25;
-  display: none;
+/* Контакты ИП */
+.contacts-ip { 
+  margin-top: 2px; 
+  font-size: 10.5pt; 
+  line-height: 1.25; 
+  display: none; 
   page-break-inside: avoid !important;
   break-inside: avoid !important;
 }
@@ -738,17 +672,15 @@ body.is-ip .stamp-box {
   .bg-sidebar { display: none !important; }
 }
 
-/* Печать страницы */
-@page {
-  size: A4 portrait;
-  margin: 8mm 12mm 8mm 12mm;
+/* Печать */
+@page { 
+  size: A4 portrait; 
+  margin: 8mm 12mm 8mm 12mm; 
 }
-
 @media print {
   * {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
-    color-adjust: exact !important;
   }
   html, body {
     background: #fff !important;
@@ -758,10 +690,10 @@ body.is-ip .stamp-box {
     orphans: 3;
     widows: 3;
   }
-  .panel, .no-print, .calc-sidebar, .calc-toggle-panel-btn, .bg-sidebar, .delivery-builder-box, .btn-cond-add {
-    display: none !important;
+  .panel, .no-print, .calc-sidebar, .calc-toggle-panel-btn, .bg-sidebar, .delivery-builder-box, .btn-cond-add { 
+    display: none !important; 
   }
-
+  
   .page {
     box-shadow: none !important;
     margin: 0 auto !important;
@@ -794,7 +726,7 @@ body.is-ip .stamp-box {
   table.spec tfoot td#grandTotal {
     border-right: 1.5px solid #000 !important;
   }
-
+  
   table.spec textarea.auto-grow,
   table.cond textarea.auto-grow {
     display: none !important;
@@ -816,8 +748,8 @@ body.is-ip .stamp-box {
     display: none !important;
   }
 
-  input, textarea, select {
-    border-bottom: none !important;
+  input, textarea, select { 
+    border-bottom: none !important; 
     appearance: none;
     -webkit-appearance: none;
   }
