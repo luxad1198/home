@@ -377,3 +377,994 @@ function initAutoResize() {
 }
 
 function onTextareaInput() { autoResizeTextarea(this); }
+
+function prepareForPrint() {
+  document.querySelectorAll('#tableBody tr').forEach(row => {
+    const textCells = row.querySelectorAll('td.col-text-cell');
+    textCells.forEach(cell => {
+      const ta = cell.querySelector('textarea.auto-grow');
+      const mirror = cell.querySelector('.print-text-mirror');
+      if (ta && mirror) {
+        mirror.textContent = ta.value;
+      }
+    });
+
+    const countryInp = row.querySelector('.col-country');
+    if (countryInp && !countryInp.value.trim()) {
+      countryInp.value = 'Китай';
+    }
+
+    const qtyInp = row.querySelector('.col-qty');
+    if (qtyInp && !qtyInp.value.trim()) {
+      qtyInp.value = '1';
+    }
+  });
+
+  document.querySelectorAll('#condOooTbody tr').forEach(row => {
+    const ta = row.querySelector('textarea.auto-grow');
+    const mirror = row.querySelector('.print-text-mirror');
+    if (ta && mirror) {
+      mirror.textContent = ta.value;
+    }
+  });
+
+  const isIp = document.getElementById('companySelect').value === 'ip';
+  const clientText = isIp ? document.getElementById('clientBoxIp')?.value : document.getElementById('clientBox')?.value;
+  const clientBoxOoo = document.getElementById('clientContainerOoo');
+  const clientBoxIp = document.getElementById('clientContainerIp');
+
+  const isEmpty = !clientText || !clientText.trim();
+  if (clientBoxOoo) clientBoxOoo.classList.toggle('print-hide-client', isEmpty);
+  if (clientBoxIp) clientBoxIp.classList.toggle('print-hide-client', isEmpty);
+}
+
+const MONTHS_GENITIVE = ["января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"];
+
+function updatePrefixFromDateString(str) {
+  if (!str) return;
+  let monthIndex = -1;
+  const lower = str.toLowerCase();
+  for (let i = 0; i < MONTHS_GENITIVE.length; i++) {
+    if (lower.indexOf(MONTHS_GENITIVE[i]) !== -1) {
+      monthIndex = i;
+      break;
+    }
+  }
+
+  const dayMatch = str.match(/\b([0-3]?[0-9])\b/);
+  if (monthIndex !== -1 && dayMatch) {
+    const mStr = String(monthIndex + 1).padStart(2, '0');
+    const dStr = String(dayMatch[1]).padStart(2, '0');
+    const pfx = `${mStr}-${dStr}/`;
+    if (document.getElementById('kpPrefix')) document.getElementById('kpPrefix').textContent = pfx;
+  }
+}
+
+function onDateInput(input) {
+  const isIp = document.getElementById('companySelect').value === 'ip';
+  if (!isIp) {
+    updatePrefixFromDateString(input.value);
+  }
+  const other = isIp ? document.getElementById('docDate') : document.getElementById('docDateIp');
+  if (other) other.value = input.value;
+  updateDocumentTitle();
+  saveState();
+}
+
+function setDateAndPrefixes() {
+  const now = new Date();
+  const monthNum = String(now.getMonth() + 1).padStart(2, '0');
+  const dayNum = String(now.getDate()).padStart(2, '0');
+  
+  const pfx = `${monthNum}-${dayNum}/`;
+  if (document.getElementById('kpPrefix')) document.getElementById('kpPrefix').textContent = pfx;
+
+  const dStr = `${dayNum} ${MONTHS_GENITIVE[now.getMonth()]} ${now.getFullYear()} года`;
+  
+  const dOoo = document.getElementById('docDate');
+  if (dOoo) dOoo.value = dStr;
+  const dIp = document.getElementById('docDateIp');
+  if (dIp) dIp.value = dStr;
+}
+
+function onPriceFocus(input) {
+  const raw = input.getAttribute('data-raw');
+  if (raw && parseNum(raw) > 0) input.value = String(raw).replace('.', ',');
+}
+
+function onPriceInput(input) {
+  const num = parseNum(input.value);
+  input.setAttribute('data-raw', num);
+  recalc();
+  saveState();
+}
+
+function onPriceBlur(input) {
+  const num = parseNum(input.value || input.getAttribute('data-raw'));
+  input.setAttribute('data-raw', num);
+  input.value = num > 0 ? fmt(num) : '';
+  recalc();
+  saveState();
+}
+
+function addRow(focusNew = false) {
+  const tbody = document.getElementById('tableBody');
+  const idx = tbody.children.length + 1;
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td class="c col-num-cell row-idx">${idx}</td>
+    <td class="col-text-cell">
+      <textarea class="auto-grow col-name" placeholder="Впиши наименование" oninput="saveState()"></textarea>
+      <div class="print-text-mirror"></div>
+    </td>
+    <td class="col-text-cell">
+      <textarea class="auto-grow col-desc" placeholder="впиши характеристики" oninput="saveState()"></textarea>
+      <div class="print-text-mirror"></div>
+    </td>
+    <td class="c col-num-cell"><input type="text" class="inp-text c col-country" placeholder="Китай" value="Китай" oninput="saveState()"></td>
+    <td class="c col-num-cell"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1" oninput="recalc(); saveState();"></td>
+    <td class="c col-num-cell">
+      <input type="text" class="inp-text r col-price" placeholder="500,00" data-raw="0" value=""
+             onfocus="onPriceFocus(this)" 
+             onblur="onPriceBlur(this)" 
+             oninput="onPriceInput(this)">
+    </td>
+    <td class="r col-num-cell col-total">0,00</td>
+    <td class="no-print c" style="border:none;"><button class="btn-del" onclick="deleteRow(this)">✕</button></td>
+  `;
+  tbody.appendChild(tr);
+  initAutoResize();
+  recalc();
+  saveState();
+  if (focusNew) tr.querySelector('.col-name').focus();
+}
+
+function deleteRow(btn) {
+  const tbody = document.getElementById('tableBody');
+  if (tbody.children.length > 1) {
+    btn.closest('tr').remove();
+  } else {
+    const row = tbody.children[0];
+    row.querySelectorAll('textarea, input').forEach(input => input.value = '');
+    row.querySelector('.col-country').value = 'Китай';
+    row.querySelector('.col-price').setAttribute('data-raw', 0);
+  }
+  document.querySelectorAll('#tableBody tr').forEach((row, i) => {
+    row.querySelector('.row-idx').textContent = i + 1;
+  });
+  recalc();
+  saveState();
+}
+
+function splitRubKop(amount) {
+  const totalKop = Math.round((amount + Number.EPSILON) * 100);
+  const rub = Math.floor(totalKop / 100);
+  const kop = totalKop % 100;
+  return { rub, kop };
+}
+
+function recalc() {
+  const isIp = document.getElementById('companySelect').value === 'ip';
+  let grandTotal = 0;
+  document.querySelectorAll('#tableBody tr').forEach(row => {
+    const qVal = row.querySelector('.col-qty').value;
+    const q = (qVal !== '' && qVal !== null) ? (parseFloat(qVal) || 1) : 1;
+    const priceInput = row.querySelector('.col-price');
+    const p = parseNum(priceInput.getAttribute('data-raw') || priceInput.value);
+    const tot = q * p;
+    row.querySelector('.col-total').textContent = fmt(tot);
+    grandTotal += tot;
+  });
+
+  document.getElementById('grandTotal').textContent = fmt(grandTotal);
+
+  const vatRate = isIp ? 5 : 22;
+  const vatDiv = isIp ? 105 : 122;
+  const vat = grandTotal > 0 ? (grandTotal * vatRate / vatDiv) : 0;
+
+  const t = splitRubKop(grandTotal);
+  const v = splitRubKop(vat);
+
+  const tRubW = num2words(t.rub, false);
+  const tRubDecl = decl(t.rub, ['рубль', 'рубля', 'рублей']);
+  const tKopDecl = decl(t.kop, ['копейка', 'копейки', 'копеек']);
+
+  const vRubW = num2words(v.rub, false);
+  const vRubDecl = decl(v.rub, ['рубль', 'рубля', 'рублей']);
+  const vKopDecl = decl(v.kop, ['копейка', 'копейки', 'копеек']);
+
+  const vatPrefix = isIp ? 'в том числе НДС 5% —' : 'в том числе НДС 22%';
+
+  document.getElementById('textTotalBlock').innerHTML = 
+    `<b>ИТОГО: ${fmtInt(t.rub)} (${tRubW}) ${tRubDecl} ${String(t.kop).padStart(2, '0')} ${tKopDecl}</b>, <b>${vatPrefix} ${fmtInt(v.rub)} (${vRubW}) ${vRubDecl} ${String(v.kop).padStart(2, '0')} ${vKopDecl}</b>.`;
+}
+
+function decl(n, forms) {
+  n = Math.abs(n) % 100;
+  const n1 = n % 10;
+  if (n > 10 && n < 20) return forms[2];
+  if (n1 > 1 && n1 < 5) return forms[1];
+  if (n1 === 1) return forms[0];
+  return forms[2];
+}
+
+function num2words(n, baseFem = false) {
+  n = Math.floor(Math.abs(Number(n) || 0));
+  if (n === 0) return 'ноль';
+  const o = ['', 'один', 'два', 'три', 'четыре', 'пять', 'шесть', 'семь', 'восемь', 'девять'];
+  const of = ['', 'одна', 'две', 'три', 'четыре', 'пять', 'шесть', 'семь', 'восемь', 'девять'];
+  const te = ['десять', 'одиннадцать', 'двенадцать', 'тринадцать', 'четырнадцать', 'пятнадцать', 'шестнадцать', 'семнадцать', 'восемнадцать', 'девятнадцать'];
+  const t = ['', '', 'двадцать', 'тридцать', 'сорок', 'пятьдесят', 'шестьдесят', 'семьдесят', 'восемьдесят', 'девяносто'];
+  const h = ['', 'сто', 'двести', 'триста', 'четыреста', 'пятьсот', 'шестьсот', 'семьсот', 'восемьсот', 'девятьсот'];
+
+  const grps = [
+    { u: 1e12, f: ['триллион', 'триллиона', 'триллионов'], fem: false },
+    { u: 1e9, f: ['миллиард', 'миллиарда', 'миллиардов'], fem: false },
+    { u: 1e6, f: ['миллион', 'миллиона', 'миллионов'], fem: false },
+    { u: 1e3, f: ['тысяча', 'тысячи', 'тысяч'], fem: true },
+    { u: 1, f: ['', '', ''], fem: baseFem }
+  ];
+
+  let res = [];
+  let rem = n;
+
+  for (let g of grps) {
+    let c = Math.floor(rem / g.u);
+    rem %= g.u;
+    if (c === 0) continue;
+
+    let ch = Math.floor(c / 100);
+    let ct = Math.floor((c % 100) / 10);
+    let co = c % 10;
+
+    if (ch > 0) res.push(h[ch]);
+    if (ct === 1) {
+      res.push(te[co]);
+    } else {
+      if (ct > 1) res.push(t[ct]);
+      if (co > 0) res.push(g.fem ? of[co] : o[co]);
+    }
+    if (g.f[0]) res.push(decl(c, g.f));
+  }
+  return res.join(' ');
+}
+
+function updateDocumentTitle() {
+  const isIp = document.getElementById('companySelect').value === 'ip';
+  const clientVal = isIp ? document.getElementById('clientBoxIp').value : document.getElementById('clientBox').value;
+  let org = isIp ? 'ИП Захаров' : 'РТСтандарт';
+  if (clientVal) {
+    const first = clientVal.split('\n')[0].replace(/["'«»\\/:*?<>|]+/g, ' ').replace(/\s+/g, ' ').trim();
+    if (first) org = first;
+  }
+  
+  let fullNum = '';
+  if (isIp) {
+    const numInputIp = document.getElementById('kpNumInputIp');
+    fullNum = (numInputIp?.value || '').trim().replace(/[\/\\]/g, '-');
+  } else {
+    const prefixEl = document.getElementById('kpPrefix');
+    const prefix = prefixEl ? prefixEl.textContent.replace(/[\/\\]/g, '-').trim() : '';
+    const numInput = document.getElementById('kpNumInput');
+    const numVal = (numInput?.value || '1').trim().replace(/[\/\\]/g, '-');
+    fullNum = (prefix + numVal).replace(/-+/g, '-');
+  }
+  
+  document.title = `КП-${org}-${fullNum || '1'}`;
+}
+
+function clearForm() {
+  if (!confirm('Вы уверены, что хотите полностью очистить бланк?')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  
+  document.getElementById('clientBox').value = '';
+  document.getElementById('clientBoxIp').value = '';
+  document.getElementById('kpNumInput').value = '1';
+  document.getElementById('kpNumInputIp').value = '';
+  setDateAndPrefixes();
+
+  document.getElementById('deliveryDaysInput').value = '5-10';
+  document.getElementById('deliveryUnitSelect').value = 'work_days';
+  document.getElementById('condOooDeliveryTime').value = DEFAULT_DELIVERY_TIME_OOO;
+  document.getElementById('condOooPay').value = DEFAULT_PAY_OOO;
+  document.getElementById('deliverySelectOoo').value = DEFAULT_DELIVERY_TYPE_OOO;
+  document.getElementById('condOooWarranty').value = DEFAULT_WARRANTY_OOO;
+
+  document.querySelectorAll('#condOooTbody tr.custom-cond-row').forEach(tr => tr.remove());
+  document.getElementById('condIpCustomList').innerHTML = '';
+
+  document.getElementById('ipDeliveryTime').value = '1-2 недели';
+  document.getElementById('deliverySelectIp').value = 'Доставка включена в стоимость';
+
+  document.getElementById('calcCostVat').value = '';
+  document.getElementById('calcFinDaysInput').value = '0';
+  document.getElementById('calcDeliveryCost').value = '';
+  document.getElementById('calcProfitTarget').value = '';
+
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = `
+    <tr>
+      <td class="c col-num-cell row-idx">1</td>
+      <td class="col-text-cell">
+        <textarea class="auto-grow col-name" placeholder="Впиши наименование" oninput="saveState()"></textarea>
+        <div class="print-text-mirror"></div>
+      </td>
+      <td class="col-text-cell">
+        <textarea class="auto-grow col-desc" placeholder="впиши характеристики" oninput="saveState()"></textarea>
+        <div class="print-text-mirror"></div>
+      </td>
+      <td class="c col-num-cell"><input type="text" class="inp-text c col-country" placeholder="Китай" value="Китай" oninput="saveState()"></td>
+      <td class="c col-num-cell"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1" oninput="recalc(); saveState();"></td>
+      <td class="c col-num-cell">
+        <input type="text" class="inp-text r col-price" placeholder="500,00" data-raw="0" value=""
+               onfocus="onPriceFocus(this)" 
+               onblur="onPriceBlur(this)" 
+               oninput="onPriceInput(this)">
+      </td>
+      <td class="r col-num-cell col-total">0,00</td>
+      <td class="no-print c" style="border:none;"><button class="btn-del" onclick="deleteRow(this)">✕</button></td>
+    </tr>
+  `;
+
+  initAutoResize();
+  calculateMargin();
+  recalc();
+  updateDocumentTitle();
+  saveState();
+}
+
+function saveState() {
+  try {
+    const rows = [];
+    document.querySelectorAll('#tableBody tr').forEach(row => {
+      rows.push({
+        name: row.querySelector('.col-name').value,
+        desc: row.querySelector('.col-desc').value,
+        country: row.querySelector('.col-country').value,
+        qty: row.querySelector('.col-qty').value,
+        price: row.querySelector('.col-price').getAttribute('data-raw') || 0
+      });
+    });
+
+    const customConds = [];
+    document.querySelectorAll('#condOooTbody tr.custom-cond-row').forEach(row => {
+      customConds.push({
+        lbl: row.querySelector('.cond-lbl-input').value,
+        val: row.querySelector('.cond-val').value
+      });
+    });
+
+    const customCondsIp = [];
+    document.querySelectorAll('#condIpCustomList .ip-custom-cond-row').forEach(row => {
+      customCondsIp.push({
+        lbl: row.querySelector('.ip-cond-lbl-input').value,
+        val: row.querySelector('.ip-cond-val-input').value
+      });
+    });
+
+    const state = {
+      company: document.getElementById('companySelect').value,
+      kpNumOoo: document.getElementById('kpNumInput').value,
+      kpNumIp: document.getElementById('kpNumInputIp').value,
+      docDateOoo: document.getElementById('docDate').value,
+      docDateIp: document.getElementById('docDateIp').value,
+      clientOoo: document.getElementById('clientBox').value,
+      clientIp: document.getElementById('clientBoxIp').value,
+      condOoo: [
+        document.getElementById('condOooDeliveryTime').value,
+        document.getElementById('condOooPay').value,
+        document.getElementById('deliverySelectOoo').value,
+        document.getElementById('condOooWarranty').value
+      ],
+      deliveryDaysInput: document.getElementById('deliveryDaysInput')?.value || '5-10',
+      deliveryUnitSelect: document.getElementById('deliveryUnitSelect')?.value || 'work_days',
+      customConds: customConds,
+      customCondsIp: customCondsIp,
+      condIp: [
+        document.getElementById('ipDeliveryTime').value,
+        document.getElementById('deliverySelectIp').value
+      ],
+      calcCostVat: document.getElementById('calcCostVat').value,
+      calcFinDays: document.getElementById('calcFinDaysInput').value,
+      calcDeliveryCost: document.getElementById('calcDeliveryCost').value,
+      calcProfitTarget: document.getElementById('calcProfitTarget').value,
+      calcMarginMode: currentMarginMode,
+      calcFinMode: currentFinMode,
+      rows: rows
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch (e) { console.warn(e); }
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+      document.getElementById('condOooDeliveryTime').value = DEFAULT_DELIVERY_TIME_OOO;
+      document.getElementById('condOooPay').value = DEFAULT_PAY_OOO;
+      document.getElementById('deliverySelectOoo').value = DEFAULT_DELIVERY_TYPE_OOO;
+      document.getElementById('condOooWarranty').value = DEFAULT_WARRANTY_OOO;
+      return false;
+    }
+    const state = JSON.parse(raw);
+
+    if (state.company) {
+      document.getElementById('companySelect').value = state.company;
+    }
+    if (state.kpNumOoo) document.getElementById('kpNumInput').value = state.kpNumOoo;
+    if (state.kpNumIp !== undefined) document.getElementById('kpNumInputIp').value = state.kpNumIp;
+    if (state.docDateOoo) document.getElementById('docDate').value = state.docDateOoo;
+    if (state.docDateIp) document.getElementById('docDateIp').value = state.docDateIp;
+    if (state.clientOoo) document.getElementById('clientBox').value = state.clientOoo;
+    if (state.clientIp) document.getElementById('clientBoxIp').value = state.clientIp;
+
+    if (state.condOoo && Array.isArray(state.condOoo)) {
+      document.getElementById('condOooDeliveryTime').value = (state.condOoo[0] && state.condOoo[0].trim()) ? state.condOoo[0] : DEFAULT_DELIVERY_TIME_OOO;
+      document.getElementById('condOooPay').value = (state.condOoo[1] && state.condOoo[1].trim()) ? state.condOoo[1] : DEFAULT_PAY_OOO;
+      document.getElementById('deliverySelectOoo').value = (state.condOoo[2] && state.condOoo[2].trim()) ? state.condOoo[2] : DEFAULT_DELIVERY_TYPE_OOO;
+      document.getElementById('condOooWarranty').value = (state.condOoo[3] && state.condOoo[3].trim()) ? state.condOoo[3] : DEFAULT_WARRANTY_OOO;
+    } else {
+      document.getElementById('condOooDeliveryTime').value = DEFAULT_DELIVERY_TIME_OOO;
+      document.getElementById('condOooPay').value = DEFAULT_PAY_OOO;
+      document.getElementById('deliverySelectOoo').value = DEFAULT_DELIVERY_TYPE_OOO;
+      document.getElementById('condOooWarranty').value = DEFAULT_WARRANTY_OOO;
+    }
+
+    if (state.deliveryDaysInput) document.getElementById('deliveryDaysInput').value = state.deliveryDaysInput;
+    if (state.deliveryUnitSelect) document.getElementById('deliveryUnitSelect').value = state.deliveryUnitSelect;
+
+    document.querySelectorAll('#condOooTbody tr.custom-cond-row').forEach(tr => tr.remove());
+    if (state.customConds && state.customConds.length > 0) {
+      state.customConds.forEach(c => addCondRowOoo(c.lbl, c.val));
+    }
+
+    document.getElementById('condIpCustomList').innerHTML = '';
+    if (state.customCondsIp && state.customCondsIp.length > 0) {
+      state.customCondsIp.forEach(c => addCondRowIp(c.lbl, c.val));
+    }
+
+    if (state.condIp && Array.isArray(state.condIp)) {
+      document.getElementById('ipDeliveryTime').value = (state.condIp[0] && state.condIp[0].trim()) ? state.condIp[0] : '1-2 недели';
+      document.getElementById('deliverySelectIp').value = (state.condIp[1] && state.condIp[1].trim()) ? state.condIp[1] : 'Доставка включена в стоимость';
+    }
+
+    if (state.calcCostVat) document.getElementById('calcCostVat').value = state.calcCostVat;
+    if (state.calcFinDays) document.getElementById('calcFinDaysInput').value = state.calcFinDays;
+    if (state.calcDeliveryCost) document.getElementById('calcDeliveryCost').value = state.calcDeliveryCost;
+    if (state.calcProfitTarget) document.getElementById('calcProfitTarget').value = state.calcProfitTarget;
+    if (state.calcMarginMode) setMarginMode(state.calcMarginMode);
+    if (state.calcFinMode) setFinMode(state.calcFinMode);
+
+    if (state.rows && state.rows.length > 0) {
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = '';
+      state.rows.forEach((rData, i) => {
+        const tr = document.createElement('tr');
+        const pNum = parseNum(rData.price);
+        tr.innerHTML = `
+          <td class="c col-num-cell row-idx">${i + 1}</td>
+          <td class="col-text-cell">
+            <textarea class="auto-grow col-name" placeholder="Впиши наименование" oninput="saveState()">${escapeHtml(rData.name || '')}</textarea>
+            <div class="print-text-mirror"></div>
+          </td>
+          <td class="col-text-cell">
+            <textarea class="auto-grow col-desc" placeholder="впиши характеристики" oninput="saveState()">${escapeHtml(rData.desc || '')}</textarea>
+            <div class="print-text-mirror"></div>
+          </td>
+          <td class="c col-num-cell"><input type="text" class="inp-text c col-country" placeholder="Китай" value="${escapeHtml(rData.country || 'Китай')}" oninput="saveState()"></td>
+          <td class="c col-num-cell"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1" value="${escapeHtml(rData.qty || '')}" oninput="recalc(); saveState();"></td>
+          <td class="c col-num-cell">
+            <input type="text" class="inp-text r col-price" placeholder="500,00" data-raw="${pNum}" value="${pNum > 0 ? fmt(pNum) : ''}"
+                   onfocus="onPriceFocus(this)" 
+                   onblur="onPriceBlur(this)" 
+                   oninput="onPriceInput(this)">
+          </td>
+          <td class="r col-num-cell col-total">0,00</td>
+          <td class="no-print c" style="border:none;"><button class="btn-del" onclick="deleteRow(this)">✕</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+    return true;
+  } catch (e) { return false; }
+}
+
+function prepareAndPrint() {
+  initAutoResize();
+  recalc();
+  prepareForPrint();
+  updateDocumentTitle();
+  window.print();
+}
+
+// ==========================================
+// ВЫГРУЗКА В WORD (.DOCX) БЕЗ ЛИНИЙ И СЕТОК
+// ==========================================
+function cleanTextForXml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n')
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+}
+
+function downloadBlobSafe(blob, filename) {
+  if (typeof saveAs === 'function') {
+    saveAs(blob, filename);
+  } else {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1500);
+  }
+}
+
+async function getImageBufferFromElement(imgElement, fallbackSrc) {
+  if (imgElement && imgElement.complete && imgElement.naturalWidth > 0) {
+    try {
+      const canvas = document.createElement('canvas');
+      canvas.width = imgElement.naturalWidth;
+      canvas.height = imgElement.naturalHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(imgElement, 0, 0);
+      const dataUrl = canvas.toDataURL('image/png');
+      const base64 = dataUrl.split(',')[1];
+      const binary = atob(base64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      return bytes.buffer;
+    } catch (e) {
+      console.warn('Canvas export failed, trying fetch:', e);
+    }
+  }
+
+  try {
+    const response = await fetch(fallbackSrc);
+    if (response.ok) {
+      const blob = await response.blob();
+      return await blob.arrayBuffer();
+    }
+  } catch (err) {
+    console.warn('Fetch fallback failed:', fallbackSrc, err);
+  }
+  return null;
+}
+
+async function exportToWord() {
+  const docxLib = window.docx;
+  if (!docxLib || !docxLib.Document) {
+    alert('Библиотека Word не загрузилась. Попробуйте сохранить через кнопку PDF / Печать.');
+    return;
+  }
+
+  initAutoResize();
+  recalc();
+  updateDocumentTitle();
+
+  const {
+    Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
+    WidthType, AlignmentType, VerticalAlign, BorderStyle, ShadingType, ImageRun, TabStopType
+  } = docxLib;
+
+  const isIp = document.getElementById('companySelect').value === 'ip';
+  const clientVal = cleanTextForXml((isIp ? document.getElementById('clientBoxIp')?.value : document.getElementById('clientBox')?.value) || '');
+  const dateVal = cleanTextForXml((isIp ? document.getElementById('docDateIp')?.value : document.getElementById('docDate')?.value) || '');
+  
+  let fullNum = '';
+  if (isIp) {
+    fullNum = cleanTextForXml((document.getElementById('kpNumInputIp')?.value || '').trim());
+  } else {
+    const pfx = document.getElementById('kpPrefix')?.textContent || '';
+    const num = document.getElementById('kpNumInput')?.value || '1';
+    fullNum = cleanTextForXml(pfx + num);
+  }
+
+  const tableBorders = {
+    top: { style: BorderStyle.SINGLE, size: 4, color: "000000" },
+    bottom: { style: BorderStyle.SINGLE, size: 4, color: "000000" },
+    left: { style: BorderStyle.SINGLE, size: 4, color: "000000" },
+    right: { style: BorderStyle.SINGLE, size: 4, color: "000000" }
+  };
+
+  const docElements = [];
+
+  // 1. Шапка документа БЕЗ ТАБЛИЦ (через табуляцию), что гарантирует отсутствие полос на 100%
+  if (!isIp) {
+    const logoEl = document.getElementById('logoImgOoo');
+    const logoBuffer = await getImageBufferFromElement(logoEl, 'logo.png');
+
+    // Строка 1: Логотип слева и название ООО справа
+    const row1Runs = [];
+    if (logoBuffer) {
+      row1Runs.push(new ImageRun({
+        data: logoBuffer,
+        transformation: { width: 195, height: 45 }
+      }));
+    } else {
+      row1Runs.push(new TextRun({ text: "ООО \"РТСТАНДАРТ\"", bold: true, size: 24, font: "Times New Roman" }));
+    }
+
+    row1Runs.push(
+      new TextRun({ text: "\tООО \"РТСТАНДАРТ\"", bold: true, size: 23, font: "Times New Roman" })
+    );
+
+    docElements.push(new Paragraph({
+      tabStops: [{ type: TabStopType.RIGHT, position: 9600 }],
+      spacing: { line: 240 },
+      children: row1Runs
+    }));
+
+    // Строки адреса и реквизитов (прижаты к правому краю)
+    docElements.push(new Paragraph({
+      alignment: AlignmentType.RIGHT,
+      spacing: { line: 240 },
+      children: [
+        new TextRun({ text: "г. Санкт-Петербург, наб. Обводного канала, д. 23, лит. Г", size: 21, font: "Times New Roman" }),
+        new TextRun({ text: "ИНН 7842228552", break: 1, size: 21, font: "Times New Roman" }),
+        new TextRun({ text: "+7 (812) 983-44-33", break: 1, size: 21, font: "Times New Roman" })
+      ]
+    }));
+
+    // Номер КП слева, Заказчик справа
+    const clientFirstLine = clientVal.trim() ? `Заказчику: ${clientVal.split('\n')[0]}` : "";
+    docElements.push(new Paragraph({
+      tabStops: [{ type: TabStopType.RIGHT, position: 9600 }],
+      spacing: { before: 140, line: 240 },
+      children: [
+        new TextRun({ text: `КП № ${fullNum}`, bold: true, size: 22, font: "Times New Roman" }),
+        ...(clientFirstLine ? [new TextRun({ text: `\t${clientFirstLine}`, size: 22, font: "Times New Roman" })] : [])
+      ]
+    }));
+
+    // Дата слева, продолжение заказчика справа
+    const clientOtherLines = clientVal.trim() ? clientVal.split('\n').slice(1).join(' ') : "";
+    docElements.push(new Paragraph({
+      tabStops: [{ type: TabStopType.RIGHT, position: 9600 }],
+      spacing: { line: 240 },
+      children: [
+        new TextRun({ text: `От ${dateVal}`, size: 22, font: "Times New Roman" }),
+        ...(clientOtherLines ? [new TextRun({ text: `\t${clientOtherLines}`, size: 22, font: "Times New Roman" })] : [])
+      ]
+    }));
+
+  } else {
+    // Шапка ИП
+    docElements.push(new Paragraph({
+      spacing: { line: 240, after: 60 },
+      children: [
+        new TextRun({ text: "Индивидуальный предприниматель Захаров Михаил Сергеевич", bold: true, size: 22, font: "Times New Roman" }),
+        new TextRun({ text: "ОГРНИП: 325110000002538", bold: true, break: 1, size: 22, font: "Times New Roman" }),
+        new TextRun({ text: " / ", size: 22, font: "Times New Roman" }),
+        new TextRun({ text: "ИНН: 110214010407", bold: true, size: 22, font: "Times New Roman" }),
+        new TextRun({ text: "Тел.: +7 (981) 208-62-36", break: 1, size: 22, font: "Times New Roman" }),
+        new TextRun({ text: "e-mail: m.zakharov0811@gmail.com", break: 1, size: 22, font: "Times New Roman" })
+      ],
+      border: { bottom: { style: BorderStyle.SINGLE, size: 12, color: "000000", space: 4 } }
+    }));
+
+    const ipMetaChildren = [
+      new TextRun({ text: `Исх. № ${fullNum}        От ${dateVal}`, size: 22, font: "Times New Roman" })
+    ];
+
+    if (clientVal.trim()) {
+      ipMetaChildren.push(
+        new TextRun({ text: `\tЗаказчику: ${clientVal.replace(/\n/g, ' ')}`, size: 22, font: "Times New Roman" })
+      );
+    }
+
+    docElements.push(new Paragraph({
+      tabStops: [{ type: TabStopType.RIGHT, position: 9600 }],
+      spacing: { before: 120, after: 80, line: 240 },
+      children: ipMetaChildren
+    }));
+  }
+
+  // 2. Заголовок
+  docElements.push(new Paragraph({
+    alignment: AlignmentType.CENTER,
+    spacing: { before: 180, after: 120 },
+    children: [new TextRun({ text: "КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ", bold: true, size: 24, font: "Times New Roman" })]
+  }));
+
+  const introText = isIp
+    ? "Индивидуальный предприниматель Захаров Михаил Сергеевич, действующий на основании свидетельства о государственной регистрации, предлагает рассмотреть возможность поставки следующего оборудования:"
+    : "Общество с ограниченной ответственностью «РТСтандарт», в лице генерального директора Маркова Дмитрия Евгеньевича, действующего на основании Устава, предлагает рассмотреть возможность поставки следующего оборудования:";
+
+  docElements.push(new Paragraph({
+    alignment: AlignmentType.JUSTIFIED,
+    indent: { firstLine: 567 },
+    spacing: { after: 140, line: 260 },
+    children: [new TextRun({ text: introText, size: 22, font: "Times New Roman" })]
+  }));
+
+  // 3. Таблица спецификации
+  const headerBgColor = isIp ? "FFFFFF" : "ACB9CA";
+  const priceColTitle = isIp ? "Цена за ед. руб., с НДС 5%" : "Цена за ед. руб., с НДС 22%";
+  const sumColTitle = isIp ? "Сумма руб., с НДС 5%" : "Сумма руб., с НДС 22%";
+
+  const colWidths = [
+    { dxa: 400 },
+    { dxa: 2400 },
+    { dxa: 2900 },
+    { dxa: 800 },
+    { dxa: 700 },
+    { dxa: 1100 },
+    { dxa: 1300 }
+  ];
+
+  const makeHeaderCell = (text, idx) => new TableCell({
+    width: { size: colWidths[idx].dxa, type: WidthType.DXA },
+    borders: tableBorders,
+    shading: { fill: headerBgColor, type: ShadingType.CLEAR },
+    verticalAlign: VerticalAlign.TOP,
+    children: [new Paragraph({
+      alignment: AlignmentType.CENTER,
+      children: [new TextRun({ text, bold: true, size: 19, font: "Times New Roman" })]
+    })]
+  });
+
+  const tableRows = [
+    new TableRow({
+      tableHeader: true,
+      cantSplit: true,
+      children: [
+        makeHeaderCell("№", 0),
+        makeHeaderCell("Наименование товара", 1),
+        makeHeaderCell("Основные характеристики предложенного товара", 2),
+        makeHeaderCell("Страна", 3),
+        makeHeaderCell("Кол-во", 4),
+        makeHeaderCell(priceColTitle, 5),
+        makeHeaderCell(sumColTitle, 6)
+      ]
+    })
+  ];
+
+  const htmlRows = document.querySelectorAll('#tableBody tr');
+  htmlRows.forEach((tr, i) => {
+    const name = cleanTextForXml(tr.querySelector('.col-name')?.value || '');
+    const desc = cleanTextForXml(tr.querySelector('.col-desc')?.value || '');
+    const country = cleanTextForXml(tr.querySelector('.col-country')?.value || 'Китай');
+    const qty = cleanTextForXml(tr.querySelector('.col-qty')?.value || '1');
+    const price = cleanTextForXml(tr.querySelector('.col-price')?.value || '0,00');
+    const total = cleanTextForXml(tr.querySelector('.col-total')?.textContent || '0,00');
+
+    const makeDataCell = (content, align = AlignmentType.LEFT, idx = 0) => {
+      const lines = cleanTextForXml(content).split('\n');
+      const runs = lines.map((line, lineIdx) => new TextRun({
+        text: line,
+        break: lineIdx > 0 ? 1 : 0,
+        size: 19,
+        font: "Times New Roman"
+      }));
+
+      return new TableCell({
+        width: { size: colWidths[idx].dxa, type: WidthType.DXA },
+        borders: tableBorders,
+        verticalAlign: VerticalAlign.TOP,
+        children: [new Paragraph({
+          alignment: align,
+          spacing: { line: 230 },
+          children: runs
+        })]
+      });
+    };
+
+    tableRows.push(new TableRow({
+      cantSplit: true,
+      children: [
+        makeDataCell(i + 1, AlignmentType.CENTER, 0),
+        makeDataCell(name, AlignmentType.LEFT, 1),
+        makeDataCell(desc, AlignmentType.LEFT, 2),
+        makeDataCell(country, AlignmentType.CENTER, 3),
+        makeDataCell(qty, AlignmentType.CENTER, 4),
+        makeDataCell(price, AlignmentType.RIGHT, 5),
+        makeDataCell(total, AlignmentType.RIGHT, 6)
+      ]
+    }));
+  });
+
+  const grandTotalVal = cleanTextForXml(document.getElementById('grandTotal')?.textContent || '0,00');
+  tableRows.push(new TableRow({
+    cantSplit: true,
+    children: [
+      new TableCell({
+        columnSpan: 6,
+        borders: tableBorders,
+        shading: { fill: headerBgColor, type: ShadingType.CLEAR },
+        verticalAlign: VerticalAlign.TOP,
+        children: [new Paragraph({
+          alignment: AlignmentType.RIGHT,
+          children: [new TextRun({ text: "ИТОГО:", size: 19, font: "Times New Roman" })]
+        })]
+      }),
+      new TableCell({
+        borders: tableBorders,
+        shading: { fill: headerBgColor, type: ShadingType.CLEAR },
+        verticalAlign: VerticalAlign.TOP,
+        children: [new Paragraph({
+          alignment: AlignmentType.RIGHT,
+          children: [new TextRun({ text: grandTotalVal, size: 19, font: "Times New Roman" })]
+        })]
+      })
+    ]
+  }));
+
+  docElements.push(new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    borders: tableBorders,
+    rows: tableRows
+  }));
+
+  // 4. Сумма прописью
+  const textTotalBlock = cleanTextForXml(document.getElementById('textTotalBlock')?.innerText || '');
+  docElements.push(new Paragraph({
+    spacing: { before: 140, after: 160, line: 260 },
+    children: [new TextRun({ text: textTotalBlock, bold: true, size: 22, font: "Times New Roman" })]
+  }));
+
+  // 5. Условия сделки
+  if (!isIp) {
+    const condFields = [
+      { lbl: "Срок поставки", val: cleanTextForXml(document.getElementById('condOooDeliveryTime')?.value || '') },
+      { lbl: "Условия оплаты", val: cleanTextForXml(document.getElementById('condOooPay')?.value || '') },
+      { lbl: "Доставка", val: cleanTextForXml(document.getElementById('deliverySelectOoo')?.value || '') },
+      { lbl: "Гарантия", val: cleanTextForXml(document.getElementById('condOooWarranty')?.value || '') }
+    ];
+
+    document.querySelectorAll('#condOooTbody tr.custom-cond-row').forEach(row => {
+      condFields.push({
+        lbl: cleanTextForXml(row.querySelector('.cond-lbl-input')?.value || 'Дополнительно'),
+        val: cleanTextForXml(row.querySelector('.cond-val')?.value || '')
+      });
+    });
+
+    const condRows = condFields.map(item => {
+      const valLines = item.val.split('\n');
+      const valRuns = valLines.map((line, lIdx) => new TextRun({
+        text: line,
+        break: lIdx > 0 ? 1 : 0,
+        size: 20,
+        font: "Times New Roman"
+      }));
+
+      return new TableRow({
+        cantSplit: true,
+        children: [
+          new TableCell({
+            width: { size: 2200, type: WidthType.DXA },
+            borders: tableBorders,
+            shading: { fill: "ACB9CA", type: ShadingType.CLEAR },
+            verticalAlign: VerticalAlign.CENTER,
+            children: [new Paragraph({ children: [new TextRun({ text: item.lbl, bold: true, size: 20, font: "Times New Roman" })] })]
+          }),
+          new TableCell({
+            width: { size: 7400, type: WidthType.DXA },
+            borders: tableBorders,
+            verticalAlign: VerticalAlign.CENTER,
+            children: [new Paragraph({ spacing: { line: 240 }, children: valRuns })]
+          })
+        ]
+      });
+    });
+    docElements.push(new Table({
+      width: { size: 100, type: WidthType.PERCENTAGE },
+      borders: tableBorders,
+      rows: condRows
+    }));
+  } else {
+    const ipTime = cleanTextForXml(document.getElementById('ipDeliveryTime')?.value || '');
+    const ipDel = cleanTextForXml(document.getElementById('deliverySelectIp')?.value || '');
+    docElements.push(new Paragraph({
+      spacing: { after: 50, line: 240 },
+      children: [
+        new TextRun({ text: "Срок поставки: ", bold: true, size: 22, font: "Times New Roman" }),
+        new TextRun({ text: ipTime, size: 22, font: "Times New Roman" })
+      ]
+    }));
+    docElements.push(new Paragraph({
+      spacing: { after: 50, line: 240 },
+      children: [
+        new TextRun({ text: "Доставка: ", bold: true, size: 22, font: "Times New Roman" }),
+        new TextRun({ text: ipDel, size: 22, font: "Times New Roman" })
+      ]
+    }));
+
+    document.querySelectorAll('#condIpCustomList .ip-custom-cond-row').forEach(row => {
+      const cLbl = cleanTextForXml(row.querySelector('.ip-cond-lbl-input')?.value || '');
+      const cVal = cleanTextForXml(row.querySelector('.ip-cond-val-input')?.value || '');
+      if (cLbl || cVal) {
+        docElements.push(new Paragraph({
+          spacing: { after: 50, line: 240 },
+          children: [
+            new TextRun({ text: `${cLbl}: `, bold: true, size: 22, font: "Times New Roman" }),
+            new TextRun({ text: cVal, size: 22, font: "Times New Roman" })
+          ]
+        }));
+      }
+    });
+  }
+
+  // 6. Подписи и контакты
+  const signTitle = isIp ? "Индивидуальный предприниматель" : "Генеральный директор ООО «РТСтандарт»";
+  const signPerson = isIp ? "Захаров М.С." : "Марков Д.Е.";
+
+  docElements.push(new Paragraph({
+    tabStops: [{ type: TabStopType.RIGHT, position: 9600 }],
+    spacing: { before: 180, line: 240 },
+    children: [
+      new TextRun({ text: signTitle, size: 22, font: "Times New Roman" }),
+      new TextRun({ text: `\t_________________ / ${signPerson}`, size: 22, font: "Times New Roman" })
+    ]
+  }));
+
+  if (!isIp) {
+    docElements.push(new Paragraph({
+      spacing: { before: 100, line: 240 },
+      children: [
+        new TextRun({ text: "Исп.", size: 20, font: "Times New Roman" }),
+        new TextRun({ text: "Коммерческий департамент", break: 1, size: 20, font: "Times New Roman" }),
+        new TextRun({ text: "ООО «РТСтандарт»", break: 1, size: 20, font: "Times New Roman" }),
+        new TextRun({ text: "E-mail: info@liscorp.ru", break: 1, size: 20, font: "Times New Roman" }),
+        new TextRun({ text: "+7 (981) 040-10-70", break: 1, size: 20, font: "Times New Roman" }),
+        new TextRun({ text: "+7 (812) 983-44-33", break: 1, size: 20, font: "Times New Roman" }),
+        new TextRun({ text: "https://liscorp.ru/", break: 1, size: 20, font: "Times New Roman" })
+      ]
+    }));
+  } else {
+    docElements.push(new Paragraph({
+      spacing: { before: 40, line: 240 },
+      children: [
+        new TextRun({ text: "Захаров Михаил Сергеевич", size: 21, font: "Times New Roman" }),
+        new TextRun({ text: "Телефон: +7 981 208-62-36", break: 1, size: 21, font: "Times New Roman" }),
+        new TextRun({ text: "Email: m.zakharov0811@gmail.com", break: 1, size: 21, font: "Times New Roman" })
+      ]
+    }));
+  }
+
+  // Сборка документа
+  const wordDoc = new Document({
+    sections: [{
+      properties: {
+        page: {
+          margin: { top: 720, bottom: 720, left: 850, right: 850 }
+        }
+      },
+      children: docElements
+    }]
+  });
+
+  Packer.toBlob(wordDoc).then(blob => {
+    const titleText = document.title || 'КП';
+    downloadBlobSafe(blob, `${titleText}.docx`);
+  }).catch(err => {
+    console.error('Ошибка сборки Word:', err);
+    alert('Ошибка при экспорте в Word. Подробности в консоли браузера.');
+  });
+}
+
+window.addEventListener('beforeprint', prepareForPrint);
+
+window.addEventListener('DOMContentLoaded', () => {
+  initBackgroundVisibility();
+  const restored = loadState();
+  
+  const curDateStr = document.getElementById('docDate')?.value;
+  if (curDateStr) {
+    updatePrefixFromDateString(curDateStr);
+  } else {
+    setDateAndPrefixes();
+  }
+
+  onCompanyChange();
+  initAutoResize();
+  recalc();
+  updateDocumentTitle();
+});
+
+window.addEventListener('load', () => initAutoResize());
