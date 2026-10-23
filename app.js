@@ -12,6 +12,65 @@
   const DEFAULT_WARRANTY_OOO = '12 месяцев с возможностью расширения до 5 лет. Выезд инженера в рамках гарантийного ремонта по адресу Заказчика – опционально. Обслуживание On-site (на месте) / Keep Your Drive (KYD) ремонт с сохранением жестких дисков у клиента – опционально.';
   const MONTHS_GENITIVE = ["января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"];
 
+  function decl(n, forms) {
+    n = Math.abs(n) % 100;
+    const n1 = n % 10;
+    if (n > 10 && n < 20) return forms[2];
+    if (n1 > 1 && n1 < 5) return forms[1];
+    if (n1 === 1) return forms[0];
+    return forms[2];
+  }
+
+  function num2words(n, baseFem = false) {
+    n = Math.floor(Math.abs(Number(n) || 0));
+    if (n === 0) return 'ноль';
+
+    const o = ['', 'один', 'два', 'три', 'четыре', 'пять', 'шесть', 'семь', 'восемь', 'девять'];
+    const of = ['', 'одна', 'две', 'три', 'четыре', 'пять', 'шесть', 'семь', 'восемь', 'девять'];
+    const te = ['десять', 'одиннадцать', 'двенадцать', 'тринадцать', 'четырнадцать', 'пятнадцать', 'шестнадцать', 'семнадцать', 'восемнадцать', 'девятнадцать'];
+    const t = ['', '', 'двадцать', 'тридцать', 'сорок', 'пятьдесят', 'шестьдесят', 'семьдесят', 'восемьдесят', 'девяносто'];
+    const h = ['', 'сто', 'двести', 'триста', 'четыреста', 'пятьсот', 'шестьсот', 'семьсот', 'восемьсот', 'девятьсот'];
+
+    const grps = [
+      { u: 1e12, f: ['триллион', 'триллиона', 'триллионов'], fem: false },
+      { u: 1e9,  f: ['миллиард', 'миллиарда', 'миллиардов'], fem: false },
+      { u: 1e6,  f: ['миллион', 'миллиона', 'миллионов'], fem: false },
+      { u: 1e3,  f: ['тысяча', 'тысячи', 'тысяч'], fem: true },
+      { u: 1,    f: ['', '', ''], fem: baseFem }
+    ];
+
+    let res = [];
+    let rem = n;
+
+    for (let g of grps) {
+      let c = Math.floor(rem / g.u);
+      rem %= g.u;
+      if (c === 0) continue;
+
+      let ch = Math.floor(c / 100);
+      let rem100 = c % 100;
+      let ct = Math.floor(rem100 / 10);
+      let co = rem100 % 10;
+
+      if (ch > 0) res.push(h[ch]);
+
+      if (ct === 1) {
+        res.push(te[co]);
+      } else {
+        if (ct > 1) res.push(t[ct]);
+        if (co > 0) {
+          res.push(g.fem ? of[co] : o[co]);
+        }
+      }
+
+      if (g.f[0]) {
+        res.push(decl(c, g.f));
+      }
+    }
+
+    return res.join(' ');
+  }
+
   function parseNumberToWord(numStr, isFem = false) {
     const n = parseInt(numStr, 10);
     if (isNaN(n) || n < 0) return numStr;
@@ -536,56 +595,6 @@
       `<b>ИТОГО: ${fmtInt(t.rub)} (${tRubW}) ${tRubDecl} ${String(t.kop).padStart(2, '0')} ${tKopDecl}</b>, <b>${vatPrefix} ${fmtInt(v.rub)} (${vRubW}) ${vRubDecl} ${String(v.kop).padStart(2, '0')} ${vKopDecl}</b>.`;
   }
 
-  function decl(n, forms) {
-    n = Math.abs(n) % 100;
-    const n1 = n % 10;
-    if (n > 10 && n < 20) return forms[2];
-    if (n1 > 1 && n1 < 5) return forms[1];
-    if (n1 === 1) return forms[0];
-    return forms[2];
-  }
-
-  function num2words(n, baseFem = false) {
-    n = Math.floor(Math.abs(Number(n) || 0));
-    if (n === 0) return 'ноль';
-    const o = ['', 'один', 'два', 'три', 'четыре', 'пять', 'шесть', 'семь', 'восемь', 'девять'];
-    const of = ['', 'одна', 'две', 'три', 'четыре', 'пять', 'шесть', 'семь', 'восемь', 'девять'];
-    const te = ['десять', 'одиннадцать', 'двенадцать', 'тринадцать', 'четырнадцать', 'пятнадцать', 'шестнадцать', 'семнадцать', 'восемнадцать', 'девятнадцать'];
-    const t = ['', '', 'двадцать', 'тридцать', 'сорок', 'пятьдесят', 'шестьдесят', 'семьдесят', 'восемьдесят', 'девяносто'];
-    const h = ['', 'сто', 'двести', 'триста', 'четыреста', 'пятьсот', 'шестьсот', 'семьсот', 'восемьсот', 'девятьсот'];
-
-    const grps = [
-      { u: 1e12, f: ['триллион', 'триллиона', 'триллионов'], fem: false },
-      { u: 1e9, f: ['миллиард', 'миллиарда', 'миллиардов'], fem: false },
-      { u: 1e6, f: ['миллион', 'миллиона', 'миллионов'], fem: false },
-      { u: 1e3, f: ['тысяча', 'тысячи', 'тысяч'], fem: true },
-      { u: 1, f: ['', '', ''], fem: baseFem }
-    ];
-
-    let res = [];
-    let rem = n;
-
-    for (let g of grps) {
-      let c = Math.floor(rem / g.u);
-      rem %= g.u;
-      if (c === 0) continue;
-
-      let ch = Math.floor(c / 100);
-      let ct = Math.floor((c % 100) / 10);
-      let co = c % 10;
-
-      if (ch > 0) res.push(h[ch]);
-      if (ct === 1) {
-        res.push(te[co]);
-      } else {
-        if (ct > 1) res.push(t[ct]);
-        if (co > 0) res.push(g.fem ? of[co] : o[co]);
-      }
-      if (g.f[0]) res.push(decl(c, g.f));
-    }
-    return res.join(' ');
-  }
-
   function updateDocumentTitle() {
     const isIp = document.getElementById('companySelect').value === 'ip';
     const clientVal = isIp ? document.getElementById('clientBoxIp').value : document.getElementById('clientBox').value;
@@ -1102,7 +1111,7 @@
       };
 
       tableRows.push(new TableRow({
-        cantSplit: true,
+        cantSplit: false,
         children: [
           makeDataCell(i + 1, AlignmentType.CENTER, 0),
           makeDataCell(name, AlignmentType.LEFT, 1),
