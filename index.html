@@ -12,39 +12,39 @@
 <body>
 
   <!-- Кнопка вызова калькулятора -->
-  <button class="calc-toggle-panel-btn no-print" onclick="toggleCalcPanel()">📊 Калькулятор</button>
+  <button class="calc-toggle-panel-btn no-print" id="btnToggleCalc">📊 Калькулятор</button>
 
   <!-- Калькулятор -->
   <div class="calc-sidebar no-print" id="calcSidebar">
     <div class="calc-title">
       <span>📊 Расчет цен и налогов</span>
-      <span style="cursor:pointer; font-size:16px;" onclick="toggleCalcPanel()">✕</span>
+      <span style="cursor:pointer; font-size:16px;" id="btnCloseCalc">✕</span>
     </div>
 
     <div class="calc-field">
       <label class="calc-label" for="calcCostVat">Закупка товара с НДС, ₽</label>
-      <input type="text" id="calcCostVat" class="calc-input" placeholder="например 100 000" oninput="calculateMargin(); saveState();">
+      <input type="text" id="calcCostVat" class="calc-input" placeholder="например 100 000">
     </div>
 
     <div class="calc-field">
       <div class="calc-label">
         <span>Финансирование (28% год.)</span>
         <div class="calc-toggle">
-          <button type="button" class="calc-toggle-btn active" id="btnFinDays" onclick="setFinMode('days')">Дни</button>
-          <button type="button" class="calc-toggle-btn" id="btnFinWeeks" onclick="setFinMode('weeks')">Недели</button>
+          <button type="button" class="calc-toggle-btn active" id="btnFinDays">Дни</button>
+          <button type="button" class="calc-toggle-btn" id="btnFinWeeks">Недели</button>
         </div>
       </div>
       <div style="display: flex; gap: 6px; align-items: center;">
-        <input type="number" id="calcFinDaysInput" class="calc-input" placeholder="дней (напр. 30)" value="0" min="0" oninput="calculateMargin(); saveState();">
-        <button type="button" id="btnWeekMinus" style="display:none; padding:5px 8px; cursor:pointer;" onclick="stepFinWeeks(-1)">-1н</button>
-        <button type="button" id="btnWeekPlus" style="display:none; padding:5px 8px; cursor:pointer;" onclick="stepFinWeeks(1)">+1н</button>
+        <input type="number" id="calcFinDaysInput" class="calc-input" placeholder="дней (напр. 30)" value="0" min="0">
+        <button type="button" id="btnWeekMinus" style="display:none; padding:5px 8px; cursor:pointer;">-1н</button>
+        <button type="button" id="btnWeekPlus" style="display:none; padding:5px 8px; cursor:pointer;">+1н</button>
       </div>
       <div style="font-size:11px; color:#64748b; margin-top:2px;" id="calcFinCostVal">Стоимость денег: 0,00 ₽</div>
     </div>
 
     <div class="calc-field" id="calcDeliveryRow">
       <label class="calc-label" for="calcDeliveryCost" id="lblDeliveryTitle">Доставка до клиента с НДС 22%, ₽</label>
-      <input type="text" id="calcDeliveryCost" class="calc-input" placeholder="например 3 500" oninput="calculateMargin(); saveState();">
+      <input type="text" id="calcDeliveryCost" class="calc-input" placeholder="например 3 500">
       <div id="calcDeliveryPickupNote" style="display:none; font-size:10px; color:#d97706; margin-top:2px;">В КП выбран самовывоз (доставка 0 ₽)</div>
     </div>
 
@@ -52,11 +52,11 @@
       <div class="calc-label">
         <span>Желаемая прибыль</span>
         <div class="calc-toggle">
-          <button type="button" class="calc-toggle-btn active" id="btnModeRub" onclick="setMarginMode('rub')">₽</button>
-          <button type="button" class="calc-toggle-btn" id="btnModePct" onclick="setMarginMode('pct')">%</button>
+          <button type="button" class="calc-toggle-btn active" id="btnModeRub">₽</button>
+          <button type="button" class="calc-toggle-btn" id="btnModePct">%</button>
         </div>
       </div>
-      <input type="text" id="calcProfitTarget" class="calc-input" placeholder="15 000" oninput="calculateMargin(); saveState();">
+      <input type="text" id="calcProfitTarget" class="calc-input" placeholder="15 000">
     </div>
 
     <div class="calc-result-box">
@@ -83,7 +83,7 @@
       </div>
     </div>
 
-    <button type="button" class="btn-copy-calc" onclick="copyCalcPrice()">📋 Скопировать цену в буфер</button>
+    <button type="button" class="btn-copy-calc" id="btnCopyCalc">📋 Скопировать цену в буфер</button>
   </div>
 
   <!-- Фоновые миниатюры слева -->
@@ -103,17 +103,17 @@
   <!-- Панель действий -->
   <div class="panel no-print">
     <div class="panel-left">
-      <select class="company-select" id="companySelect" onchange="onCompanyChange()">
+      <select class="company-select" id="companySelect">
         <option value="ooo">🏢 ООО «РТСтандарт» (НДС 22%)</option>
         <option value="ip">👤 ИП Захаров М.С. (УСН + НДС 5%)</option>
       </select>
-      <button class="btn btn-add" onclick="addRow()">+ Добавить позицию</button>
-      <button class="btn btn-toggle-bg" id="btnToggleBg" onclick="toggleBackgroundImages()">🖼️ Скрыть картинки</button>
-      <button class="btn btn-clear" onclick="clearForm()">🗑️ Очистить бланк</button>
+      <button class="btn btn-add" id="btnAddRow">+ Добавить позицию</button>
+      <button class="btn btn-toggle-bg" id="btnToggleBg">🖼️ Скрыть картинки</button>
+      <button class="btn btn-clear" id="btnClearForm">🗑️ Очистить бланк</button>
     </div>
     <div class="panel-right">
-      <button class="btn btn-word" onclick="exportToWord()" title="Скачать чистый документ Word">📝 Скачать Word</button>
-      <button class="btn" onclick="prepareAndPrint()">🖨️ PDF / Печать</button>
+      <button class="btn btn-word" id="btnExportWord" title="Скачать чистый документ Word">📝 Скачать Word</button>
+      <button class="btn" id="btnPrint">🖨️ PDF / Печать</button>
     </div>
   </div>
 
@@ -137,13 +137,13 @@
         <td class="head-meta-cell">
           <div class="kp-num-wrapper">
             КП № <span class="kp-prefix" id="kpPrefix">10-20/</span>
-            <input type="text" class="kp-user-input" id="kpNumInput" placeholder="1" value="1" oninput="saveState(); updateDocumentTitle();">
+            <input type="text" class="kp-user-input" id="kpNumInput" placeholder="1" value="1">
           </div><br>
-          От <input type="text" id="docDate" class="meta-input" style="width: 155px;" oninput="onDateInput(this)">
+          От <input type="text" id="docDate" class="meta-input" style="width: 155px;">
         </td>
         <td class="head-client-cell" id="clientContainerOoo">
           Заказчику:
-          <textarea rows="2" class="auto-grow client-textarea" id="clientBox" placeholder="можете вписать наименование заказчика" oninput="saveState(); updateDocumentTitle();"></textarea>
+          <textarea rows="2" class="auto-grow client-textarea" id="clientBox" placeholder="можете вписать наименование заказчика"></textarea>
         </td>
       </tr>
     </table>
@@ -160,15 +160,15 @@
         <div class="head-ip-meta-left">
           <div class="kp-ip-wrapper">
             Исх. №&nbsp;
-            <input type="text" class="kp-ip-input" id="kpNumInputIp" placeholder="номер" value="" oninput="saveState(); updateDocumentTitle();">
+            <input type="text" class="kp-ip-input" id="kpNumInputIp" placeholder="номер" value="">
           </div>
           <div>
-            От <input type="text" id="docDateIp" class="meta-input" style="width: 155px;" oninput="onDateInput(this)">
+            От <input type="text" id="docDateIp" class="meta-input" style="width: 155px;">
           </div>
         </div>
         <div style="width: 48%; padding-left: 15px;" id="clientContainerIp">
           Заказчику:
-          <textarea rows="2" class="auto-grow client-textarea" id="clientBoxIp" placeholder="можете вписать наименование заказчика" oninput="saveState(); updateDocumentTitle();"></textarea>
+          <textarea rows="2" class="auto-grow client-textarea" id="clientBoxIp" placeholder="можете вписать наименование заказчика"></textarea>
         </div>
       </div>
     </div>
@@ -196,23 +196,20 @@
         <tr>
           <td class="c col-num-cell row-idx">1</td>
           <td class="col-text-cell">
-            <textarea class="auto-grow col-name" placeholder="Впиши наименование" oninput="saveState()"></textarea>
+            <textarea class="auto-grow col-name" placeholder="Впиши наименование"></textarea>
             <div class="print-text-mirror"></div>
           </td>
           <td class="col-text-cell">
-            <textarea class="auto-grow col-desc" placeholder="впиши характеристики" oninput="saveState()"></textarea>
+            <textarea class="auto-grow col-desc" placeholder="впиши характеристики"></textarea>
             <div class="print-text-mirror"></div>
           </td>
-          <td class="c col-num-cell"><input type="text" class="inp-text c col-country" placeholder="Китай" value="Китай" oninput="saveState()"></td>
-          <td class="c col-num-cell"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1" oninput="recalc(); saveState();"></td>
+          <td class="c col-num-cell"><input type="text" class="inp-text c col-country" placeholder="Китай" value="Китай"></td>
+          <td class="c col-num-cell"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1"></td>
           <td class="c col-num-cell">
-            <input type="text" class="inp-text r col-price" placeholder="500,00" data-raw="0" value=""
-                   onfocus="onPriceFocus(this)" 
-                   onblur="onPriceBlur(this)" 
-                   oninput="onPriceInput(this)">
+            <input type="text" class="inp-text r col-price" placeholder="500,00" data-raw="0" value="">
           </td>
           <td class="r col-num-cell col-total">0,00</td>
-          <td class="no-print c" style="border:none;"><button class="btn-del" onclick="deleteRow(this)">✕</button></td>
+          <td class="no-print c" style="border:none;"><button type="button" class="btn-del">✕</button></td>
         </tr>
       </tbody>
       <tfoot>
@@ -231,8 +228,8 @@
     <!-- Умный конструктор срока поставки (общий для ООО и ИП) -->
     <div class="delivery-builder-box no-print">
       <span style="font-size:8.5pt; color:#475569; font-weight:600;">⚡ Срок поставки цифрами:</span>
-      <input type="text" class="delivery-input-short" id="deliveryDaysInput" placeholder="5-10" value="5-10" oninput="onDeliveryBuilderChange()">
-      <select class="delivery-select-unit" id="deliveryUnitSelect" onchange="onDeliveryBuilderChange()">
+      <input type="text" class="delivery-input-short" id="deliveryDaysInput" placeholder="5-10" value="5-10">
+      <select class="delivery-select-unit" id="deliveryUnitSelect">
         <option value="work_days">рабочих дней</option>
         <option value="cal_days">календарных дней</option>
         <option value="weeks">недель</option>
@@ -245,7 +242,7 @@
         <tr id="rowDeliveryTime">
           <td class="cond-lbl">Срок поставки</td>
           <td>
-            <textarea class="auto-grow cond-val" id="condOooDeliveryTime" oninput="saveState()">5-10 (пять-десять) рабочих дней</textarea>
+            <textarea class="auto-grow cond-val" id="condOooDeliveryTime">5-10 (пять-десять) рабочих дней</textarea>
             <div class="print-text-mirror"></div>
           </td>
           <td class="no-print" style="width:25px; border:none; background:#fff;"></td>
@@ -253,7 +250,7 @@
         <tr>
           <td class="cond-lbl">Условия оплаты</td>
           <td>
-            <textarea class="auto-grow cond-val" id="condOooPay" oninput="saveState()">100% постоплата</textarea>
+            <textarea class="auto-grow cond-val" id="condOooPay">100% постоплата</textarea>
             <div class="print-text-mirror"></div>
           </td>
           <td class="no-print" style="width:25px; border:none; background:#fff;"></td>
@@ -261,7 +258,7 @@
         <tr>
           <td class="cond-lbl">Доставка</td>
           <td>
-            <select class="auto-grow cond-val" id="deliverySelectOoo" onchange="calculateMargin(); saveState();">
+            <select class="auto-grow cond-val" id="deliverySelectOoo">
               <option value="Доставка товара до адреса заказчика включена">Доставка товара до адреса заказчика включена</option>
               <option value="Самовывоз со склада продавца">Самовывоз со склада продавца</option>
             </select>
@@ -271,7 +268,7 @@
         <tr>
           <td class="cond-lbl">Гарантия</td>
           <td>
-            <textarea class="auto-grow cond-val" id="condOooWarranty" oninput="saveState()">12 месяцев с возможностью расширения до 5 лет. Выезд инженера в рамках гарантийного ремонта по адресу Заказчика – опционально. Обслуживание On-site (на месте) / Keep Your Drive (KYD) ремонт с сохранением жестких дисков у клиента – опционально.</textarea>
+            <textarea class="auto-grow cond-val" id="condOooWarranty">12 месяцев с возможностью расширения до 5 лет. Выезд инженера в рамках гарантийного ремонта по адресу Заказчика – опционально. Обслуживание On-site (на месте) / Keep Your Drive (KYD) ремонт с сохранением жестких дисков у клиента – опционально.</textarea>
             <div class="print-text-mirror"></div>
           </td>
           <td class="no-print" style="width:25px; border:none; background:#fff;"></td>
@@ -281,9 +278,9 @@
 
     <!-- Условия ИП -->
     <div class="ip-cond-box" id="condIpBox">
-      <div><b>Срок поставки:</b> <input type="text" id="ipDeliveryTime" class="meta-input" value="1-2 недели" style="width: 340px;" oninput="saveState()"></div>
+      <div><b>Срок поставки:</b> <input type="text" id="ipDeliveryTime" class="meta-input" value="1-2 недели" style="width: 340px;"></div>
       <div style="margin-top: 4px;"><b>Доставка:</b> 
-        <select class="meta-input" id="deliverySelectIp" onchange="calculateMargin(); saveState();">
+        <select class="meta-input" id="deliverySelectIp">
           <option value="Доставка включена в стоимость">Доставка включена в стоимость</option>
           <option value="Самовывоз со склада продавца">Самовывоз со склада продавца</option>
         </select>
@@ -292,7 +289,7 @@
     </div>
 
     <div style="margin-bottom: 14px;" class="no-print">
-      <button type="button" class="btn btn-add btn-cond-add" onclick="addCondRowForActiveCompany()">+ Добавить условие</button>
+      <button type="button" class="btn btn-add btn-cond-add" id="btnAddCondRow">+ Добавить условие</button>
     </div>
 
     <!-- Подписи и контакты -->
