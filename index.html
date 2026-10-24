@@ -8,7 +8,7 @@
   <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
   <!-- Стили -->
-  <link rel="stylesheet" href="style.css?v=20261024-company3-1">
+  <link rel="stylesheet" href="style.css?v=20261024-company3-2">
 </head>
 <body>
 
@@ -107,7 +107,7 @@
       <select class="company-select" id="companySelect">
         <option value="ooo">🏢 ООО «РТСтандарт» (НДС 22%)</option>
         <option value="ip">👤 ИП Захаров М.С. (УСН + НДС 5%)</option>
-        <option value="ip-glazyrin">✍️ ИП Глазырин А.А. (УСН 5%, без НДС)</option>
+        <option value="ip-glazyrin">✍️ ИП Глазырин А.А. (УСН 4% + 1%, без НДС)</option>
       </select>
       <button class="btn btn-add" id="btnAddRow">+ Добавить позицию</button>
       <button class="btn btn-toggle-bg" id="btnToggleBg">🖼️ Скрыть картинки</button>
@@ -161,7 +161,7 @@
       <div class="head-ip-meta">
         <div class="head-ip-meta-left">
           <div class="kp-ip-wrapper">
-            Исх. №&nbsp;
+            <span id="kpNumLabel">Исх. №</span>&nbsp;
             <input type="text" class="kp-ip-input" id="kpNumInputIp" placeholder="номер" value="">
           </div>
           <div>
@@ -330,6 +330,6 @@
   </div>
 
   <!-- Скрипты логики -->
-  <script src="app.js?v=20261024-company3-1"></script>
+  <script src="app.js?v=20261024-company3-2"></script>
 </body>
 </html>
