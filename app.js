@@ -196,6 +196,12 @@
     input.style.width = Math.max(30, length * 8.5 + 4) + 'px';
   }
 
+  function updateIpConditionSeparator(row) {
+    const label = row?.querySelector('.ip-cond-lbl-input');
+    const separator = row?.querySelector('.ip-cond-label-separator');
+    if (label && separator) separator.textContent = /[:：]\s*$/.test(label.value) ? '' : ':';
+  }
+
   function addCondRowIp(title = 'Документы', val = 'УПД, Счет', section = null) {
     const isGlazyrin = document.getElementById('companySelect')?.value === 'ip-glazyrin';
     const itemSection = isGlazyrin ? String(section || '3') : '';
@@ -206,11 +212,12 @@
     div.className = 'ip-custom-cond-row';
     if (itemSection) div.dataset.section = itemSection;
     div.innerHTML = `
-      <b><span class="ip-cond-number"></span><input type="text" class="ip-cond-lbl-input" value="${escapeHtml(title)}"><span class="ip-cond-label-print"></span>:</b>
+      <b><span class="ip-cond-number"></span><input type="text" class="ip-cond-lbl-input" value="${escapeHtml(title)}"><span class="ip-cond-label-print"></span><span class="ip-cond-label-separator">:</span></b>
       <input type="text" class="meta-input ip-cond-val-input" value="${escapeHtml(val)}" placeholder="значение" style="width: 320px;"><span class="ip-cond-value-print"></span>
       <button type="button" class="btn-del btn-del-ip-cond no-print">✕</button>
     `;
     container.appendChild(div);
+    updateIpConditionSeparator(div);
     const inp = div.querySelector('.ip-cond-lbl-input');
     adjustInputWidth(inp);
     renumberGlazyrinConditions();
@@ -538,6 +545,15 @@
       target.style.lineHeight = source.lineHeight;
       target.style.letterSpacing = source.letterSpacing;
     };
+    document.querySelectorAll('#condIpBox .ip-term-row').forEach(row => {
+      const field = row.querySelector('.meta-input');
+      const mirror = row.querySelector('.ip-standard-value-print');
+      if (!field || !mirror) return;
+      mirror.textContent = field.tagName === 'SELECT'
+        ? (field.selectedOptions[0]?.textContent || field.value)
+        : (field.value || '');
+      copyTextStyle(mirror, getComputedStyle(field));
+    });
     document.querySelectorAll('#condIpBox .ip-custom-cond-row').forEach(row => {
       const label = row.querySelector('.ip-cond-lbl-input');
       const value = row.querySelector('.ip-cond-val-input');
@@ -1473,7 +1489,7 @@
         ]
       }));
       const addCustomTerms = (selector) => document.querySelectorAll(selector).forEach(row => {
-        const cLbl = cleanTextForXml(row.querySelector('.ip-cond-lbl-input')?.value || '');
+        const cLbl = cleanTextForXml(row.querySelector('.ip-cond-lbl-input')?.value || '').replace(/[:：]\s*$/, '');
         const cVal = cleanTextForXml(row.querySelector('.ip-cond-val-input')?.value || '');
         const cNum = cleanTextForXml(row.querySelector('.ip-cond-number')?.textContent || '').trim();
         if (cLbl || cVal) addTerm(cNum ? `${cNum} ${cLbl}` : cLbl, cVal);
@@ -1773,6 +1789,7 @@
       });
       container.addEventListener('input', (e) => {
         if (e.target.matches('.ip-cond-lbl-input')) {
+          updateIpConditionSeparator(e.target.closest('.ip-custom-cond-row'));
           adjustInputWidth(e.target);
           saveState();
         } else if (e.target.matches('.ip-cond-val-input')) {
