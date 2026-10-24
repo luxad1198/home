@@ -8,7 +8,7 @@
   <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
   <!-- Стили -->
-  <link rel="stylesheet" href="style.css?v=20261024-4">
+  <link rel="stylesheet" href="style.css?v=20261024-company3-1">
 </head>
 <body>
 
@@ -107,6 +107,7 @@
       <select class="company-select" id="companySelect">
         <option value="ooo">🏢 ООО «РТСтандарт» (НДС 22%)</option>
         <option value="ip">👤 ИП Захаров М.С. (УСН + НДС 5%)</option>
+        <option value="ip-glazyrin">✍️ ИП Глазырин А.А. (УСН 5%, без НДС)</option>
       </select>
       <button class="btn btn-add" id="btnAddRow">+ Добавить позицию</button>
       <button class="btn btn-toggle-bg" id="btnToggleBg">🖼️ Скрыть картинки</button>
@@ -151,7 +152,7 @@
 
     <!-- Шапка ИП -->
     <div class="head-ip-container" id="headIp">
-      <div class="head-ip-top">
+      <div class="head-ip-top" id="headIpTop">
         <b>Индивидуальный предприниматель Захаров Михаил Сергеевич</b><br>
         <b>ОГРНИП: 325110000002538</b> / <b>ИНН: 110214010407</b><br>
         Тел.: +7 (981) 208-62-36<br>
@@ -329,6 +330,6 @@
   </div>
 
   <!-- Скрипты логики -->
-  <script src="app.js?v=20261024-docx-header-2"></script>
+  <script src="app.js?v=20261024-company3-1"></script>
 </body>
 </html>
