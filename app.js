@@ -933,14 +933,17 @@
       right: { style: BorderStyle.SINGLE, size: 4, color: "000000" }
     };
 
-    const noBorder = { style: BorderStyle.NONE, size: 0, color: "auto" };
+    const noBorder = () => ({ style: BorderStyle.NONE, size: 0, color: "FFFFFF" });
+    const transparentCellBorders = {
+      top: noBorder(),
+      bottom: noBorder(),
+      left: noBorder(),
+      right: noBorder()
+    };
     const transparentBorders = {
-      top: noBorder,
-      bottom: noBorder,
-      left: noBorder,
-      right: noBorder,
-      insideH: noBorder,
-      insideV: noBorder
+      ...transparentCellBorders,
+      insideHorizontal: noBorder(),
+      insideVertical: noBorder()
     };
 
     const docElements = [];
@@ -957,7 +960,7 @@
           children: [
             new ImageRun({
               data: logoBuffer,
-              transformation: { width: 248, height: 66 }
+              transformation: { width: 230, height: 62 }
             })
           ]
         }));
@@ -1007,20 +1010,20 @@
 
       docElements.push(new Table({
         width: { size: 100, type: WidthType.PERCENTAGE },
-        borders: transparentBorders,
+        borders: transparentCellBorders,
         rows: [
           new TableRow({
             cantSplit: true,
             children: [
               new TableCell({
                 width: { size: 4800, type: WidthType.DXA },
-                borders: transparentBorders,
+                borders: transparentCellBorders,
                 verticalAlign: VerticalAlign.TOP,
                 children: leftCellChildren
               }),
               new TableCell({
                 width: { size: 4800, type: WidthType.DXA },
-                borders: transparentBorders,
+                borders: transparentCellBorders,
                 verticalAlign: VerticalAlign.TOP,
                 children: rightCellChildren
               })
