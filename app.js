@@ -206,8 +206,8 @@
     div.className = 'ip-custom-cond-row';
     if (itemSection) div.dataset.section = itemSection;
     div.innerHTML = `
-      <b><span class="ip-cond-number"></span><input type="text" class="ip-cond-lbl-input" value="${escapeHtml(title)}"><span class="ip-cond-label-print"></span>:</b>&nbsp;
-      <input type="text" class="meta-input ip-cond-val-input" value="${escapeHtml(val)}" placeholder="значение" style="width: 320px;"><span class="ip-cond-value-print"></span>&nbsp;
+      <b><span class="ip-cond-number"></span><input type="text" class="ip-cond-lbl-input" value="${escapeHtml(title)}"><span class="ip-cond-label-print"></span>:</b>
+      <input type="text" class="meta-input ip-cond-val-input" value="${escapeHtml(val)}" placeholder="значение" style="width: 320px;"><span class="ip-cond-value-print"></span>
       <button type="button" class="btn-del btn-del-ip-cond no-print">✕</button>
     `;
     container.appendChild(div);
@@ -527,13 +527,30 @@
       if (ta && mirror) mirror.textContent = ta.value;
     });
 
+    const standardLabel = document.querySelector('#condIpBox .ip-term-row:not(.is-deleted) > b');
+    const standardValue = document.querySelector('#condIpBox .ip-term-row:not(.is-deleted) .meta-input');
+    const labelStyle = standardLabel ? getComputedStyle(standardLabel) : null;
+    const valueStyle = standardValue ? getComputedStyle(standardValue) : null;
+    const copyTextStyle = (target, source) => {
+      if (!target || !source) return;
+      target.style.font = source.font;
+      target.style.color = source.color;
+      target.style.lineHeight = source.lineHeight;
+      target.style.letterSpacing = source.letterSpacing;
+    };
     document.querySelectorAll('#condIpBox .ip-custom-cond-row').forEach(row => {
       const label = row.querySelector('.ip-cond-lbl-input');
       const value = row.querySelector('.ip-cond-val-input');
       const labelMirror = row.querySelector('.ip-cond-label-print');
       const valueMirror = row.querySelector('.ip-cond-value-print');
-      if (labelMirror) labelMirror.textContent = label?.value || '';
-      if (valueMirror) valueMirror.textContent = value?.value || '';
+      if (labelMirror) {
+        labelMirror.textContent = (label?.value || '').replace(/[:：]\s*$/, '');
+        copyTextStyle(labelMirror, labelStyle);
+      }
+      if (valueMirror) {
+        valueMirror.textContent = value?.value || '';
+        copyTextStyle(valueMirror, valueStyle);
+      }
     });
 
     const isIp = isSoleProprietor();
