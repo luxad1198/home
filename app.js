@@ -1080,10 +1080,10 @@
     }
 
     const tableBorders = {
-      top: { style: BorderStyle.SINGLE, size: 4, color: "000000" },
-      bottom: { style: BorderStyle.SINGLE, size: 4, color: "000000" },
-      left: { style: BorderStyle.SINGLE, size: 4, color: "000000" },
-      right: { style: BorderStyle.SINGLE, size: 4, color: "000000" }
+      top: { style: BorderStyle.SINGLE, size: 4, color: isGlazyrin ? "9AA2AA" : "000000" },
+      bottom: { style: BorderStyle.SINGLE, size: 4, color: isGlazyrin ? "9AA2AA" : "000000" },
+      left: { style: BorderStyle.SINGLE, size: 4, color: isGlazyrin ? "9AA2AA" : "000000" },
+      right: { style: BorderStyle.SINGLE, size: 4, color: isGlazyrin ? "9AA2AA" : "000000" }
     };
 
     const noBorder = () => ({ style: BorderStyle.NONE, size: 0, color: "FFFFFF" });
