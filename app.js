@@ -28,7 +28,7 @@
       priceTitle: 'Цена за ед. руб., без НДС', sumTitle: 'Сумма, руб. (без НДС)', vatRate: 0, vatDivisor: 100,
       signTitle: 'Индивидуальный предприниматель', signPerson: 'Глазырин А.А.', taxLabel: 'УСН (4% + 1%):', vatLabel: 'НДС не начисляется:', taxRate: 0.05,
       headerHtml: '<div class="ip-gla-entity">Индивидуальный предприниматель</div><div class="ip-gla-name">Глазырин Алексей Алексеевич</div><div class="ip-gla-details">ИНН: 143533463817<br>ОГРНИП: 326140000064939</div><div class="ip-gla-contact">Тел.: +7 966 871-88-61<br>Почта: a.glazyrin1198@mail.ru</div>',
-      contactsHtml: 'Индивидуальный предприниматель Глазырин Алексей Алексеевич<br>Телефон: +7 966 871-88-61<br>Email: a.glazyrin1198@mail.ru', stamp: null
+      contactsHtml: 'Глазырин Алексей Алексеевич<br>Телефон: +7 966 871-88-61<br>Email: a.glazyrin1198@mail.ru', stamp: null
     }
   };
 
@@ -161,7 +161,10 @@
 
   function addCondRowForActiveCompany() {
     const isIp = isSoleProprietor();
-    if (isIp) {
+    const isGlazyrin = document.getElementById('companySelect')?.value === 'ip-glazyrin';
+    if (isGlazyrin) {
+      addCondRowIp('Дополнительное условие', '', '3');
+    } else if (isIp) {
       addCondRowIp('Документы', 'УПД, Счет');
     } else {
       addCondRowOoo('Дополнительно', '');
@@ -193,19 +196,36 @@
     input.style.width = Math.max(30, length * 8.5 + 4) + 'px';
   }
 
-  function addCondRowIp(title = 'Документы', val = 'УПД, Счет') {
-    const container = document.getElementById('condIpCustomList');
+  function addCondRowIp(title = 'Документы', val = 'УПД, Счет', section = null) {
+    const isGlazyrin = document.getElementById('companySelect')?.value === 'ip-glazyrin';
+    const itemSection = isGlazyrin ? String(section || '3') : '';
+    const containerId = itemSection === '2' ? 'condIpCustomList2' : 'condIpCustomList';
+    const container = document.getElementById(containerId);
+    if (!container) return;
     const div = document.createElement('div');
     div.className = 'ip-custom-cond-row';
+    if (itemSection) div.dataset.section = itemSection;
     div.innerHTML = `
-      <b><input type="text" class="ip-cond-lbl-input" value="${escapeHtml(title)}">:</b>&nbsp;
+      <b><span class="ip-cond-number"></span><input type="text" class="ip-cond-lbl-input" value="${escapeHtml(title)}">:</b>&nbsp;
       <input type="text" class="meta-input ip-cond-val-input" value="${escapeHtml(val)}" placeholder="значение" style="width: 320px;">&nbsp;
       <button type="button" class="btn-del btn-del-ip-cond no-print">✕</button>
     `;
     container.appendChild(div);
     const inp = div.querySelector('.ip-cond-lbl-input');
     adjustInputWidth(inp);
+    renumberGlazyrinConditions();
     saveState();
+  }
+
+  function renumberGlazyrinConditions() {
+    document.querySelectorAll('#condIpCustomList2 .ip-custom-cond-row').forEach((row, index) => {
+      const number = row.querySelector('.ip-cond-number');
+      if (number) number.textContent = `2.${index + 4}. `;
+    });
+    document.querySelectorAll('#condIpCustomList .ip-custom-cond-row').forEach((row, index) => {
+      const number = row.querySelector('.ip-cond-number');
+      if (number) number.textContent = `3.${index + 5}. `;
+    });
   }
 
   function escapeHtml(str) {
@@ -679,6 +699,7 @@
 
     document.querySelectorAll('#condOooTbody tr.custom-cond-row').forEach(tr => tr.remove());
     document.getElementById('condIpCustomList').innerHTML = '';
+    document.getElementById('condIpCustomList2').innerHTML = '';
 
     document.getElementById('ipDeliveryTime').value = '1-2 недели';
     document.getElementById('deliverySelectIp').value = 'Доставка включена в стоимость';
@@ -744,10 +765,11 @@
       });
 
       const customCondsIp = [];
-      document.querySelectorAll('#condIpCustomList .ip-custom-cond-row').forEach(row => {
+      document.querySelectorAll('#condIpBox .ip-custom-cond-row').forEach(row => {
         customCondsIp.push({
           lbl: row.querySelector('.ip-cond-lbl-input').value,
-          val: row.querySelector('.ip-cond-val-input').value
+          val: row.querySelector('.ip-cond-val-input').value,
+          section: row.dataset.section || ''
         });
       });
 
@@ -833,9 +855,11 @@
       }
 
       document.getElementById('condIpCustomList').innerHTML = '';
+      document.getElementById('condIpCustomList2').innerHTML = '';
       if (state.customCondsIp && state.customCondsIp.length > 0) {
-        state.customCondsIp.forEach(c => addCondRowIp(c.lbl, c.val));
+        state.customCondsIp.forEach(c => addCondRowIp(c.lbl, c.val, c.section || undefined));
       }
+      renumberGlazyrinConditions();
 
       if (state.condIp && Array.isArray(state.condIp)) {
         document.getElementById('ipDeliveryTime').value = (state.condIp[0] && state.condIp[0].trim()) ? state.condIp[0] : '1-2 недели';
@@ -1393,23 +1417,26 @@
           new TextRun({ text: value, size: 20, font: "Arial", color: "374151" })
         ]
       }));
+      const addCustomTerms = (selector) => document.querySelectorAll(selector).forEach(row => {
+        const cLbl = cleanTextForXml(row.querySelector('.ip-cond-lbl-input')?.value || '');
+        const cVal = cleanTextForXml(row.querySelector('.ip-cond-val-input')?.value || '');
+        const cNum = cleanTextForXml(row.querySelector('.ip-cond-number')?.textContent || '').trim();
+        if (cLbl || cVal) addTerm(cNum ? `${cNum} ${cLbl}` : cLbl, cVal);
+      });
       addTerm("2.1. Срок поставки", cleanTextForXml(document.getElementById('ipDeliveryTime')?.value || ''));
       addTerm("2.2. Условия оплаты", cleanTextForXml(document.getElementById('ipPaymentTerms')?.value || ''));
       addTerm("2.3. Место и способ поставки", cleanTextForXml(document.getElementById('deliverySelectIp')?.value || ''));
+      addCustomTerms('#condIpCustomList2 .ip-custom-cond-row');
       addSectionHeading("3. Дополнительные условия");
       addTerm("3.1. Гарантийные обязательства", cleanTextForXml(document.getElementById('ipWarrantyTerms')?.value || ''));
       addTerm("3.2. Сервисное обслуживание и поддержка", cleanTextForXml(document.getElementById('ipServiceTerms')?.value || ''));
       addTerm("3.3. Срок действия предложения", cleanTextForXml(document.getElementById('ipValidityTerms')?.value || ''));
       addTerm("3.4. Приложения", cleanTextForXml(document.getElementById('ipAppendixTerms')?.value || ''));
+      addCustomTerms('#condIpCustomList .ip-custom-cond-row');
       docElements.push(new Paragraph({
         spacing: { before: 80, after: 60, line: 230 },
         children: [new TextRun({ text: "Предложение предназначено для предварительного согласования условий поставки.", italics: true, size: 19, font: "Arial", color: "4B5563" })]
       }));
-      document.querySelectorAll('#condIpCustomList .ip-custom-cond-row').forEach(row => {
-        const cLbl = cleanTextForXml(row.querySelector('.ip-cond-lbl-input')?.value || '');
-        const cVal = cleanTextForXml(row.querySelector('.ip-cond-val-input')?.value || '');
-        if (cLbl || cVal) addTerm(cLbl, cVal);
-      });
     } else {
       const ipTime = cleanTextForXml(document.getElementById('ipDeliveryTime')?.value || '');
       const ipDel = cleanTextForXml(document.getElementById('deliverySelectIp')?.value || '');
@@ -1427,7 +1454,7 @@
           new TextRun({ text: ipDel, size: 22, font: "Times New Roman" })
         ]
       }));
-      document.querySelectorAll('#condIpCustomList .ip-custom-cond-row').forEach(row => {
+      document.querySelectorAll('#condIpBox .ip-custom-cond-row').forEach(row => {
         const cLbl = cleanTextForXml(row.querySelector('.ip-cond-lbl-input')?.value || '');
         const cVal = cleanTextForXml(row.querySelector('.ip-cond-val-input')?.value || '');
         if (cLbl || cVal) {
@@ -1472,7 +1499,7 @@
       docElements.push(new Paragraph({
         spacing: { before: 40, line: 240 },
         children: [
-          new TextRun({ text: isGlazyrin ? "Индивидуальный предприниматель Глазырин Алексей Алексеевич" : "Захаров Михаил Сергеевич", size: 21, font: "Times New Roman" }),
+          new TextRun({ text: isGlazyrin ? "Глазырин Алексей Алексеевич" : "Захаров Михаил Сергеевич", size: 21, font: "Times New Roman" }),
           new TextRun({ text: isGlazyrin ? "Телефон: +7 966 871-88-61" : "Телефон: +7 981 208-62-36", break: 1, size: 21, font: "Times New Roman" }),
           new TextRun({ text: isGlazyrin ? "Email: a.glazyrin1198@mail.ru" : "Email: m.zakharov0811@gmail.com", break: 1, size: 21, font: "Times New Roman" })
         ]
@@ -1591,6 +1618,8 @@
       saveState();
     });
     document.getElementById('btnAddCondRow')?.addEventListener('click', addCondRowForActiveCompany);
+    document.getElementById('btnAddCondIp2')?.addEventListener('click', () => addCondRowIp('Дополнительное условие', '', '2'));
+    document.getElementById('btnAddCondIp3')?.addEventListener('click', () => addCondRowIp('Дополнительное условие', '', '3'));
 
     // Авто-растягивание текстовых областей
     document.addEventListener('input', (e) => {
@@ -1658,16 +1687,16 @@
     }
 
     // Делегирование для дополнительных условий ИП
-    const condIpCustomList = document.getElementById('condIpCustomList');
-    if (condIpCustomList) {
-      condIpCustomList.addEventListener('click', (e) => {
+    document.querySelectorAll('#condIpCustomList, #condIpCustomList2').forEach(container => {
+      container.addEventListener('click', (e) => {
         const btn = e.target.closest('.btn-del-ip-cond');
         if (btn) {
           btn.closest('.ip-custom-cond-row').remove();
+          renumberGlazyrinConditions();
           saveState();
         }
       });
-      condIpCustomList.addEventListener('input', (e) => {
+      container.addEventListener('input', (e) => {
         if (e.target.matches('.ip-cond-lbl-input')) {
           adjustInputWidth(e.target);
           saveState();
@@ -1675,7 +1704,7 @@
           saveState();
         }
       });
-    }
+    });
   }
 
   window.addEventListener('beforeprint', prepareForPrint);
