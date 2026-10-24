@@ -206,8 +206,8 @@
     div.className = 'ip-custom-cond-row';
     if (itemSection) div.dataset.section = itemSection;
     div.innerHTML = `
-      <b><span class="ip-cond-number"></span><input type="text" class="ip-cond-lbl-input" value="${escapeHtml(title)}">:</b>&nbsp;
-      <input type="text" class="meta-input ip-cond-val-input" value="${escapeHtml(val)}" placeholder="значение" style="width: 320px;">&nbsp;
+      <b><span class="ip-cond-number"></span><input type="text" class="ip-cond-lbl-input" value="${escapeHtml(title)}"><span class="ip-cond-label-print"></span>:</b>&nbsp;
+      <input type="text" class="meta-input ip-cond-val-input" value="${escapeHtml(val)}" placeholder="значение" style="width: 320px;"><span class="ip-cond-value-print"></span>&nbsp;
       <button type="button" class="btn-del btn-del-ip-cond no-print">✕</button>
     `;
     container.appendChild(div);
@@ -525,6 +525,15 @@
       const ta = row.querySelector('textarea.auto-grow');
       const mirror = row.querySelector('.print-text-mirror');
       if (ta && mirror) mirror.textContent = ta.value;
+    });
+
+    document.querySelectorAll('#condIpBox .ip-custom-cond-row').forEach(row => {
+      const label = row.querySelector('.ip-cond-lbl-input');
+      const value = row.querySelector('.ip-cond-val-input');
+      const labelMirror = row.querySelector('.ip-cond-label-print');
+      const valueMirror = row.querySelector('.ip-cond-value-print');
+      if (labelMirror) labelMirror.textContent = label?.value || '';
+      if (valueMirror) valueMirror.textContent = value?.value || '';
     });
 
     const isIp = isSoleProprietor();
