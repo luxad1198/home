@@ -1007,6 +1007,7 @@ body.is-ip-glazyrin .ip-cond-val-input {
   font: inherit;
   color: #374151;
 }
+.ip-standard-value-print,
 .ip-cond-label-print,
 .ip-cond-value-print { display: none; }
 body.is-ip-glazyrin .ip-cond-number { color: #243b53; font-weight: 700; white-space: nowrap; }
