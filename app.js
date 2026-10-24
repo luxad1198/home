@@ -682,6 +682,11 @@
 
     document.getElementById('ipDeliveryTime').value = '1-2 недели';
     document.getElementById('deliverySelectIp').value = 'Доставка включена в стоимость';
+    document.getElementById('ipPaymentTerms').value = 'По согласованию';
+    document.getElementById('ipWarrantyTerms').value = 'Согласно документации производителя';
+    document.getElementById('ipServiceTerms').value = 'По отдельному согласованию';
+    document.getElementById('ipValidityTerms').value = 'До согласования заказа';
+    document.getElementById('ipAppendixTerms').value = 'Спецификация и техническое описание предоставляются по запросу';
 
     document.getElementById('calcCostVat').value = '';
     document.getElementById('calcFinDaysInput').value = '0';
@@ -766,7 +771,12 @@
         customCondsIp: customCondsIp,
         condIp: [
           document.getElementById('ipDeliveryTime').value,
-          document.getElementById('deliverySelectIp').value
+          document.getElementById('deliverySelectIp').value,
+          document.getElementById('ipPaymentTerms').value,
+          document.getElementById('ipWarrantyTerms').value,
+          document.getElementById('ipServiceTerms').value,
+          document.getElementById('ipValidityTerms').value,
+          document.getElementById('ipAppendixTerms').value
         ],
         calcCostVat: document.getElementById('calcCostVat').value,
         calcFinDays: document.getElementById('calcFinDaysInput').value,
@@ -830,6 +840,11 @@
       if (state.condIp && Array.isArray(state.condIp)) {
         document.getElementById('ipDeliveryTime').value = (state.condIp[0] && state.condIp[0].trim()) ? state.condIp[0] : '1-2 недели';
         document.getElementById('deliverySelectIp').value = (state.condIp[1] && state.condIp[1].trim()) ? state.condIp[1] : 'Доставка включена в стоимость';
+        document.getElementById('ipPaymentTerms').value = state.condIp[2] || 'По согласованию';
+        document.getElementById('ipWarrantyTerms').value = state.condIp[3] || 'Согласно документации производителя';
+        document.getElementById('ipServiceTerms').value = state.condIp[4] || 'По отдельному согласованию';
+        document.getElementById('ipValidityTerms').value = state.condIp[5] || 'До согласования заказа';
+        document.getElementById('ipAppendixTerms').value = state.condIp[6] || 'Спецификация и техническое описание предоставляются по запросу';
       }
 
       if (state.calcCostVat) document.getElementById('calcCostVat').value = state.calcCostVat;
@@ -1188,8 +1203,14 @@
       children: [new TextRun({ text: introText, size: 22, font: "Times New Roman" })]
     }));
 
+    const addSectionHeading = (text) => docElements.push(new Paragraph({
+      spacing: { before: 100, after: 60 },
+      children: [new TextRun({ text, bold: true, size: 20, font: isGlazyrin ? "Arial" : "Times New Roman", color: isGlazyrin ? "243B53" : undefined })]
+    }));
+    if (isGlazyrin) addSectionHeading("1. Перечень предлагаемого оборудования");
+
     // 3. Таблица спецификации
-    const headerBgColor = isGlazyrin ? "2F5D50" : (isIp ? "FFFFFF" : "ACB9CA");
+    const headerBgColor = isGlazyrin ? "F1F3F5" : (isIp ? "FFFFFF" : "ACB9CA");
     const totalBgColor = isGlazyrin ? "E8F0EC" : headerBgColor;
     const priceColTitle = company.priceTitle;
     const sumColTitle = company.sumTitle;
@@ -1211,7 +1232,7 @@
       verticalAlign: VerticalAlign.TOP,
       children: [new Paragraph({
         alignment: AlignmentType.CENTER,
-        children: [new TextRun({ text, bold: true, size: 19, color: isGlazyrin ? "FFFFFF" : "000000", font: "Times New Roman" })]
+        children: [new TextRun({ text, bold: true, size: 19, color: "1F2937", font: isGlazyrin ? "Arial" : "Times New Roman" })]
       })]
     });
 
@@ -1315,6 +1336,7 @@
     }));
 
     // 5. Условия сделки
+    if (isGlazyrin) addSectionHeading("2. Условия поставки и оплаты");
     if (!isIp) {
       const condFields = [
         { lbl: "Срок поставки", val: cleanTextForXml(document.getElementById('condOooDeliveryTime')?.value || '') },
@@ -1363,6 +1385,31 @@
         borders: tableBorders,
         rows: condRows
       }));
+    } else if (isGlazyrin) {
+      const addTerm = (label, value) => docElements.push(new Paragraph({
+        spacing: { after: 50, line: 230 },
+        children: [
+          new TextRun({ text: `${label}: `, bold: true, size: 20, font: "Arial", color: "243B53" }),
+          new TextRun({ text: value, size: 20, font: "Arial", color: "374151" })
+        ]
+      }));
+      addTerm("2.1. Срок поставки", cleanTextForXml(document.getElementById('ipDeliveryTime')?.value || ''));
+      addTerm("2.2. Условия оплаты", cleanTextForXml(document.getElementById('ipPaymentTerms')?.value || ''));
+      addTerm("2.3. Место и способ поставки", cleanTextForXml(document.getElementById('deliverySelectIp')?.value || ''));
+      addSectionHeading("3. Дополнительные условия");
+      addTerm("3.1. Гарантийные обязательства", cleanTextForXml(document.getElementById('ipWarrantyTerms')?.value || ''));
+      addTerm("3.2. Сервисное обслуживание и поддержка", cleanTextForXml(document.getElementById('ipServiceTerms')?.value || ''));
+      addTerm("3.3. Срок действия предложения", cleanTextForXml(document.getElementById('ipValidityTerms')?.value || ''));
+      addTerm("3.4. Приложения", cleanTextForXml(document.getElementById('ipAppendixTerms')?.value || ''));
+      docElements.push(new Paragraph({
+        spacing: { before: 80, after: 60, line: 230 },
+        children: [new TextRun({ text: "Предложение предназначено для предварительного согласования условий поставки.", italics: true, size: 19, font: "Arial", color: "4B5563" })]
+      }));
+      document.querySelectorAll('#condIpCustomList .ip-custom-cond-row').forEach(row => {
+        const cLbl = cleanTextForXml(row.querySelector('.ip-cond-lbl-input')?.value || '');
+        const cVal = cleanTextForXml(row.querySelector('.ip-cond-val-input')?.value || '');
+        if (cLbl || cVal) addTerm(cLbl, cVal);
+      });
     } else {
       const ipTime = cleanTextForXml(document.getElementById('ipDeliveryTime')?.value || '');
       const ipDel = cleanTextForXml(document.getElementById('deliverySelectIp')?.value || '');
@@ -1380,7 +1427,6 @@
           new TextRun({ text: ipDel, size: 22, font: "Times New Roman" })
         ]
       }));
-
       document.querySelectorAll('#condIpCustomList .ip-custom-cond-row').forEach(row => {
         const cLbl = cleanTextForXml(row.querySelector('.ip-cond-lbl-input')?.value || '');
         const cVal = cleanTextForXml(row.querySelector('.ip-cond-val-input')?.value || '');
@@ -1537,7 +1583,9 @@
     });
 
     // Условия ИП
-    document.getElementById('ipDeliveryTime')?.addEventListener('input', saveState);
+    ['ipDeliveryTime', 'ipPaymentTerms', 'ipWarrantyTerms', 'ipServiceTerms', 'ipValidityTerms', 'ipAppendixTerms'].forEach(id => {
+      document.getElementById(id)?.addEventListener('input', saveState);
+    });
     document.getElementById('deliverySelectIp')?.addEventListener('change', () => {
       calculateMargin();
       saveState();
