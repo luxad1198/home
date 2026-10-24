@@ -1191,7 +1191,7 @@
     docElements.push(new Paragraph({
       alignment: isGlazyrin ? AlignmentType.LEFT : AlignmentType.CENTER,
       spacing: { before: 180, after: 120 },
-      children: [new TextRun({ text: company.documentTitle || "КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ", bold: true, size: isGlazyrin ? 25 : 24, color: isGlazyrin ? "2F5D50" : "000000", font: "Times New Roman" })]
+      children: [new TextRun({ text: company.documentTitle || "КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ", bold: true, size: isGlazyrin ? 25 : 24, color: isGlazyrin ? "1F2937" : "000000", font: isGlazyrin ? "Arial" : "Times New Roman" })]
     }));
 
     const introText = company.intro;
@@ -1211,7 +1211,7 @@
 
     // 3. Таблица спецификации
     const headerBgColor = isGlazyrin ? "F1F3F5" : (isIp ? "FFFFFF" : "ACB9CA");
-    const totalBgColor = isGlazyrin ? "E8F0EC" : headerBgColor;
+    const totalBgColor = isGlazyrin ? "F7F8F9" : headerBgColor;
     const priceColTitle = company.priceTitle;
     const sumColTitle = company.sumTitle;
 
