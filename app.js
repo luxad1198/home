@@ -1189,11 +1189,11 @@
       const leftHeader = [
         new Paragraph({
           spacing: { after: 40, line: 240 },
-          children: [new TextRun({ text: "Индивидуальный предприниматель", size: 19, color: "555555", font: "Times New Roman" })]
+          children: [new TextRun({ text: "ИНДИВИДУАЛЬНЫЙ ПРЕДПРИНИМАТЕЛЬ", size: 19, color: "2F5D50", font: "Times New Roman" })]
         }),
         new Paragraph({
           spacing: { after: 80, line: 260 },
-          children: [new TextRun({ text: "Глазырин Алексей Алексеевич", bold: true, size: 25, font: "Times New Roman" })]
+          children: [new TextRun({ text: "Глазырин Алексей Алексеевич", bold: true, size: 30, font: "Times New Roman" })]
         }),
         new Paragraph({
           spacing: { line: 240 },
@@ -1207,19 +1207,19 @@
       ];
       const rightHeader = [
         new Paragraph({
-          alignment: AlignmentType.RIGHT,
+          alignment: AlignmentType.LEFT,
           spacing: { after: 100, line: 240 },
           children: [new TextRun({ text: `КП № ${fullNum}`, bold: true, size: 22, font: "Times New Roman" })]
         }),
         new Paragraph({
-          alignment: AlignmentType.RIGHT,
+          alignment: AlignmentType.LEFT,
           spacing: { after: 160, line: 240 },
           children: [new TextRun({ text: `От ${dateVal}`, size: 21, font: "Times New Roman" })]
         })
       ];
       if (clientVal.trim()) {
         rightHeader.push(new Paragraph({
-          alignment: AlignmentType.RIGHT,
+          alignment: AlignmentType.LEFT,
           spacing: { before: 100, line: 240 },
           children: [
             new TextRun({ text: "Заказчику:", bold: true, size: 21, font: "Times New Roman" }),
@@ -1236,13 +1236,15 @@
             children: [
               new TableCell({
                 width: { size: 4800, type: WidthType.DXA },
-                borders: transparentCellBorders,
+                borders: { ...transparentCellBorders, bottom: { style: BorderStyle.SINGLE, size: 12, color: '2F5D50' } },
+                margins: { top: 0, bottom: 140, left: 0, right: 0 },
                 verticalAlign: VerticalAlign.TOP,
                 children: leftHeader
               }),
               new TableCell({
                 width: { size: 4800, type: WidthType.DXA },
-                borders: transparentCellBorders,
+                borders: { ...transparentCellBorders, bottom: { style: BorderStyle.SINGLE, size: 12, color: '2F5D50' } },
+                margins: { top: 0, bottom: 140, left: 0, right: 0 },
                 verticalAlign: VerticalAlign.TOP,
                 children: rightHeader
               })
@@ -1295,11 +1297,12 @@
       alignment: isGlazyrin ? AlignmentType.LEFT : AlignmentType.JUSTIFIED,
       indent: isGlazyrin ? undefined : { firstLine: 567 },
       spacing: { after: 140, line: 260 },
-      children: [new TextRun({ text: introText, size: 22, font: "Times New Roman" })]
+      children: [new TextRun({ text: introText, size: isGlazyrin ? 21 : 22, font: isGlazyrin ? "Arial" : "Times New Roman", color: isGlazyrin ? "374151" : "000000" })]
     }));
 
     const addSectionHeading = (text) => docElements.push(new Paragraph({
-      spacing: { before: 100, after: 60 },
+      spacing: { before: 140, after: 80 },
+      border: isGlazyrin && /^[23]\./.test(text) ? { bottom: { style: BorderStyle.SINGLE, size: 6, color: "A8B9B0", space: 4 } } : undefined,
       children: [new TextRun({ text, bold: true, size: 20, font: isGlazyrin ? "Arial" : "Times New Roman", color: isGlazyrin ? "243B53" : undefined })]
     }));
     if (isGlazyrin) addSectionHeading("1. Перечень предлагаемого оборудования");
@@ -1327,7 +1330,7 @@
       verticalAlign: VerticalAlign.TOP,
       children: [new Paragraph({
         alignment: AlignmentType.CENTER,
-        children: [new TextRun({ text, bold: true, size: 19, color: "1F2937", font: isGlazyrin ? "Arial" : "Times New Roman" })]
+        children: [new TextRun({ text, bold: true, size: 19, color: "1F2937", font: "Times New Roman" })]
       })]
     });
 
@@ -1481,13 +1484,35 @@
         rows: condRows
       }));
     } else if (isGlazyrin) {
-      const addTerm = (label, value) => docElements.push(new Paragraph({
-        spacing: { after: 50, line: 230 },
-        children: [
-          new TextRun({ text: `${label}: `, bold: true, size: 20, font: "Arial", color: "243B53" }),
-          new TextRun({ text: value, size: 20, font: "Arial", color: "374151" })
-        ]
-      }));
+      let termRows = [];
+      const flushTerms = () => {
+        if (!termRows.length) return;
+        docElements.push(new Table({
+          width: { size: 100, type: WidthType.PERCENTAGE },
+          layout: docxLib.TableLayoutType.FIXED,
+          borders: transparentBorders,
+          rows: termRows
+        }));
+        termRows = [];
+      };
+      const addTerm = (label, value) => {
+        const borders = { ...transparentCellBorders, bottom: { style: BorderStyle.SINGLE, size: 6, color: "D8E3DD" } };
+        const cell = (text, title) => new TableCell({
+          width: { size: title ? 34 : 66, type: WidthType.PERCENTAGE },
+          borders,
+          margins: { top: 60, bottom: 60, left: 0, right: title ? 100 : 0 },
+          verticalAlign: VerticalAlign.TOP,
+          children: [new Paragraph({
+            alignment: title ? AlignmentType.LEFT : AlignmentType.RIGHT,
+            spacing: { before: 0, after: 0, line: 260 },
+            children: cleanTextForXml(text).split('\n').map((line, i) => new TextRun({
+              text: line, break: i ? 1 : 0, bold: title,
+              size: 19, font: "Times New Roman", color: title ? "243B53" : "374151"
+            }))
+          })]
+        });
+        termRows.push(new TableRow({ cantSplit: true, children: [cell(label.replace(/[:：]\s*$/, '') + ':', true), cell(value, false)] }));
+      };
       const addCustomTerms = (selector) => document.querySelectorAll(selector).forEach(row => {
         const cLbl = cleanTextForXml(row.querySelector('.ip-cond-lbl-input')?.value || '').replace(/[:：]\s*$/, '');
         const cVal = cleanTextForXml(row.querySelector('.ip-cond-val-input')?.value || '');
@@ -1506,14 +1531,17 @@
       addStandardTerm('ipPaymentTerms');
       addStandardTerm('deliverySelectIp');
       addCustomTerms('#condIpCustomList2 .ip-custom-cond-row');
+      flushTerms();
       addSectionHeading("3. Дополнительные условия");
       addStandardTerm('ipWarrantyTerms');
       addStandardTerm('ipServiceTerms');
       addStandardTerm('ipValidityTerms');
       addStandardTerm('ipAppendixTerms');
       addCustomTerms('#condIpCustomList .ip-custom-cond-row');
+      flushTerms();
       docElements.push(new Paragraph({
-        spacing: { before: 80, after: 60, line: 230 },
+        spacing: { before: 100, after: 100, line: 260 },
+        border: { top: { style: BorderStyle.SINGLE, size: 6, color: "AAB2BA", space: 5 } },
         children: [new TextRun({ text: "Предложение предназначено для предварительного согласования условий поставки.", italics: true, size: 19, font: "Arial", color: "4B5563" })]
       }));
     } else {
@@ -1555,6 +1583,7 @@
     docElements.push(new Paragraph({
       tabStops: [{ type: TabStopType.RIGHT, position: 9600 }],
       spacing: { before: 180, line: 240 },
+      border: isGlazyrin ? { top: { style: BorderStyle.SINGLE, size: 6, color: "D8E3DD", space: 7 } } : undefined,
       children: [
         new TextRun({ text: signTitle, size: 22, font: "Times New Roman" }),
         new TextRun({ text: `\t_________________ / ${signPerson}`, size: 22, font: "Times New Roman" })
@@ -1605,7 +1634,8 @@
       sections: [{
         properties: {
           page: {
-            margin: { top: 720, bottom: 720, left: 850, right: 850 }
+            size: { width: 11906, height: 16838 },
+            margin: isGlazyrin ? { top: 680, bottom: 850, left: 794, right: 794 } : { top: 720, bottom: 720, left: 850, right: 850 }
           }
         },
         footers: {
