@@ -27,7 +27,7 @@
       kind: 'ip', name: 'ИП Глазырин', intro: 'Индивидуальный предприниматель Глазырин Алексей Алексеевич предлагает рассмотреть возможность поставки следующего оборудования:',
       priceTitle: 'Цена за ед. руб., без НДС', sumTitle: 'Сумма, руб. (без НДС)', vatRate: 0, vatDivisor: 100,
       signTitle: 'Индивидуальный предприниматель', signPerson: 'Глазырин А.А.', taxLabel: 'УСН (4% + 1%):', vatLabel: 'НДС не начисляется:', taxRate: 0.05,
-      headerHtml: '<div class="ip-card-kicker">ПОСТАВКА ОБОРУДОВАНИЯ · ИП ГЛАЗЫРИН</div><div class="ip-card-name">Алексей Глазырин</div><div class="ip-card-role">Индивидуальный предприниматель</div><div class="ip-card-details"><span>ИНН&nbsp; 143533463817</span><span>ОГРНИП&nbsp; 326140000064939</span></div>',
+      headerHtml: '<div class="ip-gla-entity">Индивидуальный предприниматель</div><div class="ip-gla-name">Глазырин Алексей Алексеевич</div><div class="ip-gla-details">ИНН: 143533463817<br>ОГРНИП: 326140000064939</div><div class="ip-gla-contact">Тел.: +7 966 871-88-61<br>Почта: a.glazyrin1198@mail.ru</div>',
       contactsHtml: 'Индивидуальный предприниматель Глазырин Алексей Алексеевич<br>Телефон: +7 966 871-88-61<br>Email: a.glazyrin1198@mail.ru', stamp: null
     }
   };
@@ -1074,22 +1074,69 @@
       }));
 
     } else if (isGlazyrin) {
-      docElements.push(new Paragraph({
-        spacing: { line: 260, after: 90 },
-        border: { bottom: { style: BorderStyle.SINGLE, size: 14, color: "17324D", space: 7 } },
-        children: [
-          new TextRun({ text: "АЛЕКСЕЙ ГЛАЗЫРИН", bold: true, size: 30, color: "17324D", font: "Arial" }),
-          new TextRun({ text: "ИНДИВИДУАЛЬНЫЙ ПРЕДПРИНИМАТЕЛЬ", break: 1, bold: true, size: 17, color: "687B8C", font: "Arial" }),
-          new TextRun({ text: "ИНН 143533463817  ·  ОГРНИП 326140000064939", break: 1, size: 20, font: "Times New Roman" }),
-          new TextRun({ text: "+7 966 871-88-61  ·  a.glazyrin1198@mail.ru", break: 1, size: 20, font: "Times New Roman" })
+      const leftHeader = [
+        new Paragraph({
+          spacing: { after: 40, line: 240 },
+          children: [new TextRun({ text: "Индивидуальный предприниматель", size: 19, color: "555555", font: "Times New Roman" })]
+        }),
+        new Paragraph({
+          spacing: { after: 80, line: 260 },
+          children: [new TextRun({ text: "Глазырин Алексей Алексеевич", bold: true, size: 25, font: "Times New Roman" })]
+        }),
+        new Paragraph({
+          spacing: { line: 240 },
+          children: [
+            new TextRun({ text: "ИНН: 143533463817", size: 20, font: "Times New Roman" }),
+            new TextRun({ text: "ОГРНИП: 326140000064939", break: 1, size: 20, font: "Times New Roman" }),
+            new TextRun({ text: "Тел.: +7 966 871-88-61", break: 1, size: 20, font: "Times New Roman" }),
+            new TextRun({ text: "Почта: a.glazyrin1198@mail.ru", break: 1, size: 20, font: "Times New Roman" })
+          ]
+        })
+      ];
+      const rightHeader = [
+        new Paragraph({
+          alignment: AlignmentType.RIGHT,
+          spacing: { after: 100, line: 240 },
+          children: [new TextRun({ text: `КП № ${fullNum}`, bold: true, size: 22, font: "Times New Roman" })]
+        }),
+        new Paragraph({
+          alignment: AlignmentType.RIGHT,
+          spacing: { after: 160, line: 240 },
+          children: [new TextRun({ text: `От ${dateVal}`, size: 21, font: "Times New Roman" })]
+        })
+      ];
+      if (clientVal.trim()) {
+        rightHeader.push(new Paragraph({
+          alignment: AlignmentType.RIGHT,
+          spacing: { before: 100, line: 240 },
+          children: [
+            new TextRun({ text: "Заказчику:", bold: true, size: 21, font: "Times New Roman" }),
+            ...clientVal.split('\\n').map(line => new TextRun({ text: line, break: 1, size: 21, font: "Times New Roman" }))
+          ]
+        }));
+      }
+      docElements.push(new Table({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        borders: transparentBorders,
+        rows: [
+          new TableRow({
+            cantSplit: true,
+            children: [
+              new TableCell({
+                width: { size: 4800, type: WidthType.DXA },
+                borders: transparentCellBorders,
+                verticalAlign: VerticalAlign.TOP,
+                children: leftHeader
+              }),
+              new TableCell({
+                width: { size: 4800, type: WidthType.DXA },
+                borders: transparentCellBorders,
+                verticalAlign: VerticalAlign.TOP,
+                children: rightHeader
+              })
+            ]
+          })
         ]
-      }));
-      const ipMetaChildren = [new TextRun({ text: `КП № ${fullNum}        От ${dateVal}`, size: 22, font: "Times New Roman" })];
-      if (clientVal.trim()) ipMetaChildren.push(new TextRun({ text: `\tЗаказчику: ${clientVal.replace(/\n/g, ' ')}`, size: 22, font: "Times New Roman" }));
-      docElements.push(new Paragraph({
-        tabStops: [{ type: TabStopType.RIGHT, position: 9600 }],
-        spacing: { before: 120, after: 80, line: 240 },
-        children: ipMetaChildren
       }));
     } else {
       // Шапка ИП
@@ -1140,7 +1187,7 @@
     }));
 
     // 3. Таблица спецификации
-    const headerBgColor = isGlazyrin ? "E7EEF3" : (isIp ? "FFFFFF" : "ACB9CA");
+    const headerBgColor = isIp && !isGlazyrin ? "FFFFFF" : "ACB9CA";
     const priceColTitle = company.priceTitle;
     const sumColTitle = company.sumTitle;
 
