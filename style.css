@@ -41,9 +41,9 @@ body {
   object-position: center;
   margin: auto;
   border-radius: 8px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  background: #27272a;
+  box-shadow: none;
+  border: 0;
+  background: transparent;
 }
 
 body.hide-bg-sidebar .bg-sidebar {
