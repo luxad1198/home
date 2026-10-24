@@ -24,7 +24,7 @@
       signTitle: 'Индивидуальный предприниматель', signPerson: 'Захаров М.С.', taxLabel: 'УСН (6%+1%):', vatLabel: 'НДС (5%):', stamp: 'stamp-ip.webp'
     },
     'ip-glazyrin': {
-      kind: 'ip', name: 'ИП Глазырин', intro: 'Индивидуальный предприниматель Глазырин Алексей Алексеевич предлагает рассмотреть возможность поставки следующего оборудования:',
+      kind: 'ip', name: 'ИП Глазырин', intro: 'Предлагаю поставить оборудование по спецификации и условиям ниже.', documentTitle: 'ПРЕДЛОЖЕНИЕ НА ПОСТАВКУ ОБОРУДОВАНИЯ',
       priceTitle: 'Цена за ед. руб., без НДС', sumTitle: 'Сумма, руб. (без НДС)', vatRate: 0, vatDivisor: 100,
       signTitle: 'Индивидуальный предприниматель', signPerson: 'Глазырин А.А.', taxLabel: 'УСН (4% + 1%):', vatLabel: 'НДС не начисляется:', taxRate: 0.05,
       headerHtml: '<div class="ip-gla-entity">Индивидуальный предприниматель</div><div class="ip-gla-name">Глазырин Алексей Алексеевич</div><div class="ip-gla-details">ИНН: 143533463817<br>ОГРНИП: 326140000064939</div><div class="ip-gla-contact">Тел.: +7 966 871-88-61<br>Почта: a.glazyrin1198@mail.ru</div>',
@@ -282,6 +282,8 @@
     const company = activeCompany();
     const isIp = company.kind === 'ip';
     const isGlazyrin = comp === 'ip-glazyrin';
+    const documentHeading = document.querySelector('.title');
+    if (documentHeading) documentHeading.textContent = company.documentTitle || 'КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ';
 
     document.body.classList.toggle('is-ip', isIp);
     document.body.classList.toggle('is-ip-glazyrin', isGlazyrin);
@@ -1172,22 +1174,23 @@
 
     // 2. Заголовок
     docElements.push(new Paragraph({
-      alignment: AlignmentType.CENTER,
+      alignment: isGlazyrin ? AlignmentType.LEFT : AlignmentType.CENTER,
       spacing: { before: 180, after: 120 },
-      children: [new TextRun({ text: "КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ", bold: true, size: 24, font: "Times New Roman" })]
+      children: [new TextRun({ text: company.documentTitle || "КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ", bold: true, size: isGlazyrin ? 25 : 24, color: isGlazyrin ? "2F5D50" : "000000", font: "Times New Roman" })]
     }));
 
     const introText = company.intro;
 
     docElements.push(new Paragraph({
-      alignment: AlignmentType.JUSTIFIED,
-      indent: { firstLine: 567 },
+      alignment: isGlazyrin ? AlignmentType.LEFT : AlignmentType.JUSTIFIED,
+      indent: isGlazyrin ? undefined : { firstLine: 567 },
       spacing: { after: 140, line: 260 },
       children: [new TextRun({ text: introText, size: 22, font: "Times New Roman" })]
     }));
 
     // 3. Таблица спецификации
-    const headerBgColor = isIp && !isGlazyrin ? "FFFFFF" : "ACB9CA";
+    const headerBgColor = isGlazyrin ? "2F5D50" : (isIp ? "FFFFFF" : "ACB9CA");
+    const totalBgColor = isGlazyrin ? "E8F0EC" : headerBgColor;
     const priceColTitle = company.priceTitle;
     const sumColTitle = company.sumTitle;
 
@@ -1208,7 +1211,7 @@
       verticalAlign: VerticalAlign.TOP,
       children: [new Paragraph({
         alignment: AlignmentType.CENTER,
-        children: [new TextRun({ text, bold: true, size: 19, font: "Times New Roman" })]
+        children: [new TextRun({ text, bold: true, size: 19, color: isGlazyrin ? "FFFFFF" : "000000", font: "Times New Roman" })]
       })]
     });
 
@@ -1279,7 +1282,7 @@
         new TableCell({
           columnSpan: 6,
           borders: tableBorders,
-          shading: { fill: headerBgColor, type: ShadingType.CLEAR },
+          shading: { fill: totalBgColor, type: ShadingType.CLEAR },
           verticalAlign: VerticalAlign.TOP,
           children: [new Paragraph({
             alignment: AlignmentType.RIGHT,
@@ -1288,7 +1291,7 @@
         }),
         new TableCell({
           borders: tableBorders,
-          shading: { fill: headerBgColor, type: ShadingType.CLEAR },
+          shading: { fill: totalBgColor, type: ShadingType.CLEAR },
           verticalAlign: VerticalAlign.TOP,
           children: [new Paragraph({
             alignment: AlignmentType.RIGHT,
