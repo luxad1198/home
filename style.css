@@ -1076,3 +1076,10 @@ body.is-ip-glazyrin .ip-term-row > .ip-standard-delete {
     width: auto;
   }
 }
+
+/* Keep the divider between every added condition in the PDF. */
+body.is-ip-glazyrin #condIpCustomList2 > .ip-custom-cond-row,
+body.is-ip-glazyrin #condIpCustomList > .ip-custom-cond-row:not(:last-child) {
+  padding: 3px 0;
+  border-bottom: 1px solid #D8E3DD;
+}
