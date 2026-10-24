@@ -287,7 +287,7 @@
     document.body.classList.toggle('is-ip-glazyrin', isGlazyrin);
 
     document.getElementById('headOoo').style.display = isIp ? 'none' : 'table';
-    document.getElementById('headIp').style.display = isIp ? 'block' : 'none';
+    document.getElementById('headIp').style.display = isIp ? (isGlazyrin ? 'grid' : 'block') : 'none';
 
     document.getElementById('condOooTable').style.display = isIp ? 'none' : 'table';
     document.getElementById('condIpBox').style.display = isIp ? 'block' : 'none';
@@ -1111,7 +1111,7 @@
           spacing: { before: 100, line: 240 },
           children: [
             new TextRun({ text: "Заказчику:", bold: true, size: 21, font: "Times New Roman" }),
-            ...clientVal.split('\\n').map(line => new TextRun({ text: line, break: 1, size: 21, font: "Times New Roman" }))
+            ...clientVal.split('\n').map(line => new TextRun({ text: line, break: 1, size: 21, font: "Times New Roman" }))
           ]
         }));
       }
