@@ -360,6 +360,57 @@ body.hide-bg-sidebar .bg-sidebar {
   flex-wrap: wrap;
 }
 
+/* Отдельная фирменная шапка ИП Глазырина */
+body.is-ip-glazyrin .head-ip-top {
+  position: relative;
+  padding: 16px 20px 14px;
+  margin-bottom: 12px;
+  border: 0;
+  border-left: 7px solid #c38b45;
+  border-radius: 3px;
+  background: #17324d;
+  color: #fff;
+  line-height: 1.35;
+}
+body.is-ip-glazyrin .head-ip-top::after {
+  content: 'АГ';
+  position: absolute;
+  top: 15px;
+  right: 18px;
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255,255,255,.45);
+  border-radius: 50%;
+  color: #e7c18e;
+  font: 700 15pt Arial, sans-serif;
+}
+body.is-ip-glazyrin .ip-card-kicker {
+  margin-bottom: 5px;
+  color: #e7c18e;
+  font: 700 8pt Arial, sans-serif;
+  letter-spacing: .08em;
+}
+body.is-ip-glazyrin .ip-card-name {
+  font-size: 20pt;
+  font-weight: bold;
+  letter-spacing: .02em;
+}
+body.is-ip-glazyrin .ip-card-role {
+  margin: 1px 0 8px;
+  color: #d7e2ec;
+  font-size: 10pt;
+}
+body.is-ip-glazyrin .ip-card-details {
+  display: flex;
+  gap: 18px;
+  color: #fff;
+  font-size: 9.5pt;
+}
+body.is-ip-glazyrin .contacts-ip { color: #17324d; }
+body.is-ip-glazyrin .stamp-box { display: none !important; }
+
 .meta-input {
   font-family: inherit;
   font-size: 11pt;
