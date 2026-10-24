@@ -223,7 +223,7 @@
       .forEach(row => {
         if (row.classList.contains('is-deleted')) return;
         const section = row.dataset.section;
-        if (!counters[section]) return;
+        if (!Object.hasOwn(counters, section)) return;
         counters[section] += 1;
         const number = row.querySelector('.ip-standard-number, .ip-cond-number');
         if (number) number.textContent = `${section}.${counters[section]}. `;
