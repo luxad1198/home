@@ -282,7 +282,7 @@
       if (delTitle) delTitle.textContent = 'Доставка до клиента с НДС 5%, ₽';
 
       if (stampImg) {
-        stampImg.src = 'stamp-ip.png';
+        stampImg.src = 'stamp-ip.webp';
         stampImg.style.display = 'block';
       }
     } else {
@@ -297,7 +297,7 @@
       if (delTitle) delTitle.textContent = 'Доставка до клиента с НДС 22%, ₽';
 
       if (stampImg) {
-        stampImg.src = 'stamp.png';
+        stampImg.src = 'stamp.webp';
         stampImg.style.display = 'block';
       }
     }
@@ -948,7 +948,7 @@
     // 1. Шапка документа
     if (!isIp) {
       const logoEl = document.getElementById('logoImgOoo');
-      const logoBuffer = await getImageBufferFromElement(logoEl, 'logo.png');
+      const logoBuffer = await getImageBufferFromElement(logoEl, 'logo.webp');
 
       const leftCellChildren = [];
       if (logoBuffer) {
