@@ -628,6 +628,168 @@
     if (dIp) dIp.value = dStr;
   }
 
+  // DOCX import: read only the main document, never comments, styling or HTML.
+  function parseEquipmentXml(xml) {
+    const ns = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+    const doc = new DOMParser().parseFromString(xml, 'application/xml');
+    if (doc.getElementsByTagName('parsererror').length || !doc.getElementsByTagNameNS(ns, 'body').length) throw new Error('Не удалось прочитать структуру Word.');
+    const all = (node, name) => Array.from(node.getElementsByTagNameNS(ns, name));
+    const children = (node, name) => Array.from(node.children).filter(el => el.namespaceURI === ns && el.localName === name);
+    const cellText = cell => {
+      const walk = node => {
+        if (node.namespaceURI === ns) {
+          if (['del', 'moveFrom', 'drawing', 'pict'].includes(node.localName)) return '';
+          if (node.localName === 't') return node.textContent;
+          if (['br', 'cr'].includes(node.localName)) return '\n';
+          if (node.localName === 'tab') return '\t';
+        }
+        const text = Array.from(node.childNodes).map(walk).join('');
+        return text + (node.namespaceURI === ns && node.localName === 'p' ? '\n' : '');
+      };
+      return walk(cell).replace(/\u00a0/g, ' ').trim();
+    };
+    const normalize = text => text.toLowerCase().replace(/ё/g, 'е').replace(/[^а-яa-z0-9]/g, '');
+    const columns = cells => {
+      const names = cells.map(normalize);
+      return {
+        name: names.findIndex(s => /наименование|названиетовара|оборудование/.test(s)),
+        desc: names.findIndex(s => /характеристик|описание|параметры/.test(s)),
+        country: names.findIndex(s => /страна|происхождение/.test(s)),
+        qty: names.findIndex(s => /количество|колво/.test(s)),
+        price: names.findIndex(s => /цена|стоимостьзаед/.test(s) && !/сумма|общая/.test(s))
+      };
+    };
+    const number = text => {
+      const clean = text.replace(/\s/g, '').replace(/(?:руб\.?|₽|шт\.?|штук[аи]?|ед\.?)$/i, '').replace(',', '.');
+      return /^\d+(?:\.\d+)?$/.test(clean) ? Number(clean) : NaN;
+    };
+    const rows = [], warnings = [];
+    for (const table of all(doc, 'tbl')) {
+      // Nested tables are part of the enclosing description, not extra equipment.
+      let parent = table.parentElement, nested = false;
+      while (parent) { if (parent.localName === 'tbl') nested = true; parent = parent.parentElement; }
+      if (nested) continue;
+      let map = null;
+      for (const tr of children(table, 'tr')) {
+        const cells = [];
+        for (const tc of children(tr, 'tc')) {
+          cells.push(cellText(tc));
+          const span = Number(all(tc, 'gridSpan')[0]?.getAttributeNS(ns, 'val') || 1);
+          for (let i = 1; i < Math.min(span, 100); i++) cells.push('');
+        }
+        const header = columns(cells);
+        if (header.name >= 0 && header.qty >= 0) { map = header; continue; }
+        if (!map || !cells.some(Boolean) || /^(итого|всего|общая стоимость)(?:\s|:|$)/i.test(cells.find(Boolean) || '')) continue;
+        const name = cells[map.name]?.trim();
+        if (!name) { warnings.push('Пропущена строка без наименования.'); continue; }
+        const qty = number(cells[map.qty] || '');
+        if (!Number.isSafeInteger(qty) || qty < 1 || qty > 1000000) throw new Error(`Проверьте количество у «${name.slice(0, 70)}»: требуется целое число от 1 до 1 000 000.`);
+        let price = map.price < 0 || !cells[map.price]?.trim() ? 0 : number(cells[map.price]);
+        if (!Number.isFinite(price) || price < 0 || price > 1e12) throw new Error(`Не удалось распознать цену у «${name.slice(0, 70)}».`);
+        rows.push({name, desc: cells[map.desc] || '', country: cells[map.country] || '', qty, price});
+        if (rows.length > 300) throw new Error('За один раз можно импортировать не более 300 позиций.');
+      }
+    }
+    if (!rows.length) throw new Error('Таблица оборудования не найдена. Нужны столбцы «Наименование» и «Количество».');
+    return {rows, warnings};
+  }
+
+  function initEquipmentImport() {
+    const picker = document.getElementById('equipmentFile');
+    const dialog = document.getElementById('equipmentImportDialog');
+    const status = document.getElementById('equipmentImportStatus');
+    const apply = document.getElementById('equipmentImportApply');
+    const preview = document.getElementById('equipmentImportPreview');
+    let pending = null, undo = null, generation = 0;
+    const readRows = () => Array.from(document.querySelectorAll('#tableBody tr'), row => ({
+      name: row.querySelector('.col-name').value, desc: row.querySelector('.col-desc').value,
+      country: row.querySelector('.col-country').value, qty: row.querySelector('.col-qty').value,
+      price: row.querySelector('.col-price').getAttribute('data-raw') || 0
+    }));
+    const writeRows = rows => {
+      const tbody = document.getElementById('tableBody');
+      const template = tbody.firstElementChild.cloneNode(true);
+      const fragment = document.createDocumentFragment();
+      rows.forEach((data, i) => {
+        const row = template.cloneNode(true);
+        row.querySelector('.row-idx').textContent = i + 1;
+        for (const field of ['name', 'desc', 'country', 'qty']) row.querySelector('.col-' + field).value = data[field];
+        row.querySelectorAll('.print-text-mirror').forEach(el => el.textContent = '');
+        const price = row.querySelector('.col-price');
+        price.dataset.raw = data.price;
+        price.value = Number(data.price) ? fmt(Number(data.price)) : '';
+        fragment.appendChild(row);
+      });
+      tbody.replaceChildren(fragment);
+      initAutoResize(); recalc(); saveState();
+    };
+    document.getElementById('btnImportEquipment').addEventListener('click', () => picker.click());
+    document.getElementById('equipmentImportCancel').addEventListener('click', () => dialog.close());
+    dialog.addEventListener('close', () => { pending = null; generation++; });
+    picker.addEventListener('change', async () => {
+      const file = picker.files[0]; picker.value = '';
+      if (!file) return;
+      const ticket = ++generation;
+      pending = null; apply.disabled = true; preview.replaceChildren();
+      status.textContent = 'Чтение файла…';
+      document.getElementById('equipmentImportFileName').textContent = file.name;
+      document.getElementById('equipmentImportMode').value = 'append';
+      dialog.showModal();
+      try {
+        if (!/\.docx$/i.test(file.name)) throw new Error('Выберите файл .docx. Старый формат .doc, PDF и Excel пока не поддерживаются.');
+        if (file.size > 10 * 1024 * 1024) throw new Error('Файл слишком большой. Максимум — 10 МБ.');
+        if (!window.JSZip) throw new Error('Модуль чтения Word не загрузился. Обновите страницу и повторите попытку.');
+        const zip = await JSZip.loadAsync(await file.arrayBuffer());
+        const entry = zip.file('word/document.xml');
+        if (!entry) throw new Error('В файле нет документа Word. Проверьте формат файла.');
+        // Stream with a hard decompressed limit instead of materializing an unbounded XML string.
+        const xml = await new Promise((resolve, reject) => {
+          let text = '', size = 0;
+          const stream = entry.internalStream('string');
+          stream.on('data', chunk => {
+            size += chunk.length;
+            if (size > 8 * 1024 * 1024) { stream.pause(); reject(new Error('Документ содержит слишком много текста (более 8 МБ).')); return; }
+            text += chunk;
+          }).on('error', reject).on('end', () => resolve(text)).resume();
+        });
+        if (!dialog.open || ticket !== generation) return;
+        const result = parseEquipmentXml(xml);
+        pending = result.rows;
+        const noPrice = pending.filter(row => !row.price).length;
+        status.textContent = `Найдено позиций: ${pending.length}.` + (noPrice ? ` Без цены: ${noPrice} — укажите цены после импорта.` : '') + (result.warnings.length ? ` Предупреждения: ${result.warnings.join(' ')}` : '');
+        pending.forEach((row, index) => {
+          const tr = document.createElement('tr');
+          [index + 1, row.name, row.desc, row.country, row.qty, fmt(row.price)].forEach(value => {
+            const td = document.createElement('td'); td.textContent = value; tr.appendChild(td);
+          });
+          preview.appendChild(tr);
+        });
+        apply.disabled = false;
+      } catch (error) {
+        if (dialog.open && ticket === generation) status.textContent = error.message && !/zip|signature|end of data/i.test(error.message) ? error.message : 'Не удалось открыть файл. Возможно, он повреждён или защищён паролем.';
+      }
+    });
+    apply.addEventListener('click', () => {
+      if (!pending) return;
+      const old = readRows();
+      const existing = old.filter(row => row.name.trim() || row.desc.trim() || Number(row.price) || Number(row.qty));
+      const rows = document.getElementById('equipmentImportMode').value === 'replace' ? pending : existing.concat(pending);
+      if (rows.length > 300) { status.textContent = 'Всего получится более 300 позиций. Выберите замену таблицы.'; return; }
+      undo = old;
+      writeRows(rows);
+      document.getElementById('equipmentImportNotice').textContent = `Импортировано позиций: ${pending.length}. Проверьте цены перед отправкой КП.`;
+      document.getElementById('btnUndoEquipmentImport').hidden = false;
+      dialog.close();
+    });
+    document.getElementById('btnUndoEquipmentImport').addEventListener('click', () => {
+      if (!undo) return;
+      if (!confirm('Вернуть таблицу к состоянию до последнего импорта? Последующие изменения таблицы будут отменены.')) return;
+      writeRows(undo); undo = null;
+      document.getElementById('btnUndoEquipmentImport').hidden = true;
+      document.getElementById('equipmentImportNotice').textContent = 'Импорт отменён.';
+    });
+  }
+
   function addRow(focusNew = false) {
     const tbody = document.getElementById('tableBody');
     const idx = tbody.children.length + 1;
@@ -1662,6 +1824,7 @@
     document.getElementById('btnToggleCalc')?.addEventListener('click', toggleCalcPanel);
     document.getElementById('btnCloseCalc')?.addEventListener('click', toggleCalcPanel);
     document.getElementById('companySelect')?.addEventListener('change', onCompanyChange);
+    initEquipmentImport();
     document.getElementById('btnAddRow')?.addEventListener('click', () => addRow(true));
     document.getElementById('btnToggleBg')?.addEventListener('click', toggleBackgroundImages);
     document.getElementById('btnClearForm')?.addEventListener('click', clearForm);
