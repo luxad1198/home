@@ -967,3 +967,5 @@ body.is-ip-glazyrin .sign-row {
 @media print {
   body.is-ip-glazyrin .ip-term-row .meta-input { border: 0; }
 }
+
+body.is-ip-glazyrin .delivery-builder-box { display: none !important; }
