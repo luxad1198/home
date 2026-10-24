@@ -218,14 +218,34 @@
   }
 
   function renumberGlazyrinConditions() {
-    document.querySelectorAll('#condIpCustomList2 .ip-custom-cond-row').forEach((row, index) => {
-      const number = row.querySelector('.ip-cond-number');
-      if (number) number.textContent = `2.${index + 4}. `;
+    const counters = { '2': 0, '3': 0 };
+    document.querySelectorAll('#condIpBox .ip-term-row[data-section], #condIpCustomList2 .ip-custom-cond-row, #condIpCustomList .ip-custom-cond-row')
+      .forEach(row => {
+        if (row.classList.contains('is-deleted')) return;
+        const section = row.dataset.section;
+        if (!counters[section]) return;
+        counters[section] += 1;
+        const number = row.querySelector('.ip-standard-number, .ip-cond-number');
+        if (number) number.textContent = `${section}.${counters[section]}. `;
+      });
+  }
+
+  function applyDeletedStandardConditions(ids = []) {
+    const deleted = new Set(ids);
+    document.querySelectorAll('#condIpBox .ip-term-row[data-section]').forEach(row => {
+      const input = row.querySelector('input, select');
+      row.classList.toggle('is-deleted', document.body.classList.contains('is-ip-glazyrin') && !!input && deleted.has(input.id));
     });
-    document.querySelectorAll('#condIpCustomList .ip-custom-cond-row').forEach((row, index) => {
-      const number = row.querySelector('.ip-cond-number');
-      if (number) number.textContent = `3.${index + 5}. `;
-    });
+    renumberGlazyrinConditions();
+  }
+
+  function storedGlazyrinDeletions() {
+    try {
+      const state = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+      return state.deletedStandardConditionsByCompany?.['ip-glazyrin'] || state.deletedStandardConditions || [];
+    } catch (e) {
+      return [];
+    }
   }
 
   function escapeHtml(str) {
@@ -307,6 +327,7 @@
 
     document.body.classList.toggle('is-ip', isIp);
     document.body.classList.toggle('is-ip-glazyrin', isGlazyrin);
+    applyDeletedStandardConditions(isGlazyrin ? storedGlazyrinDeletions() : []);
 
     document.getElementById('headOoo').style.display = isIp ? 'none' : 'table';
     document.getElementById('headIp').style.display = isIp ? (isGlazyrin ? 'grid' : 'block') : 'none';
@@ -773,8 +794,15 @@
         });
       });
 
+      let savedState = {};
+      try { savedState = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch (e) {}
+      const deletedStandardConditionsByCompany = { ...(savedState.deletedStandardConditionsByCompany || {}) };
+      const currentCompany = document.getElementById('companySelect').value;
+      if (currentCompany === 'ip-glazyrin') {
+        deletedStandardConditionsByCompany[currentCompany] = [...document.querySelectorAll('#condIpBox .ip-term-row.is-deleted input[id]')].map(input => input.id);
+      }
       const state = {
-        company: document.getElementById('companySelect').value,
+        company: currentCompany,
         kpNumOoo: document.getElementById('kpNumInput').value,
         kpNumIp: document.getElementById('kpNumInputIp').value,
         docDateOoo: document.getElementById('docDate').value,
@@ -791,6 +819,7 @@
         deliveryUnitSelect: document.getElementById('deliveryUnitSelect')?.value || 'work_days',
         customConds: customConds,
         customCondsIp: customCondsIp,
+        deletedStandardConditionsByCompany,
         condIp: [
           document.getElementById('ipDeliveryTime').value,
           document.getElementById('deliverySelectIp').value,
@@ -1423,15 +1452,23 @@
         const cNum = cleanTextForXml(row.querySelector('.ip-cond-number')?.textContent || '').trim();
         if (cLbl || cVal) addTerm(cNum ? `${cNum} ${cLbl}` : cLbl, cVal);
       });
-      addTerm("2.1. Срок поставки", cleanTextForXml(document.getElementById('ipDeliveryTime')?.value || ''));
-      addTerm("2.2. Условия оплаты", cleanTextForXml(document.getElementById('ipPaymentTerms')?.value || ''));
-      addTerm("2.3. Место и способ поставки", cleanTextForXml(document.getElementById('deliverySelectIp')?.value || ''));
+      const addStandardTerm = (inputId) => {
+        const input = document.getElementById(inputId);
+        const row = input?.closest('.ip-term-row');
+        if (!input || !row || row.classList.contains('is-deleted')) return;
+        const number = cleanTextForXml(row.querySelector('.ip-standard-number')?.textContent || '').trim();
+        const label = cleanTextForXml(row.querySelector('.ip-term-label')?.textContent || '');
+        addTerm(`${number} ${label}`.trim(), cleanTextForXml(input.value || ''));
+      };
+      addStandardTerm('ipDeliveryTime');
+      addStandardTerm('ipPaymentTerms');
+      addStandardTerm('deliverySelectIp');
       addCustomTerms('#condIpCustomList2 .ip-custom-cond-row');
       addSectionHeading("3. Дополнительные условия");
-      addTerm("3.1. Гарантийные обязательства", cleanTextForXml(document.getElementById('ipWarrantyTerms')?.value || ''));
-      addTerm("3.2. Сервисное обслуживание и поддержка", cleanTextForXml(document.getElementById('ipServiceTerms')?.value || ''));
-      addTerm("3.3. Срок действия предложения", cleanTextForXml(document.getElementById('ipValidityTerms')?.value || ''));
-      addTerm("3.4. Приложения", cleanTextForXml(document.getElementById('ipAppendixTerms')?.value || ''));
+      addStandardTerm('ipWarrantyTerms');
+      addStandardTerm('ipServiceTerms');
+      addStandardTerm('ipValidityTerms');
+      addStandardTerm('ipAppendixTerms');
       addCustomTerms('#condIpCustomList .ip-custom-cond-row');
       docElements.push(new Paragraph({
         spacing: { before: 80, after: 60, line: 230 },
@@ -1685,6 +1722,18 @@
         if (e.target.matches('.cond-lbl-input, .cond-val')) saveState();
       });
     }
+
+    // Удаление стандартных условий ИП
+    const condIpBox = document.getElementById('condIpBox');
+    condIpBox?.addEventListener('click', (e) => {
+      const btn = e.target.closest('.ip-standard-delete');
+      if (!btn) return;
+      const row = btn.closest('.ip-term-row');
+      if (!row) return;
+      row.classList.add('is-deleted');
+      renumberGlazyrinConditions();
+      saveState();
+    });
 
     // Делегирование для дополнительных условий ИП
     document.querySelectorAll('#condIpCustomList, #condIpCustomList2').forEach(container => {
