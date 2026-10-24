@@ -8,7 +8,7 @@
   <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
   <!-- Стили -->
-  <link rel="stylesheet" href="style.css?v=20261024-company3-4">
+  <link rel="stylesheet" href="style.css?v=20261024-company3-5">
 </head>
 <body>
 
@@ -175,10 +175,12 @@
       </div>
     </div>
 
-    <div class="title">КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ</div>
+    <div class="title" id="docTitle">КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ</div>
     <div class="intro" id="docIntro">
       Общество с ограниченной ответственностью «РТСтандарт», в лице генерального директора Маркова Дмитрия Евгеньевича, действующего на основании Устава, предлагает рассмотреть возможность поставки следующего оборудования:
     </div>
+
+    <div class="doc-section-heading">1. Перечень предлагаемого оборудования</div>
 
     <!-- Таблица спецификации -->
     <table class="spec" id="itemsTable">
@@ -226,6 +228,8 @@
     <div class="tot-phrase" id="textTotalBlock">
       <b>ИТОГО: 0 (ноль) рублей 00 копеек</b>, <b>в том числе НДС 22% 0 (ноль) рублей 00 копеек</b>.
     </div>
+
+    <div class="doc-section-heading">2. Условия поставки и оплаты</div>
 
     <!-- Умный конструктор срока поставки (общий для ООО и ИП) -->
     <div class="delivery-builder-box no-print">
@@ -280,15 +284,22 @@
 
     <!-- Условия ИП -->
     <div class="ip-cond-box" id="condIpBox">
-      <div><b>Срок поставки:</b> <input type="text" id="ipDeliveryTime" class="meta-input" value="1-2 недели" style="width: 340px;"></div>
-      <div style="margin-top: 4px;"><b>Доставка:</b> 
+      <div class="ip-term-row"><b>Срок поставки:</b> <input type="text" id="ipDeliveryTime" class="meta-input" value="1-2 недели" style="width: 340px;"></div>
+      <div class="ip-term-row"><b>Условия оплаты:</b> <input type="text" id="ipPaymentTerms" class="meta-input" value="По согласованию" style="width: 340px;"></div>
+      <div class="ip-term-row"><b>Доставка:</b>
         <select class="meta-input" id="deliverySelectIp">
           <option value="Доставка включена в стоимость">Доставка включена в стоимость</option>
           <option value="Самовывоз со склада продавца">Самовывоз со склада продавца</option>
         </select>
       </div>
+      <div class="doc-subsection-heading">3. Дополнительные условия</div>
+      <div class="ip-term-row"><b>Гарантийные обязательства:</b> <input type="text" id="ipWarrantyTerms" class="meta-input" value="Согласно документации производителя" style="width: 340px;"></div>
+      <div class="ip-term-row"><b>Сервисное обслуживание:</b> <input type="text" id="ipServiceTerms" class="meta-input" value="По отдельному согласованию" style="width: 340px;"></div>
+      <div class="ip-term-row"><b>Срок действия предложения:</b> <input type="text" id="ipValidityTerms" class="meta-input" value="До согласования заказа" style="width: 340px;"></div>
+      <div class="ip-term-row"><b>Приложения:</b> <input type="text" id="ipAppendixTerms" class="meta-input" value="Спецификация и техническое описание предоставляются по запросу" style="width: 340px;"></div>
       <div id="condIpCustomList"></div>
     </div>
+    <div class="proposal-note">Предложение предназначено для предварительного согласования условий поставки.</div>
 
     <div style="margin-bottom: 14px;" class="no-print">
       <button type="button" class="btn btn-add btn-cond-add" id="btnAddCondRow">+ Добавить условие</button>
@@ -330,6 +341,6 @@
   </div>
 
   <!-- Скрипты логики -->
-  <script src="app.js?v=20261024-company3-4"></script>
+  <script src="app.js?v=20261024-company3-5"></script>
 </body>
 </html>
