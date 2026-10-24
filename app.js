@@ -960,7 +960,7 @@
           children: [
             new ImageRun({
               data: logoBuffer,
-              transformation: { width: 230, height: 62 }
+              transformation: { width: 300, height: 81 }
             })
           ]
         }));
