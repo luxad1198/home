@@ -307,6 +307,8 @@
       document.getElementById('lblTaxType').textContent = company.taxLabel;
       document.getElementById('lblVatType').textContent = company.vatLabel;
       if (delTitle) delTitle.textContent = isGlazyrin ? 'Доставка до клиента, ₽' : 'Доставка до клиента с НДС 5%, ₽';
+      const kpLabel = document.getElementById('kpNumLabel');
+      if (kpLabel) kpLabel.textContent = isGlazyrin ? 'КП №' : 'Исх. №';
       document.getElementById('headIpTop').innerHTML = company.headerHtml || '<b>Индивидуальный предприниматель Захаров Михаил Сергеевич</b><br><b>ОГРНИП: 325110000002538</b> / <b>ИНН: 110214010407</b><br>Тел.: +7 (981) 208-62-36<br>e-mail: m.zakharov0811@gmail.com';
       document.getElementById('contactsIp').innerHTML = company.contactsHtml || 'Захаров Михаил Сергеевич<br>Телефон: +7 981 208-62-36<br>Email: m.zakharov0811@gmail.com';
 
