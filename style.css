@@ -1021,3 +1021,46 @@ body.is-ip-glazyrin .ip-section-add {
   margin: 3px 0 6px; padding: 4px 8px; border-color: #b7c2cc;
   background: #f7f8f9; color: #334155;
 }
+
+/* Align every condition in two shared columns; let long values wrap in the value column. */
+body.is-ip-glazyrin .ip-cond-box .ip-term-row,
+body.is-ip-glazyrin .ip-custom-cond-row {
+  display: grid;
+  grid-template-columns: minmax(0, 40%) minmax(0, 1fr) auto;
+  column-gap: 10px;
+  align-items: baseline;
+}
+body.is-ip-glazyrin .ip-term-row > b,
+body.is-ip-glazyrin .ip-custom-cond-row > b {
+  grid-column: 1;
+  min-width: 0;
+}
+body.is-ip-glazyrin .ip-term-row > .meta-input,
+body.is-ip-glazyrin .ip-custom-cond-row > .ip-cond-val-input {
+  grid-column: 2;
+  width: 100% !important;
+  min-width: 0;
+  text-align: right;
+}
+body.is-ip-glazyrin .ip-custom-cond-row > .ip-cond-value-print {
+  grid-column: 2;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+body.is-ip-glazyrin .ip-custom-cond-row > .btn-del-ip-cond,
+body.is-ip-glazyrin .ip-term-row > .ip-standard-delete {
+  grid-column: 3;
+  margin-left: 0;
+}
+@media print {
+  body.is-ip-glazyrin .ip-custom-cond-row .ip-cond-value-print {
+    display: block !important;
+    width: 100%;
+    font: inherit;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    text-align: right;
+  }
+}
