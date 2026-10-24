@@ -8,7 +8,7 @@
   <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
   <!-- Стили -->
-  <link rel="stylesheet" href="style.css?v=20261024-company3-6">
+  <link rel="stylesheet" href="style.css?v=20261024-company3-7">
 </head>
 <body>
 
@@ -292,16 +292,19 @@
           <option value="Самовывоз со склада продавца">Самовывоз со склада продавца</option>
         </select>
       </div>
+      <div id="condIpCustomList2" class="ip-custom-condition-list"></div>
+      <button type="button" id="btnAddCondIp2" class="btn btn-add btn-cond-add ip-section-add no-print">+ Добавить пункт к разделу 2</button>
       <div class="doc-subsection-heading">3. Дополнительные условия</div>
       <div class="ip-term-row"><b>3.1. Гарантийные обязательства:</b> <input type="text" id="ipWarrantyTerms" class="meta-input" value="Согласно документации производителя" style="width: 340px;"></div>
       <div class="ip-term-row"><b>3.2. Сервисное обслуживание и поддержка:</b> <input type="text" id="ipServiceTerms" class="meta-input" value="По отдельному согласованию" style="width: 340px;"></div>
       <div class="ip-term-row"><b>3.3. Срок действия предложения:</b> <input type="text" id="ipValidityTerms" class="meta-input" value="До согласования заказа" style="width: 340px;"></div>
       <div class="ip-term-row"><b>3.4. Приложения:</b> <input type="text" id="ipAppendixTerms" class="meta-input" value="Спецификация и техническое описание предоставляются по запросу" style="width: 340px;"></div>
-      <div id="condIpCustomList"></div>
+      <div id="condIpCustomList" class="ip-custom-condition-list"></div>
+      <button type="button" id="btnAddCondIp3" class="btn btn-add btn-cond-add ip-section-add no-print">+ Добавить пункт к разделу 3</button>
     </div>
     <div class="proposal-note">Предложение предназначено для предварительного согласования условий поставки.</div>
 
-    <div style="margin-bottom: 14px;" class="no-print">
+    <div id="genericAddConditionBox" style="margin-bottom: 14px;" class="no-print">
       <button type="button" class="btn btn-add btn-cond-add" id="btnAddCondRow">+ Добавить условие</button>
     </div>
 
@@ -341,6 +344,6 @@
   </div>
 
   <!-- Скрипты логики -->
-  <script src="app.js?v=20261024-company3-6"></script>
+  <script src="app.js?v=20261024-company3-7"></script>
 </body>
 </html>
