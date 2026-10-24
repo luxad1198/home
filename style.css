@@ -360,55 +360,69 @@ body.hide-bg-sidebar .bg-sidebar {
   flex-wrap: wrap;
 }
 
-/* Отдельная фирменная шапка ИП Глазырина */
+/* Строгая двухколоночная шапка ИП Глазырина */
+body.is-ip-glazyrin .head-ip-container {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr;
+  align-items: start;
+  column-gap: 20px;
+  border-bottom: 1px solid #334155;
+  padding-bottom: 9px;
+}
 body.is-ip-glazyrin .head-ip-top {
-  position: relative;
-  padding: 16px 20px 14px;
-  margin-bottom: 12px;
+  padding: 0;
+  margin: 0;
   border: 0;
-  border-left: 7px solid #c38b45;
-  border-radius: 3px;
-  background: #17324d;
-  color: #fff;
-  line-height: 1.35;
+  border-radius: 0;
+  background: transparent;
+  color: #111827;
+  line-height: 1.3;
 }
-body.is-ip-glazyrin .head-ip-top::after {
-  content: 'АГ';
-  position: absolute;
-  top: 15px;
-  right: 18px;
-  width: 48px;
-  height: 48px;
-  display: grid;
-  place-items: center;
-  border: 1px solid rgba(255,255,255,.45);
-  border-radius: 50%;
-  color: #e7c18e;
-  font: 700 15pt Arial, sans-serif;
-}
-body.is-ip-glazyrin .ip-card-kicker {
-  margin-bottom: 5px;
-  color: #e7c18e;
-  font: 700 8pt Arial, sans-serif;
-  letter-spacing: .08em;
-}
-body.is-ip-glazyrin .ip-card-name {
-  font-size: 20pt;
-  font-weight: bold;
-  letter-spacing: .02em;
-}
-body.is-ip-glazyrin .ip-card-role {
-  margin: 1px 0 8px;
-  color: #d7e2ec;
-  font-size: 10pt;
-}
-body.is-ip-glazyrin .ip-card-details {
-  display: flex;
-  gap: 18px;
-  color: #fff;
+body.is-ip-glazyrin .ip-gla-entity {
+  margin-bottom: 3px;
+  color: #475569;
   font-size: 9.5pt;
 }
-body.is-ip-glazyrin .contacts-ip { color: #17324d; }
+body.is-ip-glazyrin .ip-gla-name {
+  margin-bottom: 8px;
+  color: #111827;
+  font-size: 15pt;
+  font-weight: bold;
+}
+body.is-ip-glazyrin .ip-gla-details,
+body.is-ip-glazyrin .ip-gla-contact {
+  font-size: 10pt;
+  line-height: 1.35;
+}
+body.is-ip-glazyrin .ip-gla-contact { margin-top: 4px; }
+body.is-ip-glazyrin .head-ip-meta {
+  display: block;
+  margin: 0;
+  font-size: 10.5pt;
+}
+body.is-ip-glazyrin .head-ip-meta-left {
+  display: block;
+  margin-bottom: 8px;
+}
+body.is-ip-glazyrin .kp-ip-wrapper {
+  margin-bottom: 6px;
+  font-size: 11.5pt;
+  font-weight: bold;
+}
+body.is-ip-glazyrin #clientContainerIp {
+  width: 100% !important;
+  padding-left: 0 !important;
+  font-weight: normal;
+}
+body.is-ip-glazyrin #clientContainerIp .client-textarea {
+  display: block;
+  width: 100%;
+  margin-top: 2px;
+}
+body.is-ip-glazyrin table.spec th,
+body.is-ip-glazyrin .t-tot {
+  background-color: #ACB9CA !important;
+}
 body.is-ip-glazyrin .stamp-box { display: none !important; }
 
 .meta-input {
