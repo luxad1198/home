@@ -1083,3 +1083,23 @@ body.is-ip-glazyrin #condIpCustomList > .ip-custom-cond-row:not(:last-child) {
   padding: 3px 0;
   border-bottom: 1px solid #D8E3DD;
 }
+
+/* Equipment import controls never enter the printed proposal. */
+.equipment-import-tools { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:12px 0; }
+.equipment-import-tools button, #equipmentImportDialog button { padding:8px 12px; cursor:pointer; }
+#equipmentImportDialog { width:min(1100px, 95vw); max-height:90vh; border:1px solid #cbd5e1; border-radius:10px; padding:20px; color:#243b53; }
+#equipmentImportDialog::backdrop { background:#0f172a99; }
+#equipmentImportDialog h2 { margin:0 0 12px; font-size:20px; }
+#equipmentImportDialog p { overflow-wrap:anywhere; }
+.equipment-import-scroll { max-height:50vh; overflow:auto; }
+#equipmentImportDialog table { width:100%; border-collapse:collapse; font-size:14px; }
+#equipmentImportDialog th, #equipmentImportDialog td { border:1px solid #cbd5e1; padding:8px; text-align:left; vertical-align:top; min-width:65px; }
+#equipmentImportDialog th { background:#edf2f7; position:sticky; top:0; }
+#equipmentImportDialog td { white-space:pre-wrap; overflow-wrap:anywhere; }
+#equipmentImportDialog td:nth-child(2) { min-width:170px; }
+#equipmentImportDialog td:nth-child(3) { min-width:240px; }
+.equipment-import-actions { display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-top:16px; }
+#equipmentImportApply { background:#2f5d50; color:white; border:0; border-radius:4px; }
+#equipmentImportApply:disabled { opacity:.5; cursor:default; }
+#equipmentImportNotice { font-size:13px; }
+@media print { .equipment-import-tools, #equipmentImportDialog { display:none !important; } }
