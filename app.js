@@ -12,6 +12,31 @@
   const DEFAULT_WARRANTY_OOO = '12 месяцев с возможностью расширения до 5 лет. Выезд инженера в рамках гарантийного ремонта по адресу Заказчика – опционально. Обслуживание On-site (на месте) / Keep Your Drive (KYD) ремонт с сохранением жестких дисков у клиента – опционально.';
   const MONTHS_GENITIVE = ["января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"];
 
+  const COMPANY_CONFIG = {
+    ooo: {
+      kind: 'company', name: 'РТСтандарт', intro: 'Общество с ограниченной ответственностью «РТСтандарт», в лице генерального директора Маркова Дмитрия Евгеньевича, действующего на основании Устава, предлагает рассмотреть возможность поставки следующего оборудования:',
+      priceTitle: 'Цена за ед. руб., включая НДС 22%', sumTitle: 'Сумма руб., включая НДС 22%', vatRate: 22, vatDivisor: 122,
+      signTitle: 'Генеральный директор ООО «РТСтандарт»', signPerson: 'Марков Д.Е.'
+    },
+    ip: {
+      kind: 'ip', name: 'ИП Захаров', intro: 'Индивидуальный предприниматель Захаров Михаил Сергеевич, действующий на основании свидетельства о государственной регистрации, предлагает рассмотреть возможность поставки следующего оборудования:',
+      priceTitle: 'Цена за ед. руб., с НДС 5%', sumTitle: 'Сумма руб., с НДС 5%', vatRate: 5, vatDivisor: 105,
+      signTitle: 'Индивидуальный предприниматель', signPerson: 'Захаров М.С.', taxLabel: 'УСН (6%+1%):', vatLabel: 'НДС (5%):', stamp: 'stamp-ip.webp'
+    },
+    'ip-glazyrin': {
+      kind: 'ip', name: 'ИП Глазырин', intro: 'Индивидуальный предприниматель Глазырин Алексей Алексеевич предлагает рассмотреть возможность поставки следующего оборудования:',
+      priceTitle: 'Цена за ед. руб., без НДС', sumTitle: 'Сумма, руб. (без НДС)', vatRate: 0, vatDivisor: 100,
+      signTitle: 'Индивидуальный предприниматель', signPerson: 'Глазырин А.А.', taxLabel: 'УСН (4% + 1%):', vatLabel: 'НДС не начисляется:', taxRate: 0.05,
+      headerHtml: '<div class="ip-card-kicker">КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ · ПОСТАВКА ОБОРУДОВАНИЯ</div><div class="ip-card-name">Алексей Глазырин</div><div class="ip-card-role">Индивидуальный предприниматель</div><div class="ip-card-details"><span>ИНН&nbsp; 143533463817</span><span>ОГРНИП&nbsp; 326140000064939</span></div>',
+      contactsHtml: 'Индивидуальный предприниматель Глазырин Алексей Алексеевич<br>Телефон: +7 966 871-88-61<br>Email: a.glazyrin1198@mail.ru', stamp: null
+    }
+  };
+
+  function activeCompany() {
+    return COMPANY_CONFIG[document.getElementById('companySelect')?.value] || COMPANY_CONFIG.ooo;
+  }
+  function isSoleProprietor() { return activeCompany().kind === 'ip'; }
+
   function decl(n, forms) {
     n = Math.abs(n) % 100;
     const n1 = n % 10;
@@ -120,7 +145,7 @@
     const res = generateDeliveryPhrase(val, unit);
     if (!res) return;
 
-    const isIp = document.getElementById('companySelect').value === 'ip';
+    const isIp = isSoleProprietor();
     if (isIp) {
       const inpIp = document.getElementById('ipDeliveryTime');
       if (inpIp) inpIp.value = res;
@@ -135,7 +160,7 @@
   }
 
   function addCondRowForActiveCompany() {
-    const isIp = document.getElementById('companySelect').value === 'ip';
+    const isIp = isSoleProprietor();
     if (isIp) {
       addCondRowIp('Документы', 'УПД, Счет');
     } else {
@@ -254,9 +279,12 @@
 
   function onCompanyChange() {
     const comp = document.getElementById('companySelect').value;
-    const isIp = comp === 'ip';
+    const company = activeCompany();
+    const isIp = company.kind === 'ip';
+    const isGlazyrin = comp === 'ip-glazyrin';
 
     document.body.classList.toggle('is-ip', isIp);
+    document.body.classList.toggle('is-ip-glazyrin', isGlazyrin);
 
     document.getElementById('headOoo').style.display = isIp ? 'none' : 'table';
     document.getElementById('headIp').style.display = isIp ? 'block' : 'none';
@@ -271,27 +299,27 @@
     const delTitle = document.getElementById('lblDeliveryTitle');
 
     if (isIp) {
-      document.getElementById('docIntro').textContent = 
-        'Индивидуальный предприниматель Захаров Михаил Сергеевич, действующий на основании свидетельства о государственной регистрации, предлагает рассмотреть возможность поставки следующего оборудования:';
-      document.getElementById('thPriceCol').textContent = 'Цена за ед. руб., с НДС 5%';
-      document.getElementById('thTotalCol').textContent = 'Сумма руб., с НДС 5%';
-      document.getElementById('signTitleBlock').textContent = 'Индивидуальный предприниматель';
-      document.getElementById('signPersonName').textContent = 'Захаров М.С.';
-      document.getElementById('lblTaxType').textContent = 'УСН (6%+1%):';
-      document.getElementById('lblVatType').textContent = 'НДС (5%):';
-      if (delTitle) delTitle.textContent = 'Доставка до клиента с НДС 5%, ₽';
+      document.getElementById('docIntro').textContent = company.intro;
+      document.getElementById('thPriceCol').textContent = company.priceTitle;
+      document.getElementById('thTotalCol').textContent = company.sumTitle;
+      document.getElementById('signTitleBlock').textContent = company.signTitle;
+      document.getElementById('signPersonName').textContent = company.signPerson;
+      document.getElementById('lblTaxType').textContent = company.taxLabel;
+      document.getElementById('lblVatType').textContent = company.vatLabel;
+      if (delTitle) delTitle.textContent = isGlazyrin ? 'Доставка до клиента, ₽' : 'Доставка до клиента с НДС 5%, ₽';
+      document.getElementById('headIpTop').innerHTML = company.headerHtml || '<b>Индивидуальный предприниматель Захаров Михаил Сергеевич</b><br><b>ОГРНИП: 325110000002538</b> / <b>ИНН: 110214010407</b><br>Тел.: +7 (981) 208-62-36<br>e-mail: m.zakharov0811@gmail.com';
+      document.getElementById('contactsIp').innerHTML = company.contactsHtml || 'Захаров Михаил Сергеевич<br>Телефон: +7 981 208-62-36<br>Email: m.zakharov0811@gmail.com';
 
       if (stampImg) {
-        stampImg.src = 'stamp-ip.webp';
-        stampImg.style.display = 'block';
+        stampImg.src = company.stamp || '';
+        stampImg.style.display = company.stamp ? 'block' : 'none';
       }
     } else {
-      document.getElementById('docIntro').textContent = 
-        'Общество с ограниченной ответственностью «РТСтандарт», в лице генерального директора Маркова Дмитрия Евгеньевича, действующего на основании Устава, предлагает рассмотреть возможность поставки следующего оборудования:';
-      document.getElementById('thPriceCol').textContent = 'Цена за ед. руб., включая НДС 22%';
-      document.getElementById('thTotalCol').textContent = 'Сумма руб., включая НДС 22%';
+      document.getElementById('docIntro').textContent = company.intro;
+      document.getElementById('thPriceCol').textContent = company.priceTitle;
+      document.getElementById('thTotalCol').textContent = company.sumTitle;
       document.getElementById('signTitleBlock').innerHTML = 'Генеральный директор<br>ООО «РТСтандарт»';
-      document.getElementById('signPersonName').textContent = 'Марков Д.Е.';
+      document.getElementById('signPersonName').textContent = company.signPerson;
       document.getElementById('lblTaxType').textContent = 'Налог на прибыль (25%):';
       document.getElementById('lblVatType').textContent = 'НДС к доплате (22%):';
       if (delTitle) delTitle.textContent = 'Доставка до клиента с НДС 22%, ₽';
@@ -326,7 +354,9 @@
   }
 
   function calculateMargin() {
-    const isIp = document.getElementById('companySelect').value === 'ip';
+    const company = activeCompany();
+    const isIp = company.kind === 'ip';
+    const isGlazyrin = document.getElementById('companySelect').value === 'ip-glazyrin';
     const cVat = parseNum(document.getElementById('calcCostVat').value);
     const targetVal = parseNum(document.getElementById('calcProfitTarget').value);
     const days = parseInt(document.getElementById('calcFinDaysInput').value, 10) || 0;
@@ -367,6 +397,11 @@
       const vatOut = saleNet * 0.22;
       vatPayable = vatOut - vatIn;
       saleVat = saleNet * 1.22;
+    } else if (isGlazyrin) {
+      costNet = totalCostBase;
+      saleVat = (costNet + netProfit) / (1 - company.taxRate);
+      profitTax = saleVat * company.taxRate;
+      vatPayable = 0;
     } else {
       costNet = totalCostBase;
       const taxFactor = 1 - (5 / 105) - 0.07;
@@ -447,7 +482,7 @@
       if (ta && mirror) mirror.textContent = ta.value;
     });
 
-    const isIp = document.getElementById('companySelect').value === 'ip';
+    const isIp = isSoleProprietor();
     const clientText = isIp ? document.getElementById('clientBoxIp')?.value : document.getElementById('clientBox')?.value;
     const clientBoxOoo = document.getElementById('clientContainerOoo');
     const clientBoxIp = document.getElementById('clientContainerIp');
@@ -479,7 +514,7 @@
   }
 
   function onDateInput(input) {
-    const isIp = document.getElementById('companySelect').value === 'ip';
+    const isIp = isSoleProprietor();
     if (!isIp) {
       updatePrefixFromDateString(input.value);
     }
@@ -560,7 +595,8 @@
   }
 
   function recalc() {
-    const isIp = document.getElementById('companySelect').value === 'ip';
+    const company = activeCompany();
+    const isGlazyrin = document.getElementById('companySelect').value === 'ip-glazyrin';
     let grandTotal = 0;
     document.querySelectorAll('#tableBody tr').forEach(row => {
       const qVal = row.querySelector('.col-qty').value;
@@ -574,9 +610,7 @@
 
     document.getElementById('grandTotal').textContent = fmt(grandTotal);
 
-    const vatRate = isIp ? 5 : 22;
-    const vatDiv = isIp ? 105 : 122;
-    const vat = grandTotal > 0 ? (grandTotal * vatRate / vatDiv) : 0;
+    const vat = grandTotal > 0 && company.vatRate ? (grandTotal * company.vatRate / company.vatDivisor) : 0;
 
     const t = splitRubKop(grandTotal);
     const v = splitRubKop(vat);
@@ -589,16 +623,19 @@
     const vRubDecl = decl(v.rub, ['рубль', 'рубля', 'рублей']);
     const vKopDecl = decl(v.kop, ['копейка', 'копейки', 'копеек']);
 
-    const vatPrefix = isIp ? 'в том числе НДС 5% —' : 'в том числе НДС 22%';
+    const vatPhrase = isGlazyrin
+      ? '<b>НДС не облагается</b>'
+      : `<b>в том числе НДС ${company.vatRate}% — ${fmtInt(v.rub)} (${vRubW}) ${vRubDecl} ${String(v.kop).padStart(2, '0')} ${vKopDecl}</b>`;
 
-    document.getElementById('textTotalBlock').innerHTML = 
-      `<b>ИТОГО: ${fmtInt(t.rub)} (${tRubW}) ${tRubDecl} ${String(t.kop).padStart(2, '0')} ${tKopDecl}</b>, <b>${vatPrefix} ${fmtInt(v.rub)} (${vRubW}) ${vRubDecl} ${String(v.kop).padStart(2, '0')} ${vKopDecl}</b>.`;
+    document.getElementById('textTotalBlock').innerHTML =
+      `<b>ИТОГО: ${fmtInt(t.rub)} (${tRubW}) ${tRubDecl} ${String(t.kop).padStart(2, '0')} ${tKopDecl}</b>, ${vatPhrase}.`;
   }
 
   function updateDocumentTitle() {
-    const isIp = document.getElementById('companySelect').value === 'ip';
+    const company = activeCompany();
+    const isIp = company.kind === 'ip';
     const clientVal = isIp ? document.getElementById('clientBoxIp').value : document.getElementById('clientBox').value;
-    let org = isIp ? 'ИП Захаров' : 'РТСтандарт';
+    let org = company.name;
     if (clientVal) {
       const first = clientVal.split('\n')[0].replace(/["'«»\\/:*?<>|]+/g, ' ').replace(/\s+/g, ' ').trim();
       if (first) org = first;
@@ -913,7 +950,9 @@
       ImageRun, TabStopType, Footer, PageNumber
     } = docxLib;
 
-    const isIp = document.getElementById('companySelect').value === 'ip';
+    const company = activeCompany();
+    const isIp = company.kind === 'ip';
+    const isGlazyrin = document.getElementById('companySelect').value === 'ip-glazyrin';
     const clientVal = cleanTextForXml((isIp ? document.getElementById('clientBoxIp')?.value : document.getElementById('clientBox')?.value) || '');
     const dateVal = cleanTextForXml((isIp ? document.getElementById('docDateIp')?.value : document.getElementById('docDate')?.value) || '');
     
@@ -1032,6 +1071,24 @@
         ]
       }));
 
+    } else if (isGlazyrin) {
+      docElements.push(new Paragraph({
+        spacing: { line: 260, after: 90 },
+        border: { bottom: { style: BorderStyle.SINGLE, size: 14, color: "17324D", space: 7 } },
+        children: [
+          new TextRun({ text: "АЛЕКСЕЙ ГЛАЗЫРИН", bold: true, size: 30, color: "17324D", font: "Arial" }),
+          new TextRun({ text: "ИНДИВИДУАЛЬНЫЙ ПРЕДПРИНИМАТЕЛЬ", break: 1, bold: true, size: 17, color: "687B8C", font: "Arial" }),
+          new TextRun({ text: "ИНН 143533463817  ·  ОГРНИП 326140000064939", break: 1, size: 20, font: "Times New Roman" }),
+          new TextRun({ text: "+7 966 871-88-61  ·  a.glazyrin1198@mail.ru", break: 1, size: 20, font: "Times New Roman" })
+        ]
+      }));
+      const ipMetaChildren = [new TextRun({ text: `КП № ${fullNum}        От ${dateVal}`, size: 22, font: "Times New Roman" })];
+      if (clientVal.trim()) ipMetaChildren.push(new TextRun({ text: `\tЗаказчику: ${clientVal.replace(/\n/g, ' ')}`, size: 22, font: "Times New Roman" }));
+      docElements.push(new Paragraph({
+        tabStops: [{ type: TabStopType.RIGHT, position: 9600 }],
+        spacing: { before: 120, after: 80, line: 240 },
+        children: ipMetaChildren
+      }));
     } else {
       // Шапка ИП
       docElements.push(new Paragraph({
@@ -1071,9 +1128,7 @@
       children: [new TextRun({ text: "КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ", bold: true, size: 24, font: "Times New Roman" })]
     }));
 
-    const introText = isIp
-      ? "Индивидуальный предприниматель Захаров Михаил Сергеевич, действующий на основании свидетельства о государственной регистрации, предлагает рассмотреть возможность поставки следующего оборудования:"
-      : "Общество с ограниченной ответственностью «РТСтандарт», в лице генерального директора Маркова Дмитрия Евгеньевича, действующего на основании Устава, предлагает рассмотреть возможность поставки следующего оборудования:";
+    const introText = company.intro;
 
     docElements.push(new Paragraph({
       alignment: AlignmentType.JUSTIFIED,
@@ -1083,9 +1138,9 @@
     }));
 
     // 3. Таблица спецификации
-    const headerBgColor = isIp ? "FFFFFF" : "ACB9CA";
-    const priceColTitle = isIp ? "Цена за ед. руб., с НДС 5%" : "Цена за ед. руб., с НДС 22%";
-    const sumColTitle = isIp ? "Сумма руб., с НДС 5%" : "Сумма руб., с НДС 22%";
+    const headerBgColor = isGlazyrin ? "E7EEF3" : (isIp ? "FFFFFF" : "ACB9CA");
+    const priceColTitle = company.priceTitle;
+    const sumColTitle = company.sumTitle;
 
     const colWidths = [
       { dxa: 400 },
@@ -1290,8 +1345,8 @@
     }
 
     // 6. Подписи и контакты
-    const signTitle = isIp ? "Индивидуальный предприниматель" : "Генеральный директор ООО «РТСтандарт»";
-    const signPerson = isIp ? "Захаров М.С." : "Марков Д.Е.";
+    const signTitle = company.signTitle;
+    const signPerson = company.signPerson;
 
     docElements.push(new Paragraph({
       tabStops: [{ type: TabStopType.RIGHT, position: 9600 }],
@@ -1319,9 +1374,9 @@
       docElements.push(new Paragraph({
         spacing: { before: 40, line: 240 },
         children: [
-          new TextRun({ text: "Захаров Михаил Сергеевич", size: 21, font: "Times New Roman" }),
-          new TextRun({ text: "Телефон: +7 981 208-62-36", break: 1, size: 21, font: "Times New Roman" }),
-          new TextRun({ text: "Email: m.zakharov0811@gmail.com", break: 1, size: 21, font: "Times New Roman" })
+          new TextRun({ text: isGlazyrin ? "Индивидуальный предприниматель Глазырин Алексей Алексеевич" : "Захаров Михаил Сергеевич", size: 21, font: "Times New Roman" }),
+          new TextRun({ text: isGlazyrin ? "Телефон: +7 966 871-88-61" : "Телефон: +7 981 208-62-36", break: 1, size: 21, font: "Times New Roman" }),
+          new TextRun({ text: isGlazyrin ? "Email: a.glazyrin1198@mail.ru" : "Email: m.zakharov0811@gmail.com", break: 1, size: 21, font: "Times New Roman" })
         ]
       }));
     }
