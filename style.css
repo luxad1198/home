@@ -969,3 +969,13 @@ body.is-ip-glazyrin .sign-row {
 }
 
 body.is-ip-glazyrin .delivery-builder-box { display: none !important; }
+
+body.is-ip-glazyrin #genericAddConditionBox { display: none !important; }
+body:not(.is-ip-glazyrin) .ip-section-add { display: none !important; }
+.ip-custom-condition-list { margin-top: 3px; }
+body.is-ip-glazyrin .ip-custom-cond-row { align-items: baseline; }
+body.is-ip-glazyrin .ip-cond-number { color: #243b53; font-weight: 700; white-space: nowrap; }
+body.is-ip-glazyrin .ip-section-add {
+  margin: 3px 0 6px; padding: 4px 8px; border-color: #b7c2cc;
+  background: #f7f8f9; color: #334155;
+}
