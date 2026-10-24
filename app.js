@@ -987,7 +987,7 @@
 
       const rightCellChildren = [
         new Paragraph({
-          spacing: { line: 240 },
+          spacing: { before: 100, line: 240 },
           children: [
             new TextRun({ text: "ООО \"РТСТАНДАРТ\"", bold: true, size: 23, font: "Times New Roman" }),
             new TextRun({ text: "г. Санкт-Петербург, наб. Обводного канала, д. 23, лит. Г", break: 1, size: 21, font: "Times New Roman" }),
