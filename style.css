@@ -966,6 +966,26 @@ body.is-ip-glazyrin .sign-row {
 }
 @media print {
   body.is-ip-glazyrin .ip-term-row .meta-input { border: 0; }
+  body.is-ip-glazyrin .ip-custom-cond-row .ip-cond-lbl-input,
+  body.is-ip-glazyrin .ip-custom-cond-row .ip-cond-val-input {
+    display: none !important;
+  }
+  body.is-ip-glazyrin .ip-custom-cond-row > b {
+    min-width: 185px;
+    color: #243b53;
+    font: 700 9.5pt/1.3 Arial, sans-serif;
+  }
+  body.is-ip-glazyrin .ip-custom-cond-row .ip-cond-label-print {
+    display: inline !important;
+    color: #243b53;
+    font: inherit;
+  }
+  body.is-ip-glazyrin .ip-custom-cond-row .ip-cond-value-print {
+    display: inline !important;
+    flex: 1;
+    color: #374151;
+    font: 9.5pt/1.3 Arial, sans-serif;
+  }
 }
 
 body.is-ip-glazyrin .delivery-builder-box { display: none !important; }
@@ -977,13 +997,18 @@ body.is-ip-glazyrin .ip-custom-cond-row {
   align-items: baseline;
   font: 9.5pt/1.3 Arial, sans-serif;
 }
+body.is-ip-glazyrin .ip-custom-cond-row > b { color: #243b53; }
 body.is-ip-glazyrin .ip-cond-lbl-input {
   font: inherit;
   font-weight: 700;
+  color: #243b53;
 }
 body.is-ip-glazyrin .ip-cond-val-input {
   font: inherit;
+  color: #374151;
 }
+.ip-cond-label-print,
+.ip-cond-value-print { display: none; }
 body.is-ip-glazyrin .ip-cond-number { color: #243b53; font-weight: 700; white-space: nowrap; }
 body.is-ip-glazyrin .ip-term-row.is-deleted { display: none !important; }
 body:not(.is-ip-glazyrin) .ip-standard-delete { display: none !important; }
