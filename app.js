@@ -1010,7 +1010,7 @@
 
       docElements.push(new Table({
         width: { size: 100, type: WidthType.PERCENTAGE },
-        borders: transparentCellBorders,
+        borders: transparentBorders,
         rows: [
           new TableRow({
             cantSplit: true,
