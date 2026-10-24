@@ -772,7 +772,7 @@
     apply.addEventListener('click', () => {
       if (!pending) return;
       const old = readRows();
-      const existing = old.filter(row => row.name.trim() || row.desc.trim() || Number(row.price) || Number(row.qty));
+      const existing = old.filter(row => row.name.trim() || row.desc.trim() || Number(row.price));
       const rows = document.getElementById('equipmentImportMode').value === 'replace' ? pending : existing.concat(pending);
       if (rows.length > 300) { status.textContent = 'Всего получится более 300 позиций. Выберите замену таблицы.'; return; }
       undo = old;
