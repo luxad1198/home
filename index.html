@@ -8,7 +8,7 @@
   <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
   <!-- Стили -->
-  <link rel="stylesheet" href="style.css?v=20261024-company3-15">
+  <link rel="stylesheet" href="style.css?v=import1-20261024-company3-15">
 </head>
 <body>
 
@@ -182,6 +182,27 @@
 
     <div class="doc-section-heading">1. Перечень предлагаемого оборудования</div>
 
+    <div class="equipment-import-tools no-print">
+      <button type="button" id="btnImportEquipment">Импорт из Word</button>
+      <input type="file" id="equipmentFile" accept=".docx" hidden>
+      <button type="button" id="btnUndoEquipmentImport" hidden>Отменить импорт</button>
+      <span id="equipmentImportNotice" role="status"></span>
+    </div>
+    <dialog id="equipmentImportDialog" class="no-print" aria-labelledby="equipmentImportTitle">
+      <h2 id="equipmentImportTitle">Импорт перечня оборудования</h2>
+      <p id="equipmentImportFileName"></p>
+      <p>Файл обрабатывается в браузере. Комментарии, цвет и выделения не переносятся.</p>
+      <p id="equipmentImportStatus" role="status" aria-live="polite"></p>
+      <div class="equipment-import-scroll"><table>
+        <thead><tr><th>№</th><th>Наименование</th><th>Характеристики</th><th>Страна</th><th>Кол-во</th><th>Цена</th></tr></thead>
+        <tbody id="equipmentImportPreview"></tbody>
+      </table></div>
+      <div class="equipment-import-actions">
+        <label>Способ импорта <select id="equipmentImportMode"><option value="append">Добавить к текущим позициям</option><option value="replace">Заменить всю таблицу</option></select></label>
+        <button type="button" id="equipmentImportCancel">Отмена</button>
+        <button type="button" id="equipmentImportApply" disabled>Импортировать</button>
+      </div>
+    </dialog>
     <!-- Таблица спецификации -->
     <table class="spec" id="itemsTable">
       <thead>
@@ -346,6 +367,7 @@
   </div>
 
   <!-- Скрипты логики -->
-  <script src="app.js?v=20261024-company3-15"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="app.js?v=20261024-import-1"></script>
 </body>
 </html>
