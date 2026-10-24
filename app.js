@@ -27,7 +27,7 @@
       kind: 'ip', name: 'ИП Глазырин', intro: 'Индивидуальный предприниматель Глазырин Алексей Алексеевич предлагает рассмотреть возможность поставки следующего оборудования:',
       priceTitle: 'Цена за ед. руб., без НДС', sumTitle: 'Сумма, руб. (без НДС)', vatRate: 0, vatDivisor: 100,
       signTitle: 'Индивидуальный предприниматель', signPerson: 'Глазырин А.А.', taxLabel: 'УСН (4% + 1%):', vatLabel: 'НДС не начисляется:', taxRate: 0.05,
-      headerHtml: '<div class="ip-card-kicker">КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ · ПОСТАВКА ОБОРУДОВАНИЯ</div><div class="ip-card-name">Алексей Глазырин</div><div class="ip-card-role">Индивидуальный предприниматель</div><div class="ip-card-details"><span>ИНН&nbsp; 143533463817</span><span>ОГРНИП&nbsp; 326140000064939</span></div>',
+      headerHtml: '<div class="ip-card-kicker">ПОСТАВКА ОБОРУДОВАНИЯ · ИП ГЛАЗЫРИН</div><div class="ip-card-name">Алексей Глазырин</div><div class="ip-card-role">Индивидуальный предприниматель</div><div class="ip-card-details"><span>ИНН&nbsp; 143533463817</span><span>ОГРНИП&nbsp; 326140000064939</span></div>',
       contactsHtml: 'Индивидуальный предприниматель Глазырин Алексей Алексеевич<br>Телефон: +7 966 871-88-61<br>Email: a.glazyrin1198@mail.ru', stamp: null
     }
   };
