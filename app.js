@@ -680,6 +680,11 @@
         const header = columns(cells);
         if (header.name >= 0 && header.qty >= 0) { map = header; continue; }
         if (!map || !cells.some(Boolean) || /^(итого|всего|общая стоимость)(?:\s|:|$)/i.test(cells.find(Boolean) || '')) continue;
+        // Word forms often repeat a technical row numbering the columns 1…N.
+        // Match the complete sequence, never just a numeric product name.
+        const isColumnNumbering = cells.length >= 3 && cells.every((text, index) =>
+          text.trim() === String(index + 1));
+        if (isColumnNumbering) continue;
         const name = cells[map.name]?.trim();
         if (!name) { warnings.push('Пропущена строка без наименования.'); continue; }
         const qty = number(cells[map.qty] || '');
