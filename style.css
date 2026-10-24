@@ -1022,11 +1022,11 @@ body.is-ip-glazyrin .ip-section-add {
   background: #f7f8f9; color: #334155;
 }
 
-/* Align every condition in two shared columns; let long values wrap in the value column. */
+/* Align every condition in two shared columns; keep long values readable in PDF. */
 body.is-ip-glazyrin .ip-cond-box .ip-term-row,
 body.is-ip-glazyrin .ip-custom-cond-row {
   display: grid;
-  grid-template-columns: minmax(0, 40%) minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 34%) minmax(0, 1fr) auto;
   column-gap: 10px;
   align-items: baseline;
 }
@@ -1040,14 +1040,14 @@ body.is-ip-glazyrin .ip-custom-cond-row > .ip-cond-val-input {
   grid-column: 2;
   width: 100% !important;
   min-width: 0;
-  text-align: right;
+  text-align: left;
 }
-body.is-ip-glazyrin .ip-custom-cond-row > .ip-cond-value-print {
+body.is-ip-glazyrin .ip-custom-cond-row > .ip-cond-value-print,
+body.is-ip-glazyrin .ip-term-row > .ip-standard-value-print {
   grid-column: 2;
   min-width: 0;
   white-space: normal;
   overflow-wrap: anywhere;
-  text-align: right;
 }
 body.is-ip-glazyrin .ip-custom-cond-row > .btn-del-ip-cond,
 body.is-ip-glazyrin .ip-term-row > .ip-standard-delete {
@@ -1055,12 +1055,23 @@ body.is-ip-glazyrin .ip-term-row > .ip-standard-delete {
   margin-left: 0;
 }
 @media print {
+  body.is-ip-glazyrin .ip-term-row > .meta-input,
+  body.is-ip-glazyrin .ip-custom-cond-row .ip-cond-lbl-input,
+  body.is-ip-glazyrin .ip-custom-cond-row .ip-cond-val-input {
+    display: none !important;
+  }
+  body.is-ip-glazyrin .ip-term-row > .ip-standard-value-print,
+  body.is-ip-glazyrin .ip-custom-cond-row .ip-cond-label-print,
   body.is-ip-glazyrin .ip-custom-cond-row .ip-cond-value-print {
     display: block !important;
     width: 100%;
-    font: inherit;
+    min-width: 0;
     white-space: normal;
     overflow-wrap: anywhere;
     text-align: right;
+  }
+  body.is-ip-glazyrin .ip-custom-cond-row .ip-cond-label-print {
+    display: inline !important;
+    width: auto;
   }
 }
