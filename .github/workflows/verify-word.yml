@@ -71,7 +71,7 @@ jobs:
           if [ "$SCOPE" = "all" ]; then
             "$RUNNER_TEMP/word-render-venv/bin/python" scripts/render-word-documents.py
           else
-            python3 scripts/render-word-documents.py "$SCOPE"
+            "$RUNNER_TEMP/word-render-venv/bin/python" scripts/render-word-documents.py "$SCOPE"
           fi
 
       - name: Attach Word files (and optional rendered PDFs)

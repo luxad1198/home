@@ -116,8 +116,8 @@ test('ui: Переключение трёх компаний меняет шап
 });
 
 for (const company of [
-  { id: 'ooo', vat: 'НДС 22%' },
-  { id: 'ip', vat: 'НДС 5%' },
+  { id: 'ooo', vat: 'НДС 22%', vatRub: 712, vatKop: '66', vatWords: 'семьсот двенадцать' },
+  { id: 'ip', vat: 'НДС 5%', vatRub: 188, vatKop: '19', vatWords: 'сто восемьдесят восемь' },
   { id: 'ip-glazyrin', vat: 'НДС не облагается' }
 ]) {
   test('spec: Спецификация и сумма прописью: ' + company.id, async () => {
@@ -136,7 +136,18 @@ for (const company of [
       await second.locator('.col-price').fill('100,25');
       assert.equal(await money(page, '#tableBody tr:last-child .col-total'), 200.5);
       assert.equal(await money(page, '#grandTotal'), 3952);
-      assert((await page.locator('#textTotalBlock').innerText()).includes(company.vat));
+      const words = (await page.locator('#textTotalBlock').innerText())
+        .replace(/\s+/g, ' ');
+      assert(words.includes('3 952 (три тысячи девятьсот пятьдесят два) рубля 00 копеек'),
+        'Wrong grand total in words: ' + words);
+      assert(words.includes(company.vat), 'Wrong VAT regime: ' + words);
+      if (company.vatRub !== undefined) {
+        const expectedVat = company.vatRub + ' (' + company.vatWords + ') рублей ' +
+          company.vatKop + ' копеек';
+        assert(words.includes(expectedVat), 'Wrong VAT amount in words: ' + words);
+      } else {
+        assert(!words.includes('в том числе НДС'), 'VAT was introduced for the VAT-exempt company');
+      }
     });
   });
 }
@@ -222,7 +233,20 @@ for (const company of ['ooo', 'ip', 'ip-glazyrin']) {
       assert(Number.isFinite(actual), 'Калькулятор не вернул числовой результат');
       assert(Math.abs(actual - expected) < 0.02,
         'Неверная цена для ' + company + ': ' + actual + ' вместо ' + expected);
+      // Also verify what a user actually sees, not only the hidden data-val.
+      assert.equal(await money(page, '#resSaleVat'), Number(expected.toFixed(2)),
+        'Incorrect displayed final price for ' + company);
+      const expectedTax = company === 'ooo' ? 500
+        : company === 'ip' ? expected * 0.07 : expected * 0.05;
+      const expectedVat = company === 'ooo' ? 440
+        : company === 'ip' ? expected * (5 / 105) : 0;
+      const expectedCostNet = company === 'ooo' ? 10000 : 12200;
+      assert.equal(await money(page, '#resCostNet'), expectedCostNet);
       assert.equal(await money(page, '#resNetProfit'), 1500);
+      assert.equal(await money(page, '#resProfitTax'), Number(expectedTax.toFixed(2)),
+        'Incorrect displayed tax for ' + company);
+      assert.equal(await money(page, '#resVatPayable'), Number(expectedVat.toFixed(2)),
+        'Incorrect displayed VAT for ' + company);
     });
   });
 }
