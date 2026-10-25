@@ -61,14 +61,15 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends libreoffice-writer
-          python3 -m pip install --break-system-packages pypdf==6.1.1
+          python3 -m venv "$RUNNER_TEMP/word-render-venv"
+          "$RUNNER_TEMP/word-render-venv/bin/pip" install pypdf==6.1.1
 
       - name: Render Word through LibreOffice and check A4 pages
         if: ${{ inputs.render_layout }}
         shell: bash
         run: |
           if [ "$SCOPE" = "all" ]; then
-            python3 scripts/render-word-documents.py
+            "$RUNNER_TEMP/word-render-venv/bin/python" scripts/render-word-documents.py
           else
             python3 scripts/render-word-documents.py "$SCOPE"
           fi
