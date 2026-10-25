@@ -42,10 +42,38 @@ def main():
             text += page.extract_text() or ""
 
         flat = re.sub(r"\s+", "", text)
-        for expected in (marker, "Q7", total, tax, signer):
+        # Match only the NUMERIC 'ИТОГО: 24 000,00' from the actual table.
+        # 'ИТОГО: 24 000 (прописью)' is a separate paragraph and must not qualify.
+        table_totals = re.findall(r"ИТОГО:\s*(\d[\d\s\u00a0]*,\d{2})", text)
+        if len(table_totals) != 1:
+            raise AssertionError(
+                f"{filename}: expected one numeric table total, got {table_totals!r}"
+            )
+        actual_total = re.sub(r"\s+", "", table_totals[0])
+        if actual_total != total:
+            raise AssertionError(
+                f"{filename}: printed table total {actual_total!r}, expected {total!r}"
+            )
+
+        for expected in (marker, "Q7", tax, signer, "Тестовыйзаказчик"):
             if expected not in flat:
                 raise AssertionError(f"{filename}: missing printed value {expected!r}")
-        print(f"OK {filename}: {len(reader.pages)} A4 pages, item, amount, VAT and signer")
+
+        condition = "Тестоваяоплата30дней" if key in ("ooo", "long") else "Тестовыйсрок14дней"
+        if condition not in flat:
+            raise AssertionError(f"{filename}: missing modified delivery/payment condition")
+
+        # For the long scenario all 19 equipment items must survive page breaks.
+        # A digit boundary prevents "оборудование 1" from matching "оборудование 11".
+        if key == "long":
+            for number in range(1, 19):
+                pattern = r"Дополнительное\s+оборудование\s+" + str(number) + r"(?!\d)"
+                if not re.search(pattern, text):
+                    raise AssertionError(
+                        f"{filename}: missing equipment line 'Дополнительное оборудование {number}'"
+                    )
+
+        print(f"OK {filename}: {len(reader.pages)} A4 pages, exact table total, equipment, client, condition, VAT and signer")
 
     print("PDF content checks passed; visual layout still requires inspecting the PDF.")
 
