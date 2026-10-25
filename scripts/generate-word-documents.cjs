@@ -72,8 +72,16 @@ async function generateWord(browser, url, scenario) {
     const isIp = scenario.company !== 'ooo';
     await page.locator(isIp ? '#clientBoxIp' : '#clientBox').fill('Тестовый заказчик');
     await page.locator(isIp ? '#kpNumInputIp' : '#kpNumInput').fill('TEST-DOCX');
-    await page.locator(isIp ? '#ipDeliveryTime' : '#condOooPay')
-      .fill(isIp ? 'Тестовый срок 14 дней' : 'Тестовая оплата 30 дней');
+    if (!isIp) {
+      await page.locator('#condOooPay').fill('Тестовая оплата 30 дней');
+    } else if (scenario.company === 'ip') {
+      // IP Zakharov edits the value through the visible contenteditable proxy.
+      // The underlying #ipDeliveryTime input is deliberately hidden in screen CSS.
+      await page.locator('#ipDeliveryTime + .ip-standard-value-editor')
+        .fill('Тестовый срок 14 дней');
+    } else {
+      await page.locator('#ipDeliveryTime').fill('Тестовый срок 14 дней');
+    }
 
     const first = page.locator('#tableBody tr').first();
     await first.locator('.col-name').fill(scenario.marker + ' Тестовое оборудование');
