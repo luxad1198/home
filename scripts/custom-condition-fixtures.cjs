@@ -54,16 +54,10 @@ async function assertConditions(page, company) {
     assert.equal(await rows.count(),
       CONDITIONS[company].filter(x => listSelector(company, x) === selector).length,
       'Unexpected number of saved conditions in ' + selector);
-    const row = rows.filter({ has: page.locator('.ip-cond-lbl-input') });
-    const current = company === 'ooo'
-      ? rows.filter({ has: page.locator('.cond-lbl-input') }).filter({
-          has: page.locator('.cond-val')
-        })
-      : row;
-    // Find by value rather than assuming the DOM order between sections.
-    const labels = await current.locator(company === 'ooo' ? '.cond-lbl-input' : '.ip-cond-lbl-input').evaluateAll(
-      elements => elements.map(el => el.value)
-    );
+    // Find by value rather than assuming order between the two sections.
+    const labels = await rows.locator(
+      company === 'ooo' ? '.cond-lbl-input' : '.ip-cond-lbl-input'
+    ).evaluateAll(elements => elements.map(el => el.value));
     const idx = labels.indexOf(item.label);
     assert(idx >= 0, 'Lost condition label ' + item.label);
     const conditionRow = rows.nth(idx);
