@@ -3,6 +3,18 @@ name: Verify print PDF
 # Backup PDF verification only: manually choose the PR branch when local Playwright is unavailable.
 on:
   workflow_dispatch:
+    inputs:
+      scope:
+        description: 'Which company or scenario to check'
+        required: true
+        default: all
+        type: choice
+        options:
+          - all
+          - ooo
+          - ip
+          - ip-glazyrin
+          - long
 
 permissions:
   contents: read
@@ -12,6 +24,8 @@ jobs:
     name: Generate and inspect PDFs
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      SCOPE: ${{ inputs.scope }}
     steps:
       - name: Checkout the tested revision
         uses: actions/checkout@v4
@@ -38,14 +52,22 @@ jobs:
             fi
             sleep 1
           done
-          node scripts/generate-print-pdfs.cjs
+          if [ "$SCOPE" = "all" ]; then
+            node scripts/generate-print-pdfs.cjs
+          else
+            node scripts/generate-print-pdfs.cjs "$SCOPE"
+          fi
 
       - name: Verify PDFs and A4 pages
         shell: bash
         run: |
           python3 -m venv "$RUNNER_TEMP/pdf-verify-venv"
           "$RUNNER_TEMP/pdf-verify-venv/bin/pip" install pypdf==6.1.1
-          "$RUNNER_TEMP/pdf-verify-venv/bin/python" scripts/check-print-pdfs.py
+          if [ "$SCOPE" = "all" ]; then
+            "$RUNNER_TEMP/pdf-verify-venv/bin/python" scripts/check-print-pdfs.py
+          else
+            "$RUNNER_TEMP/pdf-verify-venv/bin/python" scripts/check-print-pdfs.py "$SCOPE"
+          fi
 
       - name: Attach generated PDFs to the workflow run
         if: always()
