@@ -59,6 +59,24 @@ def check(key):
         if compact(term) not in doc_text:
             raise AssertionError(f"{filename}: missing printed text {term!r}")
 
+    # ООО: the first customer name must follow "Заказчику:" on the SAME line.
+    # Check explicit OOXML breaks, not just total text (which hides line breaks).
+    if key in ("ooo", "long"):
+        paragraphs = [
+            paragraph for paragraph in document.iter(W + "p")
+            if "Заказчику:" in text_content(paragraph)
+        ]
+        if len(paragraphs) != 1:
+            raise AssertionError(f"{filename}: expected one customer paragraph")
+        first_line = ""
+        for node in paragraphs[0].iter():
+            if node.tag in (W + "br", W + "cr"):
+                break
+            if node.tag == W + "t":
+                first_line += node.text or ""
+        if "Заказчику:Тестовыйзаказчик" not in compact(first_line):
+            raise AssertionError(f"{filename}: customer moved below caption in DOCX")
+
     # Verify the actual specification: seven physical columns and enough table rows.
     spec_tables = [
         table for table in document.iter(W + "tbl")
