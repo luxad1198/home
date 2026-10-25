@@ -1103,3 +1103,16 @@ body.is-ip-glazyrin #condIpCustomList > .ip-custom-cond-row:not(:last-child) {
 #equipmentImportApply:disabled { opacity:.5; cursor:default; }
 #equipmentImportNotice { font-size:13px; }
 @media print { .equipment-import-tools, #equipmentImportDialog { display:none !important; } }
+
+/* Validation and shared IP print presentation. */
+[aria-invalid="true"] { outline:2px solid #b91c1c !important; background:#fff1f2 !important; }
+@media print {
+  body.is-ip:not(.is-ip-glazyrin) .ip-custom-cond-row { display:block; }
+  body.is-ip:not(.is-ip-glazyrin) .ip-custom-cond-row .ip-cond-lbl-input,
+  body.is-ip:not(.is-ip-glazyrin) .ip-custom-cond-row .ip-cond-val-input { display:none !important; }
+  body.is-ip:not(.is-ip-glazyrin) .ip-cond-label-print,
+  body.is-ip:not(.is-ip-glazyrin) .ip-cond-value-print { display:inline !important; white-space:pre-wrap; overflow-wrap:anywhere; }
+  body.is-ip .ip-cond-box { break-inside:auto !important; page-break-inside:auto !important; }
+  .doc-section-heading, .doc-subsection-heading { break-after:avoid; page-break-after:avoid; }
+  body.is-ip-glazyrin .proposal-note { break-after:avoid; page-break-after:avoid; }
+}
