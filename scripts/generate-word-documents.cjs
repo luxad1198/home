@@ -139,6 +139,11 @@ async function main() {
     assert(fs.existsSync(file), 'Missing ' + vendor.file + '. Install pinned test dependencies.');
   }
   fs.mkdirSync(OUTPUT, { recursive: true });
+  // Avoid validating a leftover file after a failed generation.
+  // Delete only selected scenario outputs, not other users' local fixtures.
+  for (const scenario of chosen) {
+    fs.rmSync(path.join(OUTPUT, scenario.filename), { force: true });
+  }
   const server = serverFactory();
   let browser;
   try {
