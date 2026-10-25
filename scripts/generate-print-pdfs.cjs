@@ -1,7 +1,7 @@
 // Генерация тестовых PDF через Chromium без системного окна печати.
 // Запуск: npm install --no-save --package-lock=false playwright@1.56.1
 //        python3 -m http.server 8765 --bind 127.0.0.1
-//        node scripts/generate-print-pdfs.cjs
+//        node scripts/generate-print-pdfs.cjs [ooo|ip|ip-glazyrin|long]
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -10,10 +10,10 @@ const { chromium } = require('playwright');
 const BASE_URL = process.env.PRINT_TEST_URL || 'http://127.0.0.1:8765/';
 const OUTPUT_DIR = path.join(process.cwd(), 'artifacts', 'print-pdf');
 const CASES = [
-  { company: 'ooo', filename: 'rtstandard.pdf', marker: 'RTPDF01' },
-  { company: 'ip', filename: 'zakharov.pdf', marker: 'ZKPDF02' },
-  { company: 'ip-glazyrin', filename: 'glazyrin.pdf', marker: 'GLPDF03' },
-  { company: 'ooo', filename: 'rtstandard-multipage.pdf', marker: 'RTPDF04', extraRows: 18 }
+  { key: 'ooo', company: 'ooo', filename: 'rtstandard.pdf', marker: 'RTPDF01' },
+  { key: 'ip', company: 'ip', filename: 'zakharov.pdf', marker: 'ZKPDF02' },
+  { key: 'ip-glazyrin', company: 'ip-glazyrin', filename: 'glazyrin.pdf', marker: 'GLPDF03' },
+  { key: 'long', company: 'ooo', filename: 'rtstandard-multipage.pdf', marker: 'RTPDF04', extraRows: 18 }
 ];
 
 async function generatePdf(browser, scenario) {
@@ -92,10 +92,15 @@ async function generatePdf(browser, scenario) {
 }
 
 async function main() {
+  const keys = process.argv.slice(2);
+  if (keys.some(key => !CASES.some(scenario => scenario.key === key))) {
+    throw new Error('Choose: ooo, ip, ip-glazyrin, long (or omit for all)');
+  }
+  const selected = keys.length ? CASES.filter(scenario => keys.includes(scenario.key)) : CASES;
   fs.mkdirSync(OUTPUT_DIR, { recursive: true });
   const browser = await chromium.launch({ headless: true });
   try {
-    for (const scenario of CASES) await generatePdf(browser, scenario);
+    for (const scenario of selected) await generatePdf(browser, scenario);
   } finally {
     await browser.close();
   }
