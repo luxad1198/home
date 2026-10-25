@@ -43,7 +43,7 @@ async function generatePdf(browser, scenario) {
     // Use the same fixture data as the Word-export scenario for fair comparison.
     const isIp = scenario.company !== 'ooo';
     await page.locator(isIp ? '#clientBoxIp' : '#clientBox').fill('Тестовый заказчик');
-    await page.locator(isIp ? '#kpNumInputIp' : '#kpNumInput').fill('Q7');
+    await page.locator(isIp ? '#kpNumInputIp' : '#kpNumInput').fill(scenario.key === 'ooo' ? 'TEST-DOCX' : 'Q7');
     if (!isIp) {
       await page.locator('#condOooPay').fill('Тестовая оплата 30 дней');
     } else if (scenario.company === 'ip') {
@@ -89,6 +89,15 @@ async function generatePdf(browser, scenario) {
 
     await page.evaluate(() => document.fonts.ready);
     await page.emulateMedia({ media: 'print' });
+    if (scenario.key === 'ooo') {
+      const number = await page.locator('#kpNumPrint').evaluate(element => ({
+        content: element.textContent,
+        visible: getComputedStyle(element).display !== 'none'
+      }));
+      assert(number.visible && number.content === 'TEST-DOCX',
+        'The full customer-facing proposal number must be present in print: ' +
+          JSON.stringify(number));
+    }
     if (scenario.company === 'ooo' || scenario.company === 'ip') {
       const selector = scenario.company === 'ooo' ? '#clientContainerOoo' : '#clientContainerIp';
       const layout = await page.locator(selector).evaluate(container => {
