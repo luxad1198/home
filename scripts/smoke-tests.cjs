@@ -181,7 +181,7 @@ test('Неверные количество/цена блокируют печа
     await page.locator('#btnPrint').click();
     assert.equal(await page.evaluate(() => window.__printCalls), 1);
     assert.equal(
-      await row.locator('.print-text-mirror').first().innerText(),
+      await row.locator('.print-text-mirror').first().textContent(),
       'Проверка печатного зеркала'
     );
   });
