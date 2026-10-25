@@ -20,6 +20,9 @@ SCENARIOS = {
     "ip": ("zakharov.docx", "ZKPDF02", 1),
     "ip-glazyrin": ("glazyrin.docx", "GLPDF03", 1),
     "long": ("rtstandard-multipage.docx", "RTPDF04", 2),
+    "conditions-ooo": ("rtstandard-conditions.docx", "RTCOND05", 1),
+    "conditions-ip": ("zakharov-conditions.docx", "ZKCOND06", 1),
+    "conditions-ip-glazyrin": ("glazyrin-conditions.docx", "GLCOND07", 1),
 }
 
 
@@ -27,7 +30,7 @@ def main():
     office = shutil.which("libreoffice") or shutil.which("soffice")
     if not office:
         raise RuntimeError("LibreOffice not installed; skip optional visual Word rendering")
-    selected = sys.argv[1:] or list(SCENARIOS)
+    selected = sys.argv[1:] or list(SCENARIOS)[:4]
     if any(key not in SCENARIOS for key in selected):
         raise ValueError("Select ooo, ip, ip-glazyrin, long (or omit for all)")
 
