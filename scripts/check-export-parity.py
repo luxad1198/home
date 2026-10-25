@@ -14,11 +14,21 @@ from pypdf import PdfReader
 
 ROOT = Path("artifacts")
 W = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
+EXTRA_TERMS = {
+    "conditions-ooo": ("Приёмка", "При расхождениях оформляется акт.", "Уведомление"),
+    "conditions-ip": ("Документы:УПД", "Оригиналы направляются отдельным письмом.", "Срок ответа"),
+    "conditions-ip-glazyrin": ("2.4.Разгрузка", "Ответственное лицо встречает транспорт.",
+                                "3.4.Поддержка", "Консультации по оборудованию"),
+}
+
 SCENARIOS = {
     "ooo": ("rtstandard", "RTPDF01", "МарковД.Е.", "НДС22%", "Тестоваяоплата30дней", "24000,00"),
     "ip": ("zakharov", "ZKPDF02", "ЗахаровМ.С.", "НДС5%", "Тестовыйсрок14дней", "24000,00"),
     "ip-glazyrin": ("glazyrin", "GLPDF03", "ГлазыринА.А.", "НДСнеоблагается", "Тестовыйсрок14дней", "24000,00"),
     "long": ("rtstandard-multipage", "RTPDF04", "МарковД.Е.", "НДС22%", "Тестоваяоплата30дней", "42000,00"),
+    "conditions-ooo": ("rtstandard-conditions", "RTCOND05", "МарковД.Е.", "НДС22%", "Тестоваяоплата30дней", "24000,00"),
+    "conditions-ip": ("zakharov-conditions", "ZKCOND06", "ЗахаровМ.С.", "НДС5%", "Тестовыйсрок14дней", "24000,00"),
+    "conditions-ip-glazyrin": ("glazyrin-conditions", "GLCOND07", "ГлазыринА.А.", "НДСнеоблагается", "Тестовыйсрок14дней", "24000,00"),
 }
 
 
@@ -38,7 +48,7 @@ def pdf_text(path):
 
 
 def main():
-    selected = sys.argv[1:] or list(SCENARIOS)
+    selected = sys.argv[1:] or list(SCENARIOS)[:4]
     if any(key not in SCENARIOS for key in selected):
         raise ValueError("Select ooo, ip, ip-glazyrin, long (or omit for all)")
     for key in dict.fromkeys(selected):
@@ -51,6 +61,13 @@ def main():
         for item in (marker, signer, vat, condition, amount, "Тестовыйзаказчик", "TEST-DOCX" if key == "ooo" else "Q7"):
             if flatten(item) not in a or flatten(item) not in b:
                 raise AssertionError(f"{key}: {item!r} missing from Word or print PDF")
+        for item in EXTRA_TERMS.get(key, ()):
+            if flatten(item) not in a or flatten(item) not in b:
+                raise AssertionError(f"{key}: custom condition {item!r} missing from Word or PDF")
+        if key in EXTRA_TERMS:
+            for forbidden in ("Удалённый пункт", "Этого текста не должно быть"):
+                if flatten(forbidden) in a or flatten(forbidden) in b:
+                    raise AssertionError(f"{key}: deleted condition present in an export")
         print(f"OK {key}: matching key data in DOCX and printed PDF")
     print("Semantic comparison passed. Fonts, pagination and visuals are NOT compared.")
 

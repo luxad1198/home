@@ -15,6 +15,9 @@ on:
           - ip
           - ip-glazyrin
           - long
+          - conditions-ooo
+          - conditions-ip
+          - conditions-ip-glazyrin
 
 permissions:
   contents: read

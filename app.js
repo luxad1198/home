@@ -652,7 +652,9 @@
       const labelMirror = row.querySelector('.ip-cond-label-print');
       const valueMirror = row.querySelector('.ip-cond-value-print');
       if (labelMirror) {
-        labelMirror.textContent = (label?.value || '').replace(/[:：]\s*$/, '');
+        // The screen editor already suppresses the separator when the label ends with ':'.
+// Preserve the user's colon in the print mirror; stripping it loses punctuation.
+        labelMirror.textContent = label?.value || '';
         copyTextStyle(labelMirror, document.body.classList.contains('is-ip-glazyrin') ? labelStyle : getComputedStyle(label));
       }
       if (valueMirror) {
@@ -1874,7 +1876,7 @@
         ]
       }));
       document.querySelectorAll('#condIpBox .ip-custom-cond-row').forEach(row => {
-        const cLbl = cleanTextForXml(row.querySelector('.ip-cond-lbl-input')?.value || '');
+        const cLbl = cleanTextForXml(row.querySelector('.ip-cond-lbl-input')?.value || '').replace(/[:：]\s*$/, '');
         const cVal = cleanTextForXml(row.querySelector('.ip-cond-val-input')?.value || '');
         if (cLbl || cVal) {
           docElements.push(new Paragraph({
