@@ -40,10 +40,22 @@ async function generatePdf(browser, scenario) {
     const response = await page.goto(BASE_URL, { waitUntil: 'load', timeout: 30000 });
     assert(response && response.ok(), 'Сайт не загрузился: ' + BASE_URL);
     await page.locator('#companySelect').selectOption(scenario.company);
+    // Use the same fixture data as the Word-export scenario for fair comparison.
+    const isIp = scenario.company !== 'ooo';
+    await page.locator(isIp ? '#clientBoxIp' : '#clientBox').fill('Тестовый заказчик');
+    await page.locator(isIp ? '#kpNumInputIp' : '#kpNumInput').fill('TEST-DOCX');
+    if (!isIp) {
+      await page.locator('#condOooPay').fill('Тестовая оплата 30 дней');
+    } else if (scenario.company === 'ip') {
+      await page.locator('#ipDeliveryTime + .ip-standard-value-editor')
+        .fill('Тестовый срок 14 дней');
+    } else {
+      await page.locator('#ipDeliveryTime').fill('Тестовый срок 14 дней');
+    }
 
     const firstRow = page.locator('#tableBody tr').first();
     await firstRow.locator('.col-name').fill(scenario.marker + ' Тестовое оборудование');
-    await firstRow.locator('.col-desc').fill('Серверное оборудование, процессор, память, накопители и гарантия производителя.');
+    await firstRow.locator('.col-desc').fill('Процессор и память\nВторая строка с дополнительными характеристиками');
     await firstRow.locator('.col-country').fill('Китай');
     await firstRow.locator('.col-qty').fill('2');
     await firstRow.locator('.col-price').fill('12000');
@@ -54,7 +66,7 @@ async function generatePdf(browser, scenario) {
       const row = page.locator('#tableBody tr').last();
       await row.locator('.col-name').fill('Дополнительное оборудование ' + i);
       await row.locator('.col-desc').fill(
-        'Описание компонента с параметрами комплектации и условиями установки. '.repeat(3)
+        'Описание технических параметров, комплектации и гарантийных условий. '.repeat(3)
       );
       await row.locator('.col-country').fill('Россия');
       await row.locator('.col-qty').fill('1');
