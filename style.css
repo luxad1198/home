@@ -1147,6 +1147,7 @@ body.is-ip-glazyrin #condIpCustomList > .ip-custom-cond-row:not(:last-child) {
   body.is-ip:not(.is-ip-glazyrin) .ip-term-row .meta-input { display:none !important; }
   body.is-ip:not(.is-ip-glazyrin) .ip-standard-value-print { display:inline !important; white-space:pre-wrap; overflow-wrap:anywhere; }
   body.is-ip:not(.is-ip-glazyrin) .ip-custom-cond-row { display:block; }
+  body.is-ip:not(.is-ip-glazyrin) .ip-custom-cond-row > b { display:inline !important; }
   body.is-ip:not(.is-ip-glazyrin) .ip-custom-cond-row .ip-cond-lbl-input,
   body.is-ip:not(.is-ip-glazyrin) .ip-custom-cond-row .ip-cond-val-input { display:none !important; }
   body.is-ip:not(.is-ip-glazyrin) .ip-cond-label-print,
