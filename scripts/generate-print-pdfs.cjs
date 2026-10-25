@@ -1,7 +1,7 @@
 // Генерация тестовых PDF через Chromium без системного окна печати.
 // Запуск: npm install --no-save --package-lock=false playwright@1.56.1
 //        python3 -m http.server 8765 --bind 127.0.0.1
-//        node scripts/generate-print-pdfs.cjs
+//        node scripts/generate-print-pdfs.cjs [ooo|ip|ip-glazyrin|long]
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -10,10 +10,10 @@ const { chromium } = require('playwright');
 const BASE_URL = process.env.PRINT_TEST_URL || 'http://127.0.0.1:8765/';
 const OUTPUT_DIR = path.join(process.cwd(), 'artifacts', 'print-pdf');
 const CASES = [
-  { company: 'ooo', filename: 'rtstandard.pdf', marker: 'RTPDF01' },
-  { company: 'ip', filename: 'zakharov.pdf', marker: 'ZKPDF02' },
-  { company: 'ip-glazyrin', filename: 'glazyrin.pdf', marker: 'GLPDF03' },
-  { company: 'ooo', filename: 'rtstandard-multipage.pdf', marker: 'RTPDF04', extraRows: 18 }
+  { key: 'ooo', company: 'ooo', filename: 'rtstandard.pdf', marker: 'RTPDF01' },
+  { key: 'ip', company: 'ip', filename: 'zakharov.pdf', marker: 'ZKPDF02' },
+  { key: 'ip-glazyrin', company: 'ip-glazyrin', filename: 'glazyrin.pdf', marker: 'GLPDF03' },
+  { key: 'long', company: 'ooo', filename: 'rtstandard-multipage.pdf', marker: 'RTPDF04', extraRows: 18 }
 ];
 
 async function generatePdf(browser, scenario) {
@@ -40,10 +40,22 @@ async function generatePdf(browser, scenario) {
     const response = await page.goto(BASE_URL, { waitUntil: 'load', timeout: 30000 });
     assert(response && response.ok(), 'Сайт не загрузился: ' + BASE_URL);
     await page.locator('#companySelect').selectOption(scenario.company);
+    // Use the same fixture data as the Word-export scenario for fair comparison.
+    const isIp = scenario.company !== 'ooo';
+    await page.locator(isIp ? '#clientBoxIp' : '#clientBox').fill('Тестовый заказчик');
+    await page.locator(isIp ? '#kpNumInputIp' : '#kpNumInput').fill('Q7');
+    if (!isIp) {
+      await page.locator('#condOooPay').fill('Тестовая оплата 30 дней');
+    } else if (scenario.company === 'ip') {
+      await page.locator('#ipDeliveryTime + .ip-standard-value-editor')
+        .fill('Тестовый срок 14 дней');
+    } else {
+      await page.locator('#ipDeliveryTime').fill('Тестовый срок 14 дней');
+    }
 
     const firstRow = page.locator('#tableBody tr').first();
     await firstRow.locator('.col-name').fill(scenario.marker + ' Тестовое оборудование');
-    await firstRow.locator('.col-desc').fill('Серверное оборудование, процессор, память, накопители и гарантия производителя.');
+    await firstRow.locator('.col-desc').fill('Процессор и память\nВторая строка с дополнительными характеристиками');
     await firstRow.locator('.col-country').fill('Китай');
     await firstRow.locator('.col-qty').fill('2');
     await firstRow.locator('.col-price').fill('12000');
@@ -54,7 +66,7 @@ async function generatePdf(browser, scenario) {
       const row = page.locator('#tableBody tr').last();
       await row.locator('.col-name').fill('Дополнительное оборудование ' + i);
       await row.locator('.col-desc').fill(
-        'Описание компонента с параметрами комплектации и условиями установки. '.repeat(3)
+        'Описание технических параметров, комплектации и гарантийных условий. '.repeat(3)
       );
       await row.locator('.col-country').fill('Россия');
       await row.locator('.col-qty').fill('1');
@@ -92,10 +104,15 @@ async function generatePdf(browser, scenario) {
 }
 
 async function main() {
+  const keys = process.argv.slice(2);
+  if (keys.some(key => !CASES.some(scenario => scenario.key === key))) {
+    throw new Error('Choose: ooo, ip, ip-glazyrin, long (or omit for all)');
+  }
+  const selected = keys.length ? CASES.filter(scenario => keys.includes(scenario.key)) : CASES;
   fs.mkdirSync(OUTPUT_DIR, { recursive: true });
   const browser = await chromium.launch({ headless: true });
   try {
-    for (const scenario of CASES) await generatePdf(browser, scenario);
+    for (const scenario of selected) await generatePdf(browser, scenario);
   } finally {
     await browser.close();
   }

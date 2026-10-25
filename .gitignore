@@ -1,0 +1,7 @@
+# Generated test dependencies, documents and temporary local environments
+node_modules/
+artifacts/
+.pdf-test-venv/
+__pycache__/
+*.pyc
+.DS_Store
