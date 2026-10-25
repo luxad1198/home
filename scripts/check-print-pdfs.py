@@ -38,6 +38,51 @@ CUSTOM_TERMS = {
 A4_WIDTH_PT, A4_HEIGHT_PT = 595.28, 841.89
 
 
+def check_equipment_rows(text, key, marker, filename):
+    """Check name, description, country, quantity, unit price and row total
+    within the SAME extracted table row, including across printed A4 pages.
+    This protects against a correct grand total masking a corrupt position.
+    """
+    count = 19 if key == "long" else 1
+    positions = []
+    for index in range(count):
+        number = index + 1
+        name = (
+            re.escape(marker) + r"\s+Тестовое\s+оборудование"
+            if index == 0
+            else r"Дополнительное\s+оборудование\s+" + str(index)
+        )
+        pattern = rf"(?m)^{number}[ \t]+{name}\b"
+        matches = list(re.finditer(pattern, text))
+        if len(matches) != 1:
+            raise AssertionError(
+                f"{filename}: expected one equipment row {number}, got {len(matches)}"
+            )
+        positions.append(matches[0].start())
+
+    for index, start in enumerate(positions):
+        end = positions[index + 1] if index + 1 < count else len(text)
+        row = re.sub(r"\s+", "", text[start:end])
+        if index == 0:
+            description = (
+                "Процессор и память", "Вторая строка с дополнительными характеристиками"
+            )
+            cell_values = "Китай212000,0024000,00"
+        else:
+            description = ("Описание технических параметров", "гарантийных условий.")
+            cell_values = "Россия11000,001000,00"
+        for phrase in description:
+            if re.sub(r"\s+", "", phrase) not in row:
+                raise AssertionError(
+                    f"{filename}: equipment row {index + 1} lost description {phrase!r}"
+                )
+        if cell_values not in row:
+            raise AssertionError(
+                f"{filename}: equipment row {index + 1} has wrong "
+                "country, quantity, unit price or row total"
+            )
+
+
 def main():
     selected = sys.argv[1:] or list(SCENARIOS)[:4]
     if any(key not in SCENARIOS for key in selected):
@@ -83,15 +128,7 @@ def main():
         if condition not in flat:
             raise AssertionError(f"{filename}: missing modified delivery/payment condition")
 
-        # For the long scenario all 19 equipment items must survive page breaks.
-        # A digit boundary prevents "оборудование 1" from matching "оборудование 11".
-        if key == "long":
-            for number in range(1, 19):
-                pattern = r"Дополнительное\s+оборудование\s+" + str(number) + r"(?!\d)"
-                if not re.search(pattern, text):
-                    raise AssertionError(
-                        f"{filename}: missing equipment line 'Дополнительное оборудование {number}'"
-                    )
+        check_equipment_rows(text, key, marker, filename)
 
         if key in CUSTOM_TERMS:
             for term in CUSTOM_TERMS[key]:
