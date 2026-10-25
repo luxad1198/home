@@ -8,7 +8,7 @@
   <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
   <!-- Стили -->
-  <link rel="stylesheet" href="style.css?v=audit1-import1-20261024-company3-15">
+  <link rel="stylesheet" href="style.css?v=20261025-conditions-print-1">
 </head>
 <body>
 
@@ -306,7 +306,7 @@
     <!-- Условия ИП -->
     <div class="ip-cond-box" id="condIpBox">
       <div class="ip-term-row" data-section="2"><b><span class="ip-standard-number">2.1. </span><span class="ip-term-label">Срок поставки</span>:</b> <input type="text" id="ipDeliveryTime" class="meta-input" value="1-2 недели" style="width: 340px;"><span class="ip-standard-value-print"></span> <button type="button" class="btn-del ip-standard-delete no-print" data-delete-standard="ipDeliveryTime" aria-label="Удалить пункт 2.1">✕</button></div>
-      <div class="ip-term-row" data-section="2"><b><span class="ip-standard-number">2.2. </span><span class="ip-term-label">Условия оплаты</span>:</b> <input type="text" id="ipPaymentTerms" class="meta-input" value="По согласованию" style="width: 340px;"><span class="ip-standard-value-print"></span> <button type="button" class="btn-del ip-standard-delete no-print" data-delete-standard="ipPaymentTerms" aria-label="Удалить пункт 2.2">✕</button></div>
+      <div class="ip-term-row glazyrin-only" data-section="2"><b><span class="ip-standard-number">2.2. </span><span class="ip-term-label">Условия оплаты</span>:</b> <input type="text" id="ipPaymentTerms" class="meta-input" value="По согласованию" style="width: 340px;"><span class="ip-standard-value-print"></span> <button type="button" class="btn-del ip-standard-delete no-print" data-delete-standard="ipPaymentTerms" aria-label="Удалить пункт 2.2">✕</button></div>
       <div class="ip-term-row" data-section="2"><b><span class="ip-standard-number">2.3. </span><span class="ip-term-label">Место и способ поставки</span>:</b>
         <select class="meta-input" id="deliverySelectIp">
           <option value="Доставка включена в стоимость">Доставка включена в стоимость</option>
@@ -318,10 +318,10 @@
       <div id="condIpCustomList2" class="ip-custom-condition-list"></div>
       <button type="button" id="btnAddCondIp2" class="btn btn-add btn-cond-add ip-section-add no-print">+ Добавить пункт к разделу 2</button>
       <div class="doc-subsection-heading">3. Дополнительные условия</div>
-      <div class="ip-term-row" data-section="3"><b><span class="ip-standard-number">3.1. </span><span class="ip-term-label">Гарантийные обязательства</span>:</b> <input type="text" id="ipWarrantyTerms" class="meta-input" value="Согласно документации производителя" style="width: 340px;"><span class="ip-standard-value-print"></span> <button type="button" class="btn-del ip-standard-delete no-print" data-delete-standard="ipWarrantyTerms" aria-label="Удалить пункт 3.1">✕</button></div>
-      <div class="ip-term-row" data-section="3"><b><span class="ip-standard-number">3.2. </span><span class="ip-term-label">Сервисное обслуживание и поддержка</span>:</b> <input type="text" id="ipServiceTerms" class="meta-input" value="По отдельному согласованию" style="width: 340px;"><span class="ip-standard-value-print"></span> <button type="button" class="btn-del ip-standard-delete no-print" data-delete-standard="ipServiceTerms" aria-label="Удалить пункт 3.2">✕</button></div>
-      <div class="ip-term-row" data-section="3"><b><span class="ip-standard-number">3.3. </span><span class="ip-term-label">Срок действия предложения</span>:</b> <input type="text" id="ipValidityTerms" class="meta-input" value="До согласования заказа" style="width: 340px;"><span class="ip-standard-value-print"></span> <button type="button" class="btn-del ip-standard-delete no-print" data-delete-standard="ipValidityTerms" aria-label="Удалить пункт 3.3">✕</button></div>
-      <div class="ip-term-row" data-section="3"><b><span class="ip-standard-number">3.4. </span><span class="ip-term-label">Приложения</span>:</b> <input type="text" id="ipAppendixTerms" class="meta-input" value="Спецификация и техническое описание предоставляются по запросу" style="width: 340px;"><span class="ip-standard-value-print"></span> <button type="button" class="btn-del ip-standard-delete no-print" data-delete-standard="ipAppendixTerms" aria-label="Удалить пункт 3.4">✕</button></div>
+      <div class="ip-term-row glazyrin-only" data-section="3"><b><span class="ip-standard-number">3.1. </span><span class="ip-term-label">Гарантийные обязательства</span>:</b> <input type="text" id="ipWarrantyTerms" class="meta-input" value="Согласно документации производителя" style="width: 340px;"><span class="ip-standard-value-print"></span> <button type="button" class="btn-del ip-standard-delete no-print" data-delete-standard="ipWarrantyTerms" aria-label="Удалить пункт 3.1">✕</button></div>
+      <div class="ip-term-row glazyrin-only" data-section="3"><b><span class="ip-standard-number">3.2. </span><span class="ip-term-label">Сервисное обслуживание и поддержка</span>:</b> <input type="text" id="ipServiceTerms" class="meta-input" value="По отдельному согласованию" style="width: 340px;"><span class="ip-standard-value-print"></span> <button type="button" class="btn-del ip-standard-delete no-print" data-delete-standard="ipServiceTerms" aria-label="Удалить пункт 3.2">✕</button></div>
+      <div class="ip-term-row glazyrin-only" data-section="3"><b><span class="ip-standard-number">3.3. </span><span class="ip-term-label">Срок действия предложения</span>:</b> <input type="text" id="ipValidityTerms" class="meta-input" value="До согласования заказа" style="width: 340px;"><span class="ip-standard-value-print"></span> <button type="button" class="btn-del ip-standard-delete no-print" data-delete-standard="ipValidityTerms" aria-label="Удалить пункт 3.3">✕</button></div>
+      <div class="ip-term-row glazyrin-only" data-section="3"><b><span class="ip-standard-number">3.4. </span><span class="ip-term-label">Приложения</span>:</b> <input type="text" id="ipAppendixTerms" class="meta-input" value="Спецификация и техническое описание предоставляются по запросу" style="width: 340px;"><span class="ip-standard-value-print"></span> <button type="button" class="btn-del ip-standard-delete no-print" data-delete-standard="ipAppendixTerms" aria-label="Удалить пункт 3.4">✕</button></div>
       <div id="condIpCustomList" class="ip-custom-condition-list"></div>
       <button type="button" id="btnAddCondIp3" class="btn btn-add btn-cond-add ip-section-add no-print">+ Добавить пункт к разделу 3</button>
     </div>
@@ -368,6 +368,6 @@
 
   <!-- Скрипты логики -->
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-  <script src="app.js?v=20261025-audit-3"></script>
+  <script src="app.js?v=20261025-conditions-print-1"></script>
 </body>
 </html>
