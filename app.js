@@ -149,6 +149,7 @@
     if (isIp) {
       const inpIp = document.getElementById('ipDeliveryTime');
       if (inpIp) inpIp.value = res;
+      syncInlineConditionEditors();
     } else {
       const taOoo = document.getElementById('condOooDeliveryTime');
       if (taOoo) {
@@ -202,6 +203,12 @@
     if (label && separator) separator.textContent = /[:：]\s*$/.test(label.value) ? '' : ':';
   }
 
+  function syncInlineConditionEditors() {
+    const field = document.getElementById('ipDeliveryTime');
+    const editor = document.querySelector('.ip-standard-value-editor');
+    if (field && editor && editor !== document.activeElement) editor.textContent = field.value;
+  }
+
   function addCondRowIp(title = 'Документы', val = 'УПД, Счет', section = null) {
     const isGlazyrin = document.getElementById('companySelect')?.value === 'ip-glazyrin';
     const itemSection = isGlazyrin ? String(section || '3') : '';
@@ -213,10 +220,11 @@
     if (itemSection) div.dataset.section = itemSection;
     div.innerHTML = `
       <b><span class="ip-cond-number"></span><input type="text" class="ip-cond-lbl-input" value="${escapeHtml(title)}"><span class="ip-cond-label-print"></span><span class="ip-cond-label-separator">:</span></b>
-      <textarea class="auto-grow meta-input ip-cond-val-input" rows="1" placeholder="значение">${escapeHtml(val)}</textarea><span class="ip-cond-value-print"></span>
+      <textarea class="auto-grow meta-input ip-cond-val-input" rows="1" placeholder="значение">${escapeHtml(val)}</textarea><span class="ip-cond-value-editor" contenteditable="plaintext-only" role="textbox" aria-label="Значение условия" data-placeholder="значение"></span><span class="ip-cond-value-print"></span>
       <button type="button" class="btn-del btn-del-ip-cond no-print">✕</button>
     `;
     container.appendChild(div);
+    div.querySelector('.ip-cond-value-editor').textContent = val;
     updateIpConditionSeparator(div);
     const inp = div.querySelector('.ip-cond-lbl-input');
     adjustInputWidth(inp);
@@ -349,6 +357,7 @@
       document.getElementById('condIpCustomList').replaceChildren();
       document.getElementById('condIpCustomList2').replaceChildren();
       ipFieldIds.forEach((id, i) => { document.getElementById(id).value = data.values?.[i] ?? defaultIpTerms[i]; });
+      syncInlineConditionEditors();
       (data.custom || []).forEach(c => addCondRowIp(c.lbl, c.val, company === 'ip-glazyrin' ? (c.section || '3') : null));
       applyDeletedStandardConditions(data.deleted || []);
     } finally { restoringState = wasRestoring; }
@@ -367,6 +376,7 @@
     document.body.classList.toggle('is-ip-glazyrin', isGlazyrin);
     if (isIp) restoreIpConditions(comp);
     else applyDeletedStandardConditions([]);
+    syncInlineConditionEditors();
     const deliveryLabel = document.querySelector('#deliverySelectIp')?.closest('.ip-term-row')?.querySelector('.ip-term-label');
     if (deliveryLabel) deliveryLabel.textContent = isGlazyrin ? 'Место и способ поставки' : 'Доставка';
     renderedCompany = comp;
@@ -2074,6 +2084,11 @@
 
     // Удаление стандартных условий ИП
     const condIpBox = document.getElementById('condIpBox');
+    condIpBox?.addEventListener('input', (e) => {
+      if (!e.target.matches('.ip-standard-value-editor')) return;
+      document.getElementById('ipDeliveryTime').value = e.target.innerText.replace(/\r/g, '');
+      saveState();
+    });
     condIpBox?.addEventListener('click', (e) => {
       const btn = e.target.closest('.ip-standard-delete');
       if (!btn) return;
@@ -2100,6 +2115,9 @@
           adjustInputWidth(e.target);
           saveState();
         } else if (e.target.matches('.ip-cond-val-input')) {
+          saveState();
+        } else if (e.target.matches('.ip-cond-value-editor')) {
+          e.target.closest('.ip-custom-cond-row').querySelector('.ip-cond-val-input').value = e.target.innerText.replace(/\r/g, '');
           saveState();
         }
       });
