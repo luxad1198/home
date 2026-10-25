@@ -209,6 +209,11 @@
     if (field && editor && editor !== document.activeElement) editor.textContent = field.value;
   }
 
+  function readInlineConditionEditor(editor) {
+    // Chrome adds a terminal line break to multi-line contenteditable markup.
+    return editor.innerText.replace(/\r/g, '').replace(/\n+$/, '');
+  }
+
   function addCondRowIp(title = 'Документы', val = 'УПД, Счет', section = null) {
     const isGlazyrin = document.getElementById('companySelect')?.value === 'ip-glazyrin';
     const itemSection = isGlazyrin ? String(section || '3') : '';
@@ -429,6 +434,7 @@
 
     calculateMargin();
     recalc();
+    initAutoResize();
     updateDocumentTitle();
     saveState();
   }
@@ -2086,7 +2092,7 @@
     const condIpBox = document.getElementById('condIpBox');
     condIpBox?.addEventListener('input', (e) => {
       if (!e.target.matches('.ip-standard-value-editor')) return;
-      document.getElementById('ipDeliveryTime').value = e.target.innerText.replace(/\r/g, '');
+      document.getElementById('ipDeliveryTime').value = readInlineConditionEditor(e.target);
       saveState();
     });
     condIpBox?.addEventListener('click', (e) => {
@@ -2117,7 +2123,7 @@
         } else if (e.target.matches('.ip-cond-val-input')) {
           saveState();
         } else if (e.target.matches('.ip-cond-value-editor')) {
-          e.target.closest('.ip-custom-cond-row').querySelector('.ip-cond-val-input').value = e.target.innerText.replace(/\r/g, '');
+          e.target.closest('.ip-custom-cond-row').querySelector('.ip-cond-val-input').value = readInlineConditionEditor(e.target);
           saveState();
         }
       });
