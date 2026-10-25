@@ -16,10 +16,10 @@ from pypdf import PdfReader
 ROOT = Path("artifacts/word-docx")
 OUTPUT = Path("artifacts/word-rendered")
 SCENARIOS = {
-    "ooo": ("rtstandard.docx", "RTWORD01", 1),
-    "ip": ("zakharov.docx", "ZKWORD02", 1),
-    "ip-glazyrin": ("glazyrin.docx", "GLWORD03", 1),
-    "long": ("rtstandard-multipage.docx", "RTWORD04", 2),
+    "ooo": ("rtstandard.docx", "RTPDF01", 1),
+    "ip": ("zakharov.docx", "ZKPDF02", 1),
+    "ip-glazyrin": ("glazyrin.docx", "GLPDF03", 1),
+    "long": ("rtstandard-multipage.docx", "RTPDF04", 2),
 }
 
 
