@@ -14,7 +14,7 @@ W = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
 SCENARIOS = {
     "ooo": ("rtstandard.docx", "RTPDF01", "Марков Д.Е.", "НДС22%", "Тестоваяоплата30дней", 3),
     "ip": ("zakharov.docx", "ZKPDF02", "Захаров М.С.", "НДС5%", "Тестовыйсрок14дней", 3),
-    "ip-glazyrin": ("glazyrin.docx", "GLPDF03", "Глазырин А.А.", "НДСнеоблагается", "Тестовыйсрок14дней", 2),
+    "ip-glazyrin": ("glazyrin.docx", "GLPDF03", "Глазырин А.А.", "НДСнеоблагается", "Тестовыйсрок14дней", 3),
     "long": ("rtstandard-multipage.docx", "RTPDF04", "Марков Д.Е.", "НДС22%", "Тестоваяоплата30дней", 21),
 }
 
