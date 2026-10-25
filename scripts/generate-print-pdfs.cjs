@@ -43,7 +43,7 @@ async function generatePdf(browser, scenario) {
     // Use the same fixture data as the Word-export scenario for fair comparison.
     const isIp = scenario.company !== 'ooo';
     await page.locator(isIp ? '#clientBoxIp' : '#clientBox').fill('Тестовый заказчик');
-    await page.locator(isIp ? '#kpNumInputIp' : '#kpNumInput').fill('TEST-DOCX');
+    await page.locator(isIp ? '#kpNumInputIp' : '#kpNumInput').fill('Q7');
     if (!isIp) {
       await page.locator('#condOooPay').fill('Тестовая оплата 30 дней');
     } else if (scenario.company === 'ip') {
