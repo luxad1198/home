@@ -1,0 +1,79 @@
+name: Temporary customer alignment verification
+# ONE-TIME workflow for PR #7 verification; delete before merge.
+on:
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'style.css'
+      - 'app.js'
+      - 'scripts/generate-print-pdfs.cjs'
+      - 'scripts/check-word-documents.py'
+      - '.github/workflows/check-customer-bootstrap.yml'
+permissions:
+  contents: read
+jobs:
+  alignment:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install test-only dependencies
+        run: |
+          npm install --no-save --package-lock=false playwright@1.56.1 docx@8.5.0 jszip@3.10.1 file-saver@2.0.5
+          npx playwright install --with-deps chromium
+      - name: Verify Word customer name stays on first line
+        run: |
+          node --check app.js
+          node --check scripts/generate-word-documents.cjs
+          node scripts/generate-word-documents.cjs ooo ip
+          python3 scripts/check-word-documents.py ooo ip
+      - name: Verify PDF aligned customer label/value
+        shell: bash
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 > "$RUNNER_TEMP/customer-http.log" 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for try in {1..20}; do
+            if curl -fsS http://127.0.0.1:8765/ > /dev/null; then break; fi
+            sleep 1
+          done
+          node scripts/generate-print-pdfs.cjs ooo ip
+          python3 -m venv "$RUNNER_TEMP/customer-python"
+          "$RUNNER_TEMP/customer-python/bin/pip" install pypdf==6.1.1
+          "$RUNNER_TEMP/customer-python/bin/python" scripts/check-print-pdfs.py ooo ip
+          "$RUNNER_TEMP/customer-python/bin/python" scripts/check-export-parity.py ooo ip
+      - name: Render both Word documents through LibreOffice
+        shell: bash
+        run: |
+          if ! command -v libreoffice > /dev/null; then
+            sudo apt-get update -qq
+            sudo apt-get install -y --no-install-recommends libreoffice-writer
+          fi
+          "$RUNNER_TEMP/customer-python/bin/python" scripts/render-word-documents.py ooo ip
+      - name: Ensure label and name share one rendered PDF line
+        run: |
+          python3 - <<'PY'
+          from pypdf import PdfReader
+          for kind in ('print-pdf', 'word-rendered'):
+              for company in ('rtstandard', 'zakharov'):
+                  filename = f'artifacts/{kind}/{company}.pdf'
+                  text = PdfReader(filename).pages[0].extract_text() or ''
+                  lines = [line.strip() for line in text.splitlines()]
+                  if not any('Заказчику:' in line and 'Тестовый заказчик' in line for line in lines):
+                      raise AssertionError(f'{filename}: customer name not on same rendered line')
+                  print(f'OK {filename}: customer caption and name on one line')
+          PY
+      - name: Attach test output for visual inspection
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: customer-alignment
+          path: |
+            artifacts/word-docx/*.docx
+            artifacts/word-rendered/*.pdf
+            artifacts/print-pdf/*.pdf
+          if-no-files-found: warn
+          retention-days: 14
