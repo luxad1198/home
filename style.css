@@ -1026,7 +1026,7 @@ body.is-ip:not(.is-ip-glazyrin) .ip-custom-cond-row .ip-cond-val-input {
 body.is-ip:not(.is-ip-glazyrin) .ip-custom-cond-row .btn-del-ip-cond {
   position: absolute;
   top: 0;
-  right: -29px;
+  right: calc(-100% - 29px);
 }
 body.is-ip-glazyrin .doc-section-heading,
 body.is-ip-glazyrin .doc-subsection-heading,
@@ -1067,13 +1067,14 @@ body.is-ip-glazyrin .ip-cond-box {
   margin: 0 0 6px; color: #374151; font: 9.5pt/1.3 Arial, sans-serif;
 }
 body.is-ip-glazyrin .ip-term-row {
-  display: flex; align-items: baseline; gap: 7px; margin: 3px 0;
+  display: flex; position: relative; align-items: baseline; gap: 7px; margin: 3px 0;
 }
 body.is-ip-glazyrin .ip-term-row > b { min-width: 185px; color: #243b53; }
 body.is-ip-glazyrin .ip-term-row .meta-input {
   flex: 1; width: auto !important; min-width: 120px; color: #374151;
-  border-bottom: 1px solid #c7cdd3; font: inherit;
+  border-bottom: 0; font: inherit; text-align: right;
 }
+body.is-ip-glazyrin .ip-custom-cond-row > .ip-cond-val-input { text-align: right; }
 body.is-ip-glazyrin .proposal-note {
   margin-top: 9px; padding-top: 6px; border-top: 1px solid #aab2ba;
   color: #4b5563; font: italic 9pt/1.3 Arial, sans-serif;
