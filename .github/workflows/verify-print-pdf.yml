@@ -1,14 +1,7 @@
 name: Verify print PDF
 
+# Backup PDF verification only: manually choose the PR branch when local Playwright is unavailable.
 on:
-  pull_request:
-    paths:
-      - 'index.html'
-      - 'style.css'
-      - 'app.js'
-      - 'scripts/generate-print-pdfs.cjs'
-      - 'scripts/check-print-pdfs.py'
-      - '.github/workflows/verify-print-pdf.yml'
   workflow_dispatch:
 
 permissions:
