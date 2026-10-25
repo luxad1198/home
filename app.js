@@ -662,8 +662,18 @@
     const clientBoxIp = document.getElementById('clientContainerIp');
 
     const isEmpty = !clientText || !clientText.trim();
-    if (clientBoxOoo) clientBoxOoo.classList.toggle('print-hide-client', isEmpty);
-    if (clientBoxIp) clientBoxIp.classList.toggle('print-hide-client', isEmpty);
+    // Plain text occupies the same line box as "Заказчику:" in printed ООО/Захаров.
+    // Keep the editable textarea untouched on screen and preserve line breaks.
+    if (clientBoxOoo) {
+      const mirror = clientBoxOoo.querySelector('.client-print-value');
+      if (mirror) mirror.textContent = document.getElementById('clientBox')?.value || '';
+      clientBoxOoo.classList.toggle('print-hide-client', isEmpty);
+    }
+    if (clientBoxIp) {
+      const mirror = clientBoxIp.querySelector('.client-print-value');
+      if (mirror) mirror.textContent = document.getElementById('clientBoxIp')?.value || '';
+      clientBoxIp.classList.toggle('print-hide-client', isEmpty);
+    }
   }
 
   function updatePrefixFromDateString(str) {
@@ -1436,10 +1446,16 @@
       if (clientVal.trim()) {
         const clientLines = clientVal.split('\n');
         rightCellChildren.push(new Paragraph({
-          spacing: { before: 100, line: 240 },
+          // Align with the left metadata row while keeping the customer on one line.
+          spacing: { before: 220, line: 240 },
           children: [
-            new TextRun({ text: "Заказчику:", size: 21, font: "Times New Roman" }),
-            ...clientLines.map(line => new TextRun({ text: line, break: 1, size: 21, font: "Times New Roman" }))
+            new TextRun({ text: "Заказчику: ", size: 21, font: "Times New Roman" }),
+            ...clientLines.map((line, index) => new TextRun({
+              text: line,
+              break: index > 0 ? 1 : 0,
+              size: 21,
+              font: "Times New Roman"
+            }))
           ]
         }));
       }
