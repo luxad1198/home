@@ -65,6 +65,25 @@ body.hide-bg-sidebar .bg-sidebar {
   z-index: 20;
   box-shadow: 0 2px 10px rgba(0,0,0,0.2);
 }
+.editor-tools {
+  width: 210mm;
+  margin: 0 auto 12px;
+  padding: 8px 12px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  background: #fff;
+  border-radius: 6px;
+  position: relative;
+  z-index: 20;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+.editor-tools .equipment-import-tools,
+.editor-tools .delivery-builder-box,
+.editor-tools #genericAddConditionBox {
+  margin: 0 !important;
+}
 .panel-left { 
   display: flex; 
   gap: 6px; 
@@ -286,7 +305,8 @@ body.hide-bg-sidebar .bg-sidebar {
 .page {
   width: 210mm;
   min-height: 297mm;
-  padding: 10mm 15mm 12mm 15mm;
+  /* 12 mm page margin + 2 mm print padding = 14 mm on each side. */
+  padding: 12mm 14mm 18mm;
   margin: 0 auto;
   background: #fff;
   box-shadow: 0 4px 25px rgba(0,0,0,0.45);
@@ -476,6 +496,23 @@ body.is-ip-glazyrin .stamp-box { display: none !important; }
   overflow: hidden;
   line-height: 1.25;
 }
+.page input,
+.page textarea,
+.page select { border-bottom-color: transparent; }
+.page select { appearance: none; -webkit-appearance: none; cursor: pointer; }
+.page input:focus,
+.page textarea:focus,
+.page select:focus {
+  background: #f1f5f9;
+  border-bottom-color: #64748b;
+}
+.head-client-cell .client-textarea,
+body.is-ip:not(.is-ip-glazyrin) #clientContainerIp .client-textarea {
+  display: inline-block;
+  width: calc(100% - 90px);
+  min-height: 1.25em;
+  vertical-align: top;
+}
 
 .title { text-align: center; font-size: 12pt; font-weight: bold; margin: 10px 0 6px; }
 .intro { text-align: justify; text-indent: 10mm; font-size: 11pt; margin-bottom: 8px; line-height: 1.15; }
@@ -506,6 +543,20 @@ table.spec td.col-text-cell {
 }
 table.spec td.col-num-cell { 
   vertical-align: top; 
+}
+/* Editing actions sit in the gutter and cannot narrow the exported columns. */
+table.spec tr,
+table.cond tr { position: relative; }
+table.spec th.no-print { display: none; }
+table.spec td.no-print,
+table.cond td.no-print {
+  position: absolute;
+  right: -29px;
+  width: 25px !important;
+  height: auto;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
 }
 table.spec th { 
   background-color: #ACB9CA !important; 
@@ -719,6 +770,7 @@ table.cond td {
 }
 .ip-custom-cond-row {
   display: flex;
+  position: relative;
   align-items: baseline;
   gap: 0;
   margin-top: 4px;
@@ -726,6 +778,8 @@ table.cond td {
   page-break-inside: avoid !important;
   break-inside: avoid !important;
 }
+.ip-standard-value-editor,
+.ip-cond-value-editor { display: none; }
 .ip-cond-lbl-input {
   font-family: inherit;
   font-size: 11pt;
@@ -926,27 +980,53 @@ body.is-ip:not(.is-ip-glazyrin) .glazyrin-only,
 body.is-ip:not(.is-ip-glazyrin) .ip-standard-number { display: none !important; }
 body.is-ip:not(.is-ip-glazyrin) .ip-cond-box { width: 50%; }
 body.is-ip:not(.is-ip-glazyrin) .ip-term-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 3px;
-  margin: 4px 0;
+  display: block;
+  position: relative;
+  margin: 3px 0;
+  overflow-wrap: anywhere;
 }
-body.is-ip:not(.is-ip-glazyrin) .ip-term-row > .meta-input {
-  flex: 1 1 120px;
+body.is-ip:not(.is-ip-glazyrin) .ip-cond-box,
+body.is-ip:not(.is-ip-glazyrin) .ip-custom-cond-row { line-height: 1.1; }
+body.is-ip:not(.is-ip-glazyrin) .ip-term-row > #ipDeliveryTime {
+  display: none;
+}
+body.is-ip:not(.is-ip-glazyrin) .ip-standard-value-editor,
+body.is-ip:not(.is-ip-glazyrin) .ip-cond-value-editor {
+  display: inline;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  outline: none;
+  cursor: text;
+}
+body.is-ip:not(.is-ip-glazyrin) .ip-standard-value-editor:focus,
+body.is-ip:not(.is-ip-glazyrin) .ip-cond-value-editor:focus {
+  background: #f1f5f9;
+  box-shadow: 0 1px #64748b;
+}
+body.is-ip:not(.is-ip-glazyrin) .ip-standard-value-editor:empty::before,
+body.is-ip:not(.is-ip-glazyrin) .ip-cond-value-editor:empty::before {
+  content: attr(data-placeholder);
+  color: #9ca3af;
+}
+body.is-ip:not(.is-ip-glazyrin) .ip-term-row > #deliverySelectIp {
   width: auto !important;
+  max-width: 100%;
   min-width: 0;
+  font: inherit;
 }
 body.is-ip:not(.is-ip-glazyrin) .ip-custom-cond-row {
   display: block;
+  position: relative;
   overflow-wrap: anywhere;
 }
-body.is-ip:not(.is-ip-glazyrin) .ip-custom-cond-row > b { display: block; }
+body.is-ip:not(.is-ip-glazyrin) .ip-custom-cond-row > b { display: inline; }
 body.is-ip:not(.is-ip-glazyrin) .ip-custom-cond-row .ip-cond-val-input {
-  display: block;
-  width: 100%;
-  min-width: 0;
-  font: inherit;
-  overflow-wrap: anywhere;
+  display: none;
+}
+body.is-ip:not(.is-ip-glazyrin) .ip-custom-cond-row .btn-del-ip-cond {
+  position: absolute;
+  top: 0;
+  right: -29px;
 }
 body.is-ip-glazyrin .doc-section-heading,
 body.is-ip-glazyrin .doc-subsection-heading,
@@ -1064,7 +1144,7 @@ body.is-ip-glazyrin .ip-section-add {
 body.is-ip-glazyrin .ip-cond-box .ip-term-row,
 body.is-ip-glazyrin .ip-custom-cond-row {
   display: grid;
-  grid-template-columns: minmax(0, 34%) minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 34%) minmax(0, 1fr);
   column-gap: 10px;
   align-items: baseline;
 }
@@ -1089,7 +1169,9 @@ body.is-ip-glazyrin .ip-term-row > .ip-standard-value-print {
 }
 body.is-ip-glazyrin .ip-custom-cond-row > .btn-del-ip-cond,
 body.is-ip-glazyrin .ip-term-row > .ip-standard-delete {
-  grid-column: 3;
+  position: absolute;
+  right: -28px;
+  top: 0;
   margin-left: 0;
 }
 @media print {
@@ -1145,6 +1227,8 @@ body.is-ip-glazyrin #condIpCustomList > .ip-custom-cond-row:not(:last-child) {
 [aria-invalid="true"] { outline:2px solid #b91c1c !important; background:#fff1f2 !important; }
 @media print {
   body.is-ip:not(.is-ip-glazyrin) .ip-term-row .meta-input { display:none !important; }
+  body.is-ip:not(.is-ip-glazyrin) .ip-standard-value-editor,
+  body.is-ip:not(.is-ip-glazyrin) .ip-cond-value-editor { display:none !important; }
   body.is-ip:not(.is-ip-glazyrin) .ip-standard-value-print { display:inline !important; white-space:pre-wrap; overflow-wrap:anywhere; }
   body.is-ip:not(.is-ip-glazyrin) .ip-custom-cond-row { display:block; }
   body.is-ip:not(.is-ip-glazyrin) .ip-custom-cond-row > b { display:inline !important; }
