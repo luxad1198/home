@@ -71,7 +71,7 @@ async function generateWord(browser, url, scenario) {
     await page.locator('#companySelect').selectOption(scenario.company);
     const isIp = scenario.company !== 'ooo';
     await page.locator(isIp ? '#clientBoxIp' : '#clientBox').fill('Тестовый заказчик');
-    await page.locator(isIp ? '#kpNumInputIp' : '#kpNumInput').fill('Q7');
+    await page.locator(isIp ? '#kpNumInputIp' : '#kpNumInput').fill(scenario.key === 'ooo' ? 'TEST-DOCX' : 'Q7');
     if (!isIp) {
       await page.locator('#condOooPay').fill('Тестовая оплата 30 дней');
     } else if (scenario.company === 'ip') {

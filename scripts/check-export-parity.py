@@ -48,7 +48,7 @@ def main():
         if not docx.is_file() or not pdf.is_file():
             raise AssertionError(f"{key}: both DOCX and print PDF are required")
         a, b = word_text(docx), pdf_text(pdf)
-        for item in (marker, signer, vat, condition, amount, "Тестовыйзаказчик", "Q7"):
+        for item in (marker, signer, vat, condition, amount, "Тестовыйзаказчик", "TEST-DOCX" if key == "ooo" else "Q7"):
             if flatten(item) not in a or flatten(item) not in b:
                 raise AssertionError(f"{key}: {item!r} missing from Word or print PDF")
         print(f"OK {key}: matching key data in DOCX and printed PDF")

@@ -55,7 +55,7 @@ def check(key):
     doc_text = compact(text_content(document))
 
     expected_total = "42000,00" if key == "long" else "24000,00"
-    for term in (marker, "Тестовыйзаказчик", "Q7", signer, tax, condition, expected_total):
+    for term in (marker, "Тестовыйзаказчик", "TEST-DOCX" if key == "ooo" else "Q7", signer, tax, condition, expected_total):
         if compact(term) not in doc_text:
             raise AssertionError(f"{filename}: missing printed text {term!r}")
 

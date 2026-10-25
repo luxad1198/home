@@ -600,6 +600,11 @@
   }
 
   function prepareForPrint() {
+    // An input may show only part of a long proposal number in Chromium PDF.
+    // Print the complete text without altering the editable number field.
+    const kpNumberPrint = document.getElementById('kpNumPrint');
+    if (kpNumberPrint) kpNumberPrint.textContent = document.getElementById('kpNumInput')?.value || '';
+
     document.querySelectorAll('#tableBody tr').forEach(row => {
       const textCells = row.querySelectorAll('td.col-text-cell');
       textCells.forEach(cell => {
