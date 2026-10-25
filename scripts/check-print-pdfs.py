@@ -79,7 +79,7 @@ def main():
             if expected not in flat:
                 raise AssertionError(f"{filename}: missing printed value {expected!r}")
 
-        condition = "Тестоваяоплата30дней" if key in ("ooo", "long") else "Тестовыйсрок14дней"
+        condition = "Тестоваяоплата30дней" if key in ("ooo", "long", "conditions-ooo") else "Тестовыйсрок14дней"
         if condition not in flat:
             raise AssertionError(f"{filename}: missing modified delivery/payment condition")
 
