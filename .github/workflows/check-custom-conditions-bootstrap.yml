@@ -1,5 +1,5 @@
 name: Temporary custom conditions verification
-# ONE-TIME PR #10 test only; delete before merging.
+# ONE-TIME PR #10 retry after correction of the Glazyrin DOCX margin fixture; delete before merging.
 on:
   pull_request:
     paths:
