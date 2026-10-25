@@ -1717,7 +1717,7 @@
         });
       });
 
-      const condRows = condFields.map((item, index) => {
+      const condRows = condFields.map(item => {
         const valLines = item.val.split('\n');
         const valRuns = valLines.map((line, lIdx) => new TextRun({
           text: line,
@@ -1734,13 +1734,13 @@
               borders: tableBorders,
               shading: { fill: "ACB9CA", type: ShadingType.CLEAR },
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ keepNext: index === condFields.length - 1, children: [new TextRun({ text: item.lbl, bold: true, size: 20, font: "Times New Roman" })] })]
+              children: [new Paragraph({ keepNext: true, children: [new TextRun({ text: item.lbl, bold: true, size: 20, font: "Times New Roman" })] })]
             }),
             new TableCell({
               width: { size: 7400, type: WidthType.DXA },
               borders: tableBorders,
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ keepNext: index === condFields.length - 1, spacing: { line: 240 }, children: valRuns })]
+              children: [new Paragraph({ keepNext: true, spacing: { line: 240 }, children: valRuns })]
             })
           ]
         });
