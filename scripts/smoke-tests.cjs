@@ -88,7 +88,7 @@ after(async () => {
   if (server) await new Promise(resolve => server.close(resolve));
 });
 
-test('Приложение открывается: ООО, одна позиция, нулевой итог', async () => {
+test('ui: Приложение открывается: ООО, одна позиция, нулевой итог', async () => {
   await withCleanPage(async page => {
     assert.equal(await page.locator('#companySelect').inputValue(), 'ooo');
     assert.equal(await page.locator('#tableBody tr').count(), 1);
@@ -97,7 +97,7 @@ test('Приложение открывается: ООО, одна позици
   });
 });
 
-test('Переключение трёх компаний меняет шапку, подпись и налоговые надписи', async () => {
+test('ui: Переключение трёх компаний меняет шапку, подпись и налоговые надписи', async () => {
   await withCleanPage(async page => {
     const cases = [
       { id: 'ooo', person: 'Марков Д.Е.', price: 'НДС 22%', vat: '22%', isIp: false },
@@ -120,7 +120,7 @@ for (const company of [
   { id: 'ip', vat: 'НДС 5%' },
   { id: 'ip-glazyrin', vat: 'НДС не облагается' }
 ]) {
-  test('Спецификация и сумма прописью: ' + company.id, async () => {
+  test('spec: Спецификация и сумма прописью: ' + company.id, async () => {
     await withCleanPage(async page => {
       await page.locator('#companySelect').selectOption(company.id);
       const first = page.locator('#tableBody tr').first();
@@ -141,7 +141,7 @@ for (const company of [
   });
 }
 
-test('Добавление и удаление позиций: перенумерация и сохранение последней строки', async () => {
+test('equipment: Добавление и удаление позиций: перенумерация и сохранение последней строки', async () => {
   await withCleanPage(async page => {
     const rows = page.locator('#tableBody tr');
     await rows.first().locator('.col-name').fill('Первая позиция');
@@ -160,7 +160,7 @@ test('Добавление и удаление позиций: перенуме�
   });
 });
 
-test('Неверные количество/цена блокируют печать, исправление разрешает её', async () => {
+test('validation: Неверные количество/цена блокируют печать, исправление разрешает её', async () => {
   await withCleanPage(async page => {
     const row = page.locator('#tableBody tr').first();
     await row.locator('.col-name').fill('Проверка печатного зеркала');
@@ -187,7 +187,7 @@ test('Неверные количество/цена блокируют печа
   });
 });
 
-test('localStorage восстанавливает компанию, клиента, позиции и итог после обновления', async () => {
+test('storage: localStorage восстанавливает компанию, клиента, позиции и итог после обновления', async () => {
   await withCleanPage(async page => {
     await page.locator('#companySelect').selectOption('ip-glazyrin');
     await page.locator('#clientBoxIp').fill('Тестовый заказчик');
@@ -208,7 +208,7 @@ test('localStorage восстанавливает компанию, клиент
 });
 
 for (const company of ['ooo', 'ip', 'ip-glazyrin']) {
-  test('Калькулятор: финансовый итог для ' + company, async () => {
+  test('calculator: Калькулятор: финансовый итог для ' + company, async () => {
     await withCleanPage(async page => {
       await page.locator('#companySelect').selectOption(company);
       await page.locator('#calcCostVat').fill('12200');
@@ -227,7 +227,7 @@ for (const company of ['ooo', 'ip', 'ip-glazyrin']) {
   });
 }
 
-test('Калькулятор сообщает о некорректных финансовых данных', async () => {
+test('calculator: Калькулятор сообщает о некорректных финансовых данных', async () => {
   await withCleanPage(async page => {
     await page.locator('#calcCostVat').fill('-100');
     assert.equal(await page.locator('#calcCostVat').getAttribute('aria-invalid'), 'true');
