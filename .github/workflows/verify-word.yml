@@ -1,0 +1,85 @@
+name: Verify Word DOCX
+
+on:
+  workflow_dispatch:
+    inputs:
+      scope:
+        description: 'Which company or scenario to check'
+        required: true
+        default: all
+        type: choice
+        options:
+          - all
+          - ooo
+          - ip
+          - ip-glazyrin
+          - long
+      render_layout:
+        description: 'Also render Word in LibreOffice (slower, visual PDF artifact)'
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  word:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      SCOPE: ${{ inputs.scope }}
+      RENDER_LAYOUT: ${{ inputs.render_layout }}
+    steps:
+      - name: Checkout selected branch
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Word-test-only dependencies
+        run: |
+          npm install --no-save --package-lock=false playwright@1.56.1 docx@8.5.0 jszip@3.10.1 file-saver@2.0.5
+          npx playwright install --with-deps chromium
+
+      - name: Export real DOCX and validate internal content
+        shell: bash
+        run: |
+          node --check scripts/generate-word-documents.cjs
+          if [ "$SCOPE" = "all" ]; then
+            node scripts/generate-word-documents.cjs
+            python3 scripts/check-word-documents.py
+          else
+            node scripts/generate-word-documents.cjs "$SCOPE"
+            python3 scripts/check-word-documents.py "$SCOPE"
+          fi
+
+      - name: Install optional layout renderer
+        if: ${{ inputs.render_layout }}
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends libreoffice-writer
+          python3 -m pip install --break-system-packages pypdf==6.1.1
+
+      - name: Render Word through LibreOffice and check A4 pages
+        if: ${{ inputs.render_layout }}
+        shell: bash
+        run: |
+          if [ "$SCOPE" = "all" ]; then
+            python3 scripts/render-word-documents.py
+          else
+            python3 scripts/render-word-documents.py "$SCOPE"
+          fi
+
+      - name: Attach Word files (and optional rendered PDFs)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: word-export
+          path: |
+            artifacts/word-docx/*.docx
+            artifacts/word-rendered/*.pdf
+          retention-days: 14
+          if-no-files-found: warn
