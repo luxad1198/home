@@ -9,6 +9,7 @@ const fs = require('node:fs');
 const http = require('node:http');
 const path = require('node:path');
 const { chromium } = require('playwright');
+const { prepareCustomConditions } = require('./custom-condition-fixtures.cjs');
 
 const ROOT = path.resolve(__dirname, '..');
 const OUTPUT = path.join(ROOT, 'artifacts', 'word-docx');
@@ -21,7 +22,10 @@ const SCENARIOS = [
   { key: 'ooo', company: 'ooo', filename: 'rtstandard.docx', marker: 'RTPDF01' },
   { key: 'ip', company: 'ip', filename: 'zakharov.docx', marker: 'ZKPDF02' },
   { key: 'ip-glazyrin', company: 'ip-glazyrin', filename: 'glazyrin.docx', marker: 'GLPDF03' },
-  { key: 'long', company: 'ooo', filename: 'rtstandard-multipage.docx', marker: 'RTPDF04', extraRows: 18 }
+  { key: 'long', company: 'ooo', filename: 'rtstandard-multipage.docx', marker: 'RTPDF04', extraRows: 18 },
+  { key: 'conditions-ooo', company: 'ooo', filename: 'rtstandard-conditions.docx', marker: 'RTCOND05', customConditions: true },
+  { key: 'conditions-ip', company: 'ip', filename: 'zakharov-conditions.docx', marker: 'ZKCOND06', customConditions: true },
+  { key: 'conditions-ip-glazyrin', company: 'ip-glazyrin', filename: 'glazyrin-conditions.docx', marker: 'GLCOND07', customConditions: true }
 ];
 
 function serverFactory() {
@@ -102,6 +106,11 @@ async function generateWord(browser, url, scenario) {
       await row.locator('.col-price').fill('1000');
     }
 
+    if (scenario.customConditions) {
+      // The helper also deletes a test row, reloads and checks stored values.
+      await prepareCustomConditions(page, scenario.company);
+    }
+
     const total = Number((await page.locator('#grandTotal').innerText())
       .replace(/\s/g, '').replace(',', '.'));
     assert.equal(total, 24000 + (scenario.extraRows || 0) * 1000,
@@ -131,9 +140,11 @@ async function generateWord(browser, url, scenario) {
 async function main() {
   const keys = process.argv.slice(2);
   if (keys.some(key => !SCENARIOS.some(s => s.key === key))) {
-    throw new Error('Choose: ooo, ip, ip-glazyrin, long (or omit for all)');
+    throw new Error('Choose: ooo, ip, ip-glazyrin, long, conditions-ooo, conditions-ip, conditions-ip-glazyrin');
   }
-  const chosen = keys.length ? SCENARIOS.filter(s => keys.includes(s.key)) : SCENARIOS;
+  // Preserve the original four default scenarios; custom terms are opt-in only.
+  const chosen = keys.length ? SCENARIOS.filter(s => keys.includes(s.key))
+    : SCENARIOS.filter(s => !s.customConditions);
   for (const vendor of VENDORS) {
     const file = path.join(ROOT, vendor.file);
     assert(fs.existsSync(file), 'Missing ' + vendor.file + '. Install pinned test dependencies.');
