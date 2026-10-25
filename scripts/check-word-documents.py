@@ -167,7 +167,7 @@ def check(key):
         raise AssertionError(f"{filename}: page is not A4")
     expected_margins = (
         {"top": 680, "bottom": 850, "left": 794, "right": 794}
-        if key == "ip-glazyrin"
+        if key in ("ip-glazyrin", "conditions-ip-glazyrin")
         else {"top": 720, "bottom": 720, "left": 850, "right": 850}
     )
     for name, expected in expected_margins.items():
