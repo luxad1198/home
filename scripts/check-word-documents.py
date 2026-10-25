@@ -12,10 +12,10 @@ from xml.etree import ElementTree as ET
 ROOT = Path("artifacts/word-docx")
 W = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
 SCENARIOS = {
-    "ooo": ("rtstandard.docx", "RTPDF01", "Марков Д.Е.", "НДС22%", "Тестоваяоплата30дней", 2),
-    "ip": ("zakharov.docx", "ZKPDF02", "Захаров М.С.", "НДС5%", "Тестовыйсрок14дней", 2),
+    "ooo": ("rtstandard.docx", "RTPDF01", "Марков Д.Е.", "НДС22%", "Тестоваяоплата30дней", 3),
+    "ip": ("zakharov.docx", "ZKPDF02", "Захаров М.С.", "НДС5%", "Тестовыйсрок14дней", 3),
     "ip-glazyrin": ("glazyrin.docx", "GLPDF03", "Глазырин А.А.", "НДСнеоблагается", "Тестовыйсрок14дней", 2),
-    "long": ("rtstandard-multipage.docx", "RTPDF04", "Марков Д.Е.", "НДС22%", "Тестоваяоплата30дней", 20),
+    "long": ("rtstandard-multipage.docx", "RTPDF04", "Марков Д.Е.", "НДС22%", "Тестоваяоплата30дней", 21),
 }
 
 
@@ -50,7 +50,7 @@ def read_document(path):
 
 
 def check(key):
-    filename, marker, signer, tax, condition, min_rows = SCENARIOS[key]
+    filename, marker, signer, tax, condition, expected_rows = SCENARIOS[key]
     document, footers = read_document(ROOT / filename)
     doc_text = compact(text_content(document))
 
@@ -85,11 +85,40 @@ def check(key):
     if len(spec_tables) != 1:
         raise AssertionError(f"{filename}: expected exactly one seven-column specification")
     spec_rows = spec_tables[0].findall("./" + W + "tr")
-    if len(spec_rows) < min_rows:
-        raise AssertionError(f"{filename}: expected at least {min_rows} specification rows")
-    row_text = compact(text_content(spec_tables[0]))
-    if marker not in row_text or expected_total not in row_text:
-        raise AssertionError(f"{filename}: specification does not contain marker and total")
+    if len(spec_rows) != expected_rows:
+        raise AssertionError(
+            f"{filename}: expected exactly {expected_rows} specification rows, got {len(spec_rows)}"
+        )
+
+    # Check data rows, not an incidental occurrence in a header, description or footer.
+    # Long fixture: 1 base row + 18 additional products + header + total = 21 rows.
+    equipment_rows = spec_rows[1:-1]
+    if len(equipment_rows) != expected_rows - 2:
+        raise AssertionError(f"{filename}: equipment row count mismatch")
+    for index, row in enumerate(equipment_rows):
+        cells = row.findall("./" + W + "tc")
+        if len(cells) != 7:
+            raise AssertionError(f"{filename}: equipment row {index + 1} lost a cell")
+        name = compact(text_content(cells[1]))
+        expected_name = (
+            compact(marker + " Тестовое оборудование") if index == 0
+            else compact(f"Дополнительное оборудование {index}")
+        )
+        if name != expected_name:
+            raise AssertionError(
+                f"{filename}: equipment row {index + 1} is {name!r}, expected {expected_name!r}"
+            )
+
+    # The sum must be in the last cell of the actual total row.
+    # Merely finding '24 000,00' anywhere also matches the first equipment position.
+    total_cells = spec_rows[-1].findall("./" + W + "tc")
+    if len(total_cells) != 2 or compact(text_content(total_cells[0])).upper() != "ИТОГО:":
+        raise AssertionError(f"{filename}: malformed total row")
+    actual_total = compact(text_content(total_cells[1]))
+    if actual_total != expected_total:
+        raise AssertionError(
+            f"{filename}: table total is {actual_total!r}, expected {expected_total!r}"
+        )
 
     # Word stores page dimensions/margins in twips. A4 = approximately 11906 x 16838 twips.
     page_size = document.find(".//" + W + "sectPr/" + W + "pgSz")
@@ -112,7 +141,7 @@ def check(key):
         raise AssertionError(f"{filename}: missing page-number footer")
     if "Втораястрокасдополнительнымихарактеристиками" not in doc_text:
         raise AssertionError(f"{filename}: multiline equipment description lost")
-    print(f"OK {filename}: DOCX XML, A4, margins, {len(spec_rows)} spec rows, total and signer")
+    print(f"OK {filename}: DOCX XML, A4, margins, {len(spec_rows)} exact rows, total cell, all products and signer")
 
 
 def main():
