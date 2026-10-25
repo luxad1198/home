@@ -1874,7 +1874,7 @@
         ]
       }));
       document.querySelectorAll('#condIpBox .ip-custom-cond-row').forEach(row => {
-        const cLbl = cleanTextForXml(row.querySelector('.ip-cond-lbl-input')?.value || '');
+        const cLbl = cleanTextForXml(row.querySelector('.ip-cond-lbl-input')?.value || '').replace(/[:：]\s*$/, '');
         const cVal = cleanTextForXml(row.querySelector('.ip-cond-val-input')?.value || '');
         if (cLbl || cVal) {
           docElements.push(new Paragraph({
