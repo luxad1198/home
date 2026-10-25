@@ -51,7 +51,7 @@ node --test scripts/smoke-tests.cjs
 
 | Сценарий | Что делать |
 | --- | --- |
-| Импорт DOCX | Обычный/повреждённый документ, добавление, замена, отмена |
+| Импорт DOCX | `scripts/IMPORT_TESTS.md`: адресные `append`, `replace`, `cancel`, `invalid`, `undo` и необязательный `roundtrip` |
 | Экспорт Word | `scripts/EXPORT_TESTS.md`: настоящий DOCX, XML/реквизиты/таблицы/A4; LibreOffice-рендер — только при риске вёрстки |
 | Печать/вёрстка PDF | `scripts/EXPORT_TESTS.md`: PDF конкретной компании (сумма, НДС, подпись, A4); при риске вёрстки — многостраничность и визуальная проверка |
 | Пользовательские условия | `scripts/EXPORT_TESTS.md`: выборочные `conditions-ooo` / `conditions-ip` / `conditions-ip-glazyrin`, включая добавление, удаление, сохранение, нумерацию, Word/PDF |
