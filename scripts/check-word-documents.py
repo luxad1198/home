@@ -16,6 +16,29 @@ SCENARIOS = {
     "ip": ("zakharov.docx", "ZKPDF02", "Захаров М.С.", "НДС5%", "Тестовыйсрок14дней", 3),
     "ip-glazyrin": ("glazyrin.docx", "GLPDF03", "Глазырин А.А.", "НДСнеоблагается", "Тестовыйсрок14дней", 3),
     "long": ("rtstandard-multipage.docx", "RTPDF04", "Марков Д.Е.", "НДС22%", "Тестоваяоплата30дней", 21),
+    "conditions-ooo": ("rtstandard-conditions.docx", "RTCOND05", "Марков Д.Е.", "НДС22%", "Тестоваяоплата30дней", 3),
+    "conditions-ip": ("zakharov-conditions.docx", "ZKCOND06", "Захаров М.С.", "НДС5%", "Тестовыйсрок14дней", 3),
+    "conditions-ip-glazyrin": ("glazyrin-conditions.docx", "GLCOND07", "Глазырин А.А.", "НДСнеоблагается", "Тестовыйсрок14дней", 3),
+}
+
+
+# Unique anchors from real user-edited extra conditions.
+CUSTOM_TERMS = {
+    "conditions-ooo": (
+        "Приёмка", "Проверка серийных номеров и комплектности.",
+        "При расхождениях оформляется акт.", "Уведомление",
+        "Уведомить заказчика не позднее двух рабочих дней.",
+    ),
+    "conditions-ip": (
+        "Документы:УПД", "УПД и счёт передаются по электронной почте.",
+        "Оригиналы направляются отдельным письмом.",
+        "Срок ответа", "На обращение отвечают в течение трёх рабочих дней.",
+    ),
+    "conditions-ip-glazyrin": (
+        "2.4.Разгрузка", "Разгрузка оборудования по согласованному графику.",
+        "Ответственное лицо встречает транспорт.",
+        "3.4.Поддержка", "Консультации по оборудованию в течение трёх рабочих дней.",
+    ),
 }
 
 
@@ -59,9 +82,23 @@ def check(key):
         if compact(term) not in doc_text:
             raise AssertionError(f"{filename}: missing printed text {term!r}")
 
+    if key in CUSTOM_TERMS:
+        for term in CUSTOM_TERMS[key]:
+            if compact(term) not in doc_text:
+                raise AssertionError(f"{filename}: missing custom-condition content {term!r}")
+        for forbidden in ("Удалённый пункт", "Этого текста не должно быть"):
+            if compact(forbidden) in doc_text:
+                raise AssertionError(f"{filename}: deleted condition was exported")
+        if key == "conditions-ip" and "Документы::" in doc_text:
+            raise AssertionError(f"{filename}: duplicated colon in Zakharov condition")
+        if key == "conditions-ip-glazyrin" and compact(
+            "Сервисное обслуживание и поддержка"
+        ) in doc_text:
+            raise AssertionError(f"{filename}: deleted standard condition was exported")
+
     # ООО: the first customer name must follow "Заказчику:" on the SAME line.
     # Check explicit OOXML breaks, not just total text (which hides line breaks).
-    if key in ("ooo", "long"):
+    if key in ("ooo", "long", "conditions-ooo"):
         paragraphs = [
             paragraph for paragraph in document.iter(W + "p")
             if "Заказчику:" in text_content(paragraph)
@@ -145,10 +182,10 @@ def check(key):
 
 
 def main():
-    selected = sys.argv[1:] or list(SCENARIOS)
+    selected = sys.argv[1:] or list(SCENARIOS)[:4]
     for key in selected:
         if key not in SCENARIOS:
-            raise ValueError("Select ooo, ip, ip-glazyrin, long (or omit for all)")
+            raise ValueError("Unknown scenario: " + key)
     for key in dict.fromkeys(selected):
         check(key)
     print("DOCX structure verified. Open or render files for visual pagination checks.")
