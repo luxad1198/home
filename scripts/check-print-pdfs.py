@@ -55,7 +55,7 @@ def main():
                 f"{filename}: printed table total {actual_total!r}, expected {total!r}"
             )
 
-        for expected in (marker, "Q7", tax, signer, "Тестовыйзаказчик"):
+        for expected in (marker, "TEST-DOCX" if key == "ooo" else "Q7", tax, signer, "Тестовыйзаказчик"):
             if expected not in flat:
                 raise AssertionError(f"{filename}: missing printed value {expected!r}")
 
