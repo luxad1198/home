@@ -14,12 +14,32 @@ SCENARIOS = {
     "ip": ("zakharov.pdf", "ZKPDF02", 1, "24000,00", "НДС5%", "ЗахаровМ.С."),
     "ip-glazyrin": ("glazyrin.pdf", "GLPDF03", 1, "24000,00", "НДСнеоблагается", "ГлазыринА.А."),
     "long": ("rtstandard-multipage.pdf", "RTPDF04", 2, "42000,00", "НДС22%", "МарковД.Е."),
+    "conditions-ooo": ("rtstandard-conditions.pdf", "RTCOND05", 1, "24000,00", "НДС22%", "МарковД.Е."),
+    "conditions-ip": ("zakharov-conditions.pdf", "ZKCOND06", 1, "24000,00", "НДС5%", "ЗахаровМ.С."),
+    "conditions-ip-glazyrin": ("glazyrin-conditions.pdf", "GLCOND07", 1, "24000,00", "НДСнеоблагается", "ГлазыринА.А."),
+}
+CUSTOM_TERMS = {
+    "conditions-ooo": (
+        "Приёмка", "Проверка серийных номеров и комплектности.",
+        "При расхождениях оформляется акт.", "Уведомление",
+        "Уведомить заказчика не позднее двух рабочих дней.",
+    ),
+    "conditions-ip": (
+        "Документы:УПД", "УПД и счёт передаются по электронной почте.",
+        "Оригиналы направляются отдельным письмом.",
+        "Срок ответа", "На обращение отвечают в течение трёх рабочих дней.",
+    ),
+    "conditions-ip-glazyrin": (
+        "2.4.Разгрузка", "Разгрузка оборудования по согласованному графику.",
+        "Ответственное лицо встречает транспорт.",
+        "3.4.Поддержка", "Консультации по оборудованию в течение трёх рабочих дней.",
+    ),
 }
 A4_WIDTH_PT, A4_HEIGHT_PT = 595.28, 841.89
 
 
 def main():
-    selected = sys.argv[1:] or list(SCENARIOS)
+    selected = sys.argv[1:] or list(SCENARIOS)[:4]
     if any(key not in SCENARIOS for key in selected):
         raise ValueError("Select ooo, ip, ip-glazyrin, long (or omit for all)")
 
@@ -72,6 +92,22 @@ def main():
                     raise AssertionError(
                         f"{filename}: missing equipment line 'Дополнительное оборудование {number}'"
                     )
+
+        if key in CUSTOM_TERMS:
+            for term in CUSTOM_TERMS[key]:
+                if re.sub(r"\s+", "", term) not in flat:
+                    raise AssertionError(
+                        f"{filename}: missing printed custom-condition text {term!r}"
+                    )
+            for forbidden in ("Удалённый пункт", "Этого текста не должно быть"):
+                if re.sub(r"\s+", "", forbidden) in flat:
+                    raise AssertionError(f"{filename}: removed custom condition printed")
+            if key == "conditions-ip" and "Документы::" in flat:
+                raise AssertionError(f"{filename}: double colon in printed condition")
+            if key == "conditions-ip-glazyrin" and re.sub(
+                r"\s+", "", "Сервисное обслуживание и поддержка"
+            ) in flat:
+                raise AssertionError(f"{filename}: removed standard condition printed")
 
         print(f"OK {filename}: {len(reader.pages)} A4 pages, exact table total, equipment, client, condition, VAT and signer")
 
