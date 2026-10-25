@@ -1,6 +1,6 @@
 name: Verify print PDF
 
-# PDF generation is intentionally opt-in: choose the PR branch in Actions.
+# Backup PDF verification only: manually choose the PR branch when local Playwright is unavailable.
 on:
   workflow_dispatch:
 
