@@ -367,6 +367,8 @@
     document.body.classList.toggle('is-ip-glazyrin', isGlazyrin);
     if (isIp) restoreIpConditions(comp);
     else applyDeletedStandardConditions([]);
+    const deliveryLabel = document.querySelector('#deliverySelectIp')?.closest('.ip-term-row')?.querySelector('.ip-term-label');
+    if (deliveryLabel) deliveryLabel.textContent = isGlazyrin ? 'Место и способ поставки' : 'Доставка';
     renderedCompany = comp;
 
     document.getElementById('headOoo').style.display = isIp ? 'none' : 'table';
