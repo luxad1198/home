@@ -42,7 +42,7 @@ def main():
             text += page.extract_text() or ""
 
         flat = re.sub(r"\s+", "", text)
-        for expected in (marker, total, tax, signer):
+        for expected in (marker, "Q7", total, tax, signer):
             if expected not in flat:
                 raise AssertionError(f"{filename}: missing printed value {expected!r}")
         print(f"OK {filename}: {len(reader.pages)} A4 pages, item, amount, VAT and signer")
