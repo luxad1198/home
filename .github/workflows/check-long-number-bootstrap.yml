@@ -1,0 +1,66 @@
+name: Temporary long proposal number verification
+# ONE-TIME verification for PR #9; remove before merge.
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/check-long-number-bootstrap.yml'
+permissions:
+  contents: read
+jobs:
+  number:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install only Word/PDF test dependencies
+        run: |
+          npm install --no-save --package-lock=false playwright@1.56.1 docx@8.5.0 jszip@3.10.1 file-saver@2.0.5
+          npx playwright install --with-deps chromium
+      - name: Check JavaScript syntax and export LLC Word
+        run: |
+          node --check app.js
+          node --check scripts/generate-word-documents.cjs
+          node --check scripts/generate-print-pdfs.cjs
+          node scripts/generate-word-documents.cjs ooo && python3 scripts/check-word-documents.py ooo
+      - name: Print LLC PDF with the full TEST-DOCX number
+        shell: bash
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 > "$RUNNER_TEMP/number-http.log" 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for attempt in {1..20}; do
+            if curl --silent --fail http://127.0.0.1:8765/ > /dev/null; then break; fi
+            sleep 1
+          done
+          python3 -m venv "$RUNNER_TEMP/number-venv"
+          "$RUNNER_TEMP/number-venv/bin/pip" install pypdf==6.1.1
+          node scripts/generate-print-pdfs.cjs ooo
+          "$RUNNER_TEMP/number-venv/bin/python" scripts/check-print-pdfs.py ooo
+          "$RUNNER_TEMP/number-venv/bin/python" scripts/check-export-parity.py ooo
+          "$RUNNER_TEMP/number-venv/bin/python" - <<'PY'
+          from pypdf import PdfReader
+          text = PdfReader('artifacts/print-pdf/rtstandard.pdf').pages[0].extract_text()
+          lines = [line.strip() for line in text.splitlines()]
+          assert any('TEST-DOCX' in line for line in lines), 'Full proposal number absent from printed PDF'
+          print('OK: complete TEST-DOCX on one printed PDF text line')
+          PY
+      - name: Create first-page image for visual inspection
+        shell: bash
+        run: |
+          if ! command -v pdftoppm > /dev/null; then
+            sudo apt-get update -qq
+            sudo apt-get install -y --no-install-recommends poppler-utils
+          fi
+          mkdir -p artifacts/preview
+          pdftoppm -f 1 -l 1 -scale-to 1200 -png -singlefile artifacts/print-pdf/rtstandard.pdf artifacts/preview/number-ooo
+      - name: Attach only diagnostic preview
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: number-preview
+          path: artifacts/preview/number-ooo.png
+          retention-days: 7
+          if-no-files-found: ignore
