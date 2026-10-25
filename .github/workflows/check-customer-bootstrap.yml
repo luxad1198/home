@@ -55,7 +55,7 @@ jobs:
           "$RUNNER_TEMP/customer-python/bin/python" scripts/render-word-documents.py ooo ip
       - name: Ensure label and name share one rendered PDF line
         run: |
-          python3 - <<'PY'
+          "$RUNNER_TEMP/customer-python/bin/python" - <<'PY'
           from pypdf import PdfReader
           for kind in ('print-pdf', 'word-rendered'):
               for company in ('rtstandard', 'zakharov'):
