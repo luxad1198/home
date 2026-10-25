@@ -6,6 +6,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const { chromium } = require('playwright');
+const { prepareCustomConditions } = require('./custom-condition-fixtures.cjs');
 
 const BASE_URL = process.env.PRINT_TEST_URL || 'http://127.0.0.1:8765/';
 const OUTPUT_DIR = path.join(process.cwd(), 'artifacts', 'print-pdf');
@@ -13,7 +14,10 @@ const CASES = [
   { key: 'ooo', company: 'ooo', filename: 'rtstandard.pdf', marker: 'RTPDF01' },
   { key: 'ip', company: 'ip', filename: 'zakharov.pdf', marker: 'ZKPDF02' },
   { key: 'ip-glazyrin', company: 'ip-glazyrin', filename: 'glazyrin.pdf', marker: 'GLPDF03' },
-  { key: 'long', company: 'ooo', filename: 'rtstandard-multipage.pdf', marker: 'RTPDF04', extraRows: 18 }
+  { key: 'long', company: 'ooo', filename: 'rtstandard-multipage.pdf', marker: 'RTPDF04', extraRows: 18 },
+  { key: 'conditions-ooo', company: 'ooo', filename: 'rtstandard-conditions.pdf', marker: 'RTCOND05', customConditions: true },
+  { key: 'conditions-ip', company: 'ip', filename: 'zakharov-conditions.pdf', marker: 'ZKCOND06', customConditions: true },
+  { key: 'conditions-ip-glazyrin', company: 'ip-glazyrin', filename: 'glazyrin-conditions.pdf', marker: 'GLCOND07', customConditions: true }
 ];
 
 async function generatePdf(browser, scenario) {
@@ -71,6 +75,11 @@ async function generatePdf(browser, scenario) {
       await row.locator('.col-country').fill('Россия');
       await row.locator('.col-qty').fill('1');
       await row.locator('.col-price').fill('1000');
+    }
+
+    if (scenario.customConditions) {
+      // The helper also deletes a test row, reloads and checks stored values.
+      await prepareCustomConditions(page, scenario.company);
     }
 
     // Проверяем реальный итог до печати, а не только факт создания файла.
@@ -140,9 +149,11 @@ async function generatePdf(browser, scenario) {
 async function main() {
   const keys = process.argv.slice(2);
   if (keys.some(key => !CASES.some(scenario => scenario.key === key))) {
-    throw new Error('Choose: ooo, ip, ip-glazyrin, long (or omit for all)');
+    throw new Error('Choose: ooo, ip, ip-glazyrin, long, conditions-ooo, conditions-ip, conditions-ip-glazyrin');
   }
-  const selected = keys.length ? CASES.filter(scenario => keys.includes(scenario.key)) : CASES;
+  // Keep the default export checks small; run custom conditions only on request.
+  const selected = keys.length ? CASES.filter(scenario => keys.includes(scenario.key))
+    : CASES.filter(scenario => !scenario.customConditions);
   fs.mkdirSync(OUTPUT_DIR, { recursive: true });
   // A failed run must never leave an older PDF looking freshly verified.
   for (const scenario of selected) {
