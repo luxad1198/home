@@ -89,6 +89,31 @@ async function generatePdf(browser, scenario) {
 
     await page.evaluate(() => document.fonts.ready);
     await page.emulateMedia({ media: 'print' });
+    if (scenario.company === 'ooo' || scenario.company === 'ip') {
+      const selector = scenario.company === 'ooo' ? '#clientContainerOoo' : '#clientContainerIp';
+      const layout = await page.locator(selector).evaluate(container => {
+        const label = container.querySelector('.client-label');
+        const mirror = container.querySelector('.client-print-value');
+        const textarea = container.querySelector('.client-textarea');
+        const a = label.getBoundingClientRect(), b = mirror.getBoundingClientRect();
+        const maxHeight = Number.parseFloat(getComputedStyle(mirror).lineHeight) || 18;
+        return {
+          labelBottom: a.bottom, valueBottom: b.bottom,
+          labelRight: a.right, valueLeft: b.left,
+          height: b.height, maxHeight,
+          value: mirror.textContent,
+          mirrorVisible: getComputedStyle(mirror).display !== 'none',
+          editorHidden: getComputedStyle(textarea).display === 'none'
+        };
+      });
+      assert.equal(layout.value, 'Тестовый заказчик', 'Customer name not mirrored for PDF');
+      assert(layout.mirrorVisible && layout.editorHidden, 'Wrong print representation of customer');
+      assert(Math.abs(layout.labelBottom - layout.valueBottom) <= 2,
+        'Customer label/name are on different baselines: ' + JSON.stringify(layout));
+      assert(layout.valueLeft >= layout.labelRight, 'Customer name overlaps label');
+      assert(layout.height <= layout.maxHeight + 2,
+        'Short customer name wrapped onto another line: ' + JSON.stringify(layout));
+    }
     const dest = path.join(OUTPUT_DIR, scenario.filename);
     const pdf = await page.pdf({
       path: dest,
