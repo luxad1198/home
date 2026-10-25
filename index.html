@@ -8,7 +8,7 @@
   <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
   <!-- Стили -->
-  <link rel="stylesheet" href="style.css?v=20261025-conditions-print-4">
+  <link rel="stylesheet" href="style.css?v=20261025-live-preview-1">
 </head>
 <body>
 
@@ -119,6 +119,47 @@
     </div>
   </div>
 
+  <div class="editor-tools no-print">
+    <div class="equipment-import-tools no-print">
+      <button type="button" id="btnImportEquipment">Импорт из Word</button>
+      <input type="file" id="equipmentFile" accept=".docx" hidden>
+      <button type="button" id="btnUndoEquipmentImport" hidden>Отменить импорт</button>
+      <span id="equipmentImportNotice" role="status"></span>
+    </div>
+    <dialog id="equipmentImportDialog" class="no-print" aria-labelledby="equipmentImportTitle">
+      <h2 id="equipmentImportTitle">Импорт перечня оборудования</h2>
+      <p id="equipmentImportFileName"></p>
+      <p>Файл обрабатывается в браузере. Комментарии, цвет и выделения не переносятся.</p>
+      <p id="equipmentImportStatus" role="status" aria-live="polite"></p>
+      <div class="equipment-import-scroll"><table>
+        <thead><tr><th>№</th><th>Наименование</th><th>Характеристики</th><th>Страна</th><th>Кол-во</th><th>Цена</th></tr></thead>
+        <tbody id="equipmentImportPreview"></tbody>
+      </table></div>
+      <div class="equipment-import-actions">
+        <label>Способ импорта <select id="equipmentImportMode"><option value="append">Добавить к текущим позициям</option><option value="replace">Заменить всю таблицу</option></select></label>
+        <button type="button" id="equipmentImportCancel">Отмена</button>
+        <button type="button" id="equipmentImportApply" disabled>Импортировать</button>
+      </div>
+    </dialog>
+    <!-- Умный конструктор срока поставки (общий для ООО и ИП) -->
+    <div class="delivery-builder-box no-print">
+      <span style="font-size:8.5pt; color:#475569; font-weight:600;">⚡ Срок поставки цифрами:</span>
+      <input type="text" class="delivery-input-short" id="deliveryDaysInput" placeholder="5-10" value="5-10">
+      <select class="delivery-select-unit" id="deliveryUnitSelect">
+        <option value="work_days">рабочих дней</option>
+        <option value="cal_days">календарных дней</option>
+        <option value="weeks">недель</option>
+      </select>
+    </div>
+
+    <div id="genericAddConditionBox" style="margin-bottom: 14px;" class="no-print">
+      <button type="button" class="btn btn-add btn-cond-add" id="btnAddCondRow">+ Добавить условие</button>
+    </div>
+
+      <button type="button" id="btnAddCondIp2" class="btn btn-add btn-cond-add ip-section-add no-print">+ Добавить пункт к разделу 2</button>
+      <button type="button" id="btnAddCondIp3" class="btn btn-add btn-cond-add ip-section-add no-print">+ Добавить пункт к разделу 3</button>
+  </div>
+
   <!-- Лист А4 -->
   <div class="page">
     
@@ -182,27 +223,6 @@
 
     <div class="doc-section-heading">1. Перечень предлагаемого оборудования</div>
 
-    <div class="equipment-import-tools no-print">
-      <button type="button" id="btnImportEquipment">Импорт из Word</button>
-      <input type="file" id="equipmentFile" accept=".docx" hidden>
-      <button type="button" id="btnUndoEquipmentImport" hidden>Отменить импорт</button>
-      <span id="equipmentImportNotice" role="status"></span>
-    </div>
-    <dialog id="equipmentImportDialog" class="no-print" aria-labelledby="equipmentImportTitle">
-      <h2 id="equipmentImportTitle">Импорт перечня оборудования</h2>
-      <p id="equipmentImportFileName"></p>
-      <p>Файл обрабатывается в браузере. Комментарии, цвет и выделения не переносятся.</p>
-      <p id="equipmentImportStatus" role="status" aria-live="polite"></p>
-      <div class="equipment-import-scroll"><table>
-        <thead><tr><th>№</th><th>Наименование</th><th>Характеристики</th><th>Страна</th><th>Кол-во</th><th>Цена</th></tr></thead>
-        <tbody id="equipmentImportPreview"></tbody>
-      </table></div>
-      <div class="equipment-import-actions">
-        <label>Способ импорта <select id="equipmentImportMode"><option value="append">Добавить к текущим позициям</option><option value="replace">Заменить всю таблицу</option></select></label>
-        <button type="button" id="equipmentImportCancel">Отмена</button>
-        <button type="button" id="equipmentImportApply" disabled>Импортировать</button>
-      </div>
-    </dialog>
     <!-- Таблица спецификации -->
     <table class="spec" id="itemsTable">
       <thead>
@@ -252,17 +272,6 @@
 
     <div class="doc-section-heading">2. Условия поставки и оплаты</div>
 
-    <!-- Умный конструктор срока поставки (общий для ООО и ИП) -->
-    <div class="delivery-builder-box no-print">
-      <span style="font-size:8.5pt; color:#475569; font-weight:600;">⚡ Срок поставки цифрами:</span>
-      <input type="text" class="delivery-input-short" id="deliveryDaysInput" placeholder="5-10" value="5-10">
-      <select class="delivery-select-unit" id="deliveryUnitSelect">
-        <option value="work_days">рабочих дней</option>
-        <option value="cal_days">календарных дней</option>
-        <option value="weeks">недель</option>
-      </select>
-    </div>
-
     <div class="closing-block">
     <!-- Условия ООО -->
     <table class="cond" id="condOooTable">
@@ -306,7 +315,7 @@
 
     <!-- Условия ИП -->
     <div class="ip-cond-box" id="condIpBox">
-      <div class="ip-term-row" data-section="2"><b><span class="ip-standard-number">2.1. </span><span class="ip-term-label">Срок поставки</span>:</b> <input type="text" id="ipDeliveryTime" class="meta-input" value="1-2 недели" style="width: 340px;"><span class="ip-standard-value-print"></span> <button type="button" class="btn-del ip-standard-delete no-print" data-delete-standard="ipDeliveryTime" aria-label="Удалить пункт 2.1">✕</button></div>
+      <div class="ip-term-row" data-section="2"><b><span class="ip-standard-number">2.1. </span><span class="ip-term-label">Срок поставки</span>:</b> <input type="text" id="ipDeliveryTime" class="meta-input" value="1-2 недели" style="width: 340px;"><span class="ip-standard-value-editor" data-placeholder="значение" contenteditable="plaintext-only" role="textbox" aria-label="Срок поставки"></span><span class="ip-standard-value-print"></span> <button type="button" class="btn-del ip-standard-delete no-print" data-delete-standard="ipDeliveryTime" aria-label="Удалить пункт 2.1">✕</button></div>
       <div class="ip-term-row glazyrin-only" data-section="2"><b><span class="ip-standard-number">2.2. </span><span class="ip-term-label">Условия оплаты</span>:</b> <input type="text" id="ipPaymentTerms" class="meta-input" value="По согласованию" style="width: 340px;"><span class="ip-standard-value-print"></span> <button type="button" class="btn-del ip-standard-delete no-print" data-delete-standard="ipPaymentTerms" aria-label="Удалить пункт 2.2">✕</button></div>
       <div class="ip-term-row" data-section="2"><b><span class="ip-standard-number">2.3. </span><span class="ip-term-label">Место и способ поставки</span>:</b>
         <select class="meta-input" id="deliverySelectIp">
@@ -317,20 +326,14 @@
         <button type="button" class="btn-del ip-standard-delete no-print" data-delete-standard="deliverySelectIp" aria-label="Удалить пункт 2.3">✕</button>
       </div>
       <div id="condIpCustomList2" class="ip-custom-condition-list"></div>
-      <button type="button" id="btnAddCondIp2" class="btn btn-add btn-cond-add ip-section-add no-print">+ Добавить пункт к разделу 2</button>
       <div class="doc-subsection-heading">3. Дополнительные условия</div>
       <div class="ip-term-row glazyrin-only" data-section="3"><b><span class="ip-standard-number">3.1. </span><span class="ip-term-label">Гарантийные обязательства</span>:</b> <input type="text" id="ipWarrantyTerms" class="meta-input" value="Согласно документации производителя" style="width: 340px;"><span class="ip-standard-value-print"></span> <button type="button" class="btn-del ip-standard-delete no-print" data-delete-standard="ipWarrantyTerms" aria-label="Удалить пункт 3.1">✕</button></div>
       <div class="ip-term-row glazyrin-only" data-section="3"><b><span class="ip-standard-number">3.2. </span><span class="ip-term-label">Сервисное обслуживание и поддержка</span>:</b> <input type="text" id="ipServiceTerms" class="meta-input" value="По отдельному согласованию" style="width: 340px;"><span class="ip-standard-value-print"></span> <button type="button" class="btn-del ip-standard-delete no-print" data-delete-standard="ipServiceTerms" aria-label="Удалить пункт 3.2">✕</button></div>
       <div class="ip-term-row glazyrin-only" data-section="3"><b><span class="ip-standard-number">3.3. </span><span class="ip-term-label">Срок действия предложения</span>:</b> <input type="text" id="ipValidityTerms" class="meta-input" value="До согласования заказа" style="width: 340px;"><span class="ip-standard-value-print"></span> <button type="button" class="btn-del ip-standard-delete no-print" data-delete-standard="ipValidityTerms" aria-label="Удалить пункт 3.3">✕</button></div>
       <div class="ip-term-row glazyrin-only" data-section="3"><b><span class="ip-standard-number">3.4. </span><span class="ip-term-label">Приложения</span>:</b> <input type="text" id="ipAppendixTerms" class="meta-input" value="Спецификация и техническое описание предоставляются по запросу" style="width: 340px;"><span class="ip-standard-value-print"></span> <button type="button" class="btn-del ip-standard-delete no-print" data-delete-standard="ipAppendixTerms" aria-label="Удалить пункт 3.4">✕</button></div>
       <div id="condIpCustomList" class="ip-custom-condition-list"></div>
-      <button type="button" id="btnAddCondIp3" class="btn btn-add btn-cond-add ip-section-add no-print">+ Добавить пункт к разделу 3</button>
     </div>
     <div class="proposal-note">Предложение предназначено для предварительного согласования условий поставки.</div>
-
-    <div id="genericAddConditionBox" style="margin-bottom: 14px;" class="no-print">
-      <button type="button" class="btn btn-add btn-cond-add" id="btnAddCondRow">+ Добавить условие</button>
-    </div>
 
     <!-- Подписи и контакты -->
     <div class="sign-row">
@@ -370,6 +373,6 @@
 
   <!-- Скрипты логики -->
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-  <script src="app.js?v=20261025-conditions-print-2"></script>
+  <script src="app.js?v=20261025-live-preview-1"></script>
 </body>
 </html>
