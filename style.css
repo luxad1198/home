@@ -513,7 +513,7 @@ body.is-ip-glazyrin .stamp-box { display: none !important; }
 .head-client-cell .client-inline-row,
 body.is-ip:not(.is-ip-glazyrin) #clientContainerIp .client-inline-row {
   display: flex;
-  align-items: baseline;
+  align-items: flex-start; /* textarea has a multi-line box on screen */
   gap: 4px;
   width: 100%;
   line-height: 1.25;
@@ -530,6 +530,10 @@ body.is-ip:not(.is-ip-glazyrin) #clientContainerIp .client-inline-row .client-te
   line-height: inherit;
 }
 @media print {
+  .head-client-cell .client-inline-row,
+  body.is-ip:not(.is-ip-glazyrin) #clientContainerIp .client-inline-row {
+    align-items: baseline; /* printed text has the same baseline as its label */
+  }
   .head-client-cell .client-inline-row .client-textarea,
   body.is-ip:not(.is-ip-glazyrin) #clientContainerIp .client-inline-row .client-textarea {
     display: none !important;
