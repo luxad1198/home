@@ -18,10 +18,10 @@ const VENDORS = [
   { url: /cdn\.jsdelivr\.net\/npm\/jszip@3\.10\.1\/dist\/jszip\.min\.js/, file: 'node_modules/jszip/dist/jszip.min.js' }
 ];
 const SCENARIOS = [
-  { key: 'ooo', company: 'ooo', filename: 'rtstandard.docx', marker: 'RTWORD01' },
-  { key: 'ip', company: 'ip', filename: 'zakharov.docx', marker: 'ZKWORD02' },
-  { key: 'ip-glazyrin', company: 'ip-glazyrin', filename: 'glazyrin.docx', marker: 'GLWORD03' },
-  { key: 'long', company: 'ooo', filename: 'rtstandard-multipage.docx', marker: 'RTWORD04', extraRows: 18 }
+  { key: 'ooo', company: 'ooo', filename: 'rtstandard.docx', marker: 'RTPDF01' },
+  { key: 'ip', company: 'ip', filename: 'zakharov.docx', marker: 'ZKPDF02' },
+  { key: 'ip-glazyrin', company: 'ip-glazyrin', filename: 'glazyrin.docx', marker: 'GLPDF03' },
+  { key: 'long', company: 'ooo', filename: 'rtstandard-multipage.docx', marker: 'RTPDF04', extraRows: 18 }
 ];
 
 function serverFactory() {
