@@ -324,8 +324,38 @@
     saveState();
   }
 
+  let restoringState = false;
+  let renderedCompany = null;
+  let ipConditionsByCompany = {};
+  const ipFieldIds = ['ipDeliveryTime', 'deliverySelectIp', 'ipPaymentTerms', 'ipWarrantyTerms', 'ipServiceTerms', 'ipValidityTerms', 'ipAppendixTerms'];
+  const defaultIpTerms = ['1-2 недели', 'Доставка включена в стоимость', 'По согласованию', 'Согласно документации производителя', 'По отдельному согласованию', 'До согласования заказа', 'Спецификация и техническое описание предоставляются по запросу'];
+  function captureIpConditions() {
+    return {
+      values: ipFieldIds.map(id => document.getElementById(id).value),
+      custom: [...document.querySelectorAll('#condIpBox .ip-custom-cond-row')].map(row => ({
+        lbl: row.querySelector('.ip-cond-lbl-input').value,
+        val: row.querySelector('.ip-cond-val-input').value,
+        section: row.dataset.section || ''
+      })),
+      deleted: [...document.querySelectorAll('#condIpBox .ip-term-row.is-deleted .meta-input[id]')].map(el => el.id)
+    };
+  }
+  function restoreIpConditions(company) {
+    const data = ipConditionsByCompany[company] || { values: defaultIpTerms, custom: [], deleted: [] };
+    const wasRestoring = restoringState;
+    restoringState = true;
+    try {
+      document.getElementById('condIpCustomList').replaceChildren();
+      document.getElementById('condIpCustomList2').replaceChildren();
+      ipFieldIds.forEach((id, i) => { document.getElementById(id).value = data.values?.[i] ?? defaultIpTerms[i]; });
+      (data.custom || []).forEach(c => addCondRowIp(c.lbl, c.val, company === 'ip-glazyrin' ? (c.section || '3') : null));
+      applyDeletedStandardConditions(data.deleted || []);
+    } finally { restoringState = wasRestoring; }
+  }
+
   function onCompanyChange() {
     const comp = document.getElementById('companySelect').value;
+    if (renderedCompany && renderedCompany !== 'ooo') ipConditionsByCompany[renderedCompany] = captureIpConditions();
     const company = activeCompany();
     const isIp = company.kind === 'ip';
     const isGlazyrin = comp === 'ip-glazyrin';
@@ -334,7 +364,9 @@
 
     document.body.classList.toggle('is-ip', isIp);
     document.body.classList.toggle('is-ip-glazyrin', isGlazyrin);
-    applyDeletedStandardConditions(isGlazyrin ? storedGlazyrinDeletions() : []);
+    if (isIp) restoreIpConditions(comp);
+    else applyDeletedStandardConditions([]);
+    renderedCompany = comp;
 
     document.getElementById('headOoo').style.display = isIp ? 'none' : 'table';
     document.getElementById('headIp').style.display = isIp ? (isGlazyrin ? 'grid' : 'block') : 'none';
@@ -388,13 +420,35 @@
     saveState();
   }
 
+  function readNumber(val) {
+    const text = String(val ?? '').replace(/\s/g, '').replace(',', '.');
+    if (!text) return 0;
+    if (!/^\d+(?:\.\d{1,2})?$/.test(text)) return NaN;
+    const number = Number(text);
+    return Number.isFinite(number) && number <= 1e12 ? number : NaN;
+  }
   function parseNum(val) {
-    if (val === null || val === undefined) return 0;
-    let clean = String(val).replace(/\s+/g, '').replace(',', '.');
-    clean = clean.replace(/[^0-9.]/g, '');
-    const parts = clean.split('.');
-    if (parts.length > 2) clean = parts[0] + '.' + parts.slice(1).join('');
-    return parseFloat(clean) || 0;
+    const number = readNumber(val);
+    return Number.isFinite(number) ? number : 0;
+  }
+  function setNumberValidity(input, message) {
+    input.setCustomValidity(message);
+    input.setAttribute('aria-invalid', message ? 'true' : 'false');
+    input.title = message;
+  }
+  function validateEquipment(showError = false) {
+    let firstInvalid = null;
+    document.querySelectorAll('#tableBody tr').forEach(row => {
+      const qty = row.querySelector('.col-qty');
+      const price = row.querySelector('.col-price');
+      const q = qty.value === '' ? 1 : Number(qty.value);
+      const p = readNumber(price.dataset.raw ?? price.value);
+      setNumberValidity(qty, !qty.validity.badInput && Number.isSafeInteger(q) && q >= 1 && q <= 1000000 ? '' : 'Количество: целое число от 1 до 1 000 000.');
+      setNumberValidity(price, Number.isFinite(p) ? '' : 'Цена: неотрицательное число, не более двух знаков после запятой.');
+      firstInvalid ||= [qty, price].find(el => el.getAttribute('aria-invalid') === 'true');
+    });
+    if (firstInvalid && showError) { firstInvalid.focus(); firstInvalid.reportValidity(); }
+    return !firstInvalid;
   }
 
   function fmt(n) {
@@ -409,6 +463,20 @@
     const company = activeCompany();
     const isIp = company.kind === 'ip';
     const isGlazyrin = document.getElementById('companySelect').value === 'ip-glazyrin';
+    let invalidCalc = false;
+    ['calcCostVat', 'calcProfitTarget', 'calcFinDaysInput', 'calcDeliveryCost'].forEach(id => {
+      const el = document.getElementById(id);
+      const value = readNumber(el.value);
+      const valid = !el.validity.badInput && Number.isFinite(value) && (id !== 'calcFinDaysInput' || Number.isSafeInteger(value));
+      setNumberValidity(el, valid ? '' : 'Введите неотрицательное число' + (id === 'calcFinDaysInput' ? ' целых дней.' : ', до двух знаков после запятой.'));
+      invalidCalc ||= !valid;
+    });
+    if (invalidCalc) {
+      ['resCostNet', 'resNetProfit', 'resProfitTax', 'resVatPayable', 'resSaleVat'].forEach(id => { document.getElementById(id).textContent = '—'; });
+      document.getElementById('calcFinCostVal').textContent = 'Проверьте выделенные поля';
+      document.getElementById('resSaleVat').removeAttribute('data-val');
+      return;
+    }
     const cVat = parseNum(document.getElementById('calcCostVat').value);
     const targetVal = parseNum(document.getElementById('calcProfitTarget').value);
     const days = parseInt(document.getElementById('calcFinDaysInput').value, 10) || 0;
@@ -561,11 +629,11 @@
       const valueMirror = row.querySelector('.ip-cond-value-print');
       if (labelMirror) {
         labelMirror.textContent = (label?.value || '').replace(/[:：]\s*$/, '');
-        copyTextStyle(labelMirror, labelStyle);
+        copyTextStyle(labelMirror, document.body.classList.contains('is-ip-glazyrin') ? labelStyle : getComputedStyle(label));
       }
       if (valueMirror) {
         valueMirror.textContent = value?.value || '';
-        copyTextStyle(valueMirror, valueStyle);
+        copyTextStyle(valueMirror, document.body.classList.contains('is-ip-glazyrin') ? valueStyle : getComputedStyle(value));
       }
     });
 
@@ -706,6 +774,12 @@
     const apply = document.getElementById('equipmentImportApply');
     const preview = document.getElementById('equipmentImportPreview');
     let pending = null, undo = null, generation = 0;
+    document.addEventListener('equipment-import-reset', () => {
+      undo = null; pending = null; generation++;
+      if (dialog.open) dialog.close();
+      document.getElementById('btnUndoEquipmentImport').hidden = true;
+      document.getElementById('equipmentImportNotice').textContent = '';
+    });
     const readRows = () => Array.from(document.querySelectorAll('#tableBody tr'), row => ({
       name: row.querySelector('.col-name').value, desc: row.querySelector('.col-desc').value,
       country: row.querySelector('.col-country').value, qty: row.querySelector('.col-qty').value,
@@ -851,17 +925,24 @@
   function recalc() {
     const company = activeCompany();
     const isGlazyrin = document.getElementById('companySelect').value === 'ip-glazyrin';
+    const valid = validateEquipment();
     let grandTotal = 0;
     document.querySelectorAll('#tableBody tr').forEach(row => {
       const qVal = row.querySelector('.col-qty').value;
-      const q = (qVal !== '' && qVal !== null) ? (parseFloat(qVal) || 1) : 1;
+      const q = qVal === '' ? 1 : Number(qVal);
       const priceInput = row.querySelector('.col-price');
       const p = parseNum(priceInput.getAttribute('data-raw') || priceInput.value);
-      const tot = q * p;
+      if (row.querySelector('[aria-invalid="true"]')) { row.querySelector('.col-total').textContent = '—'; return; }
+      const tot = Math.round((q * p + Number.EPSILON) * 100) / 100;
       row.querySelector('.col-total').textContent = fmt(tot);
       grandTotal += tot;
     });
 
+    if (!valid) {
+      document.getElementById('grandTotal').textContent = '—';
+      document.getElementById('textTotalBlock').textContent = 'Проверьте выделенные количество и цену. Экспорт недоступен до исправления.';
+      return;
+    }
     document.getElementById('grandTotal').textContent = fmt(grandTotal);
 
     const vat = grandTotal > 0 && company.vatRate ? (grandTotal * company.vatRate / company.vatDivisor) : 0;
@@ -913,6 +994,9 @@
   function clearForm() {
     if (!confirm('Вы уверены, что хотите полностью очистить бланк?')) return;
     localStorage.removeItem(STORAGE_KEY);
+    ipConditionsByCompany = {};
+    applyDeletedStandardConditions([]);
+    document.dispatchEvent(new Event('equipment-import-reset'));
     
     document.getElementById('clientBox').value = '';
     document.getElementById('clientBoxIp').value = '';
@@ -974,6 +1058,7 @@
   }
 
   function saveState() {
+    if (restoringState) return;
     try {
       const rows = [];
       document.querySelectorAll('#tableBody tr').forEach(row => {
@@ -982,7 +1067,8 @@
           desc: row.querySelector('.col-desc').value,
           country: row.querySelector('.col-country').value,
           qty: row.querySelector('.col-qty').value,
-          price: row.querySelector('.col-price').getAttribute('data-raw') || 0
+          price: row.querySelector('.col-price').getAttribute('data-raw') || 0,
+          priceText: row.querySelector('.col-price').value
         });
       });
 
@@ -1010,7 +1096,9 @@
       if (currentCompany === 'ip-glazyrin') {
         deletedStandardConditionsByCompany[currentCompany] = [...document.querySelectorAll('#condIpBox .ip-term-row.is-deleted input[id]')].map(input => input.id);
       }
+      if (currentCompany !== 'ooo') ipConditionsByCompany[currentCompany] = captureIpConditions();
       const state = {
+        ipConditionsByCompany,
         company: currentCompany,
         kpNumOoo: document.getElementById('kpNumInput').value,
         kpNumIp: document.getElementById('kpNumInputIp').value,
@@ -1051,6 +1139,7 @@
   }
 
   function loadState() {
+    restoringState = true;
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) {
@@ -1061,6 +1150,12 @@
         return false;
       }
       const state = JSON.parse(raw);
+      ipConditionsByCompany = state.ipConditionsByCompany || {};
+      if (!state.ipConditionsByCompany) {
+        // Legacy shared terms belong to the last selected IP only; do not duplicate them.
+        const owner = state.company === 'ip-glazyrin' ? 'ip-glazyrin' : 'ip';
+        ipConditionsByCompany[owner] = { values: state.condIp || defaultIpTerms, custom: state.customCondsIp || [], deleted: owner === 'ip-glazyrin' ? (state.deletedStandardConditionsByCompany?.[owner] || state.deletedStandardConditions || []) : [] };
+      }
 
       if (state.company) {
         document.getElementById('companySelect').value = state.company;
@@ -1135,7 +1230,7 @@
             <td class="c col-num-cell"><input type="text" class="inp-text c col-country" placeholder="Китай" value="${escapeHtml(rData.country || 'Китай')}"></td>
             <td class="c col-num-cell"><input type="number" class="inp-qty col-qty" min="1" step="1" placeholder="1" value="${escapeHtml(rData.qty || '')}"></td>
             <td class="c col-num-cell">
-              <input type="text" class="inp-text r col-price" placeholder="500,00" data-raw="${pNum}" value="${pNum > 0 ? fmt(pNum) : ''}">
+              <input type="text" class="inp-text r col-price" placeholder="500,00" data-raw="${escapeHtml(String(rData.price ?? 0))}" value="${escapeHtml(rData.priceText ?? (pNum > 0 ? fmt(pNum) : ''))}">
             </td>
             <td class="r col-num-cell col-total">0,00</td>
             <td class="no-print c" style="border:none;"><button type="button" class="btn-del">✕</button></td>
@@ -1144,10 +1239,11 @@
         });
       }
       return true;
-    } catch (e) { return false; }
+    } catch (e) { return false; } finally { restoringState = false; }
   }
 
   function prepareAndPrint() {
+    if (!validateEquipment(true)) return;
     initAutoResize();
     recalc();
     prepareForPrint();
@@ -1215,6 +1311,7 @@
   }
 
   async function exportToWord() {
+    if (!validateEquipment(true)) return;
     const docxLib = window.docx;
     if (!docxLib || !docxLib.Document) {
       alert('Библиотека Word не загрузилась. Попробуйте сохранить через кнопку PDF / Печать.');
@@ -1468,6 +1565,7 @@
     }));
 
     const addSectionHeading = (text) => docElements.push(new Paragraph({
+      keepNext: true,
       spacing: { before: 140, after: 80 },
       border: isGlazyrin && /^[23]\./.test(text) ? { bottom: { style: BorderStyle.SINGLE, size: 6, color: "A8B9B0", space: 4 } } : undefined,
       children: [new TextRun({ text, bold: true, size: 20, font: isGlazyrin ? "Arial" : "Times New Roman", color: isGlazyrin ? "243B53" : undefined })]
@@ -1590,6 +1688,8 @@
     docElements.push(new Table({
       width: { size: 100, type: WidthType.PERCENTAGE },
       borders: tableBorders,
+      layout: docxLib.TableLayoutType.FIXED,
+      columnWidths: colWidths.map(col => col.dxa),
       rows: tableRows
     }));
 
@@ -1657,19 +1757,21 @@
         docElements.push(new Table({
           width: { size: 100, type: WidthType.PERCENTAGE },
           layout: docxLib.TableLayoutType.FIXED,
+          columnWidths: [3264, 6336],
           borders: transparentBorders,
           rows: termRows
         }));
         termRows = [];
       };
-      const addTerm = (label, value) => {
+      const addTerm = (label, value, keepNext = false) => {
         const borders = { ...transparentCellBorders, bottom: { style: BorderStyle.SINGLE, size: 6, color: "D8E3DD" } };
         const cell = (text, title) => new TableCell({
-          width: { size: title ? 34 : 66, type: WidthType.PERCENTAGE },
+          width: { size: title ? 3264 : 6336, type: WidthType.DXA },
           borders,
           margins: { top: 60, bottom: 60, left: 0, right: title ? 100 : 0 },
           verticalAlign: VerticalAlign.TOP,
           children: [new Paragraph({
+            keepNext,
             alignment: title ? AlignmentType.LEFT : AlignmentType.RIGHT,
             spacing: { before: 0, after: 0, line: 260 },
             children: cleanTextForXml(text).split('\n').map((line, i) => new TextRun({
@@ -1680,11 +1782,11 @@
         });
         termRows.push(new TableRow({ cantSplit: true, children: [cell(label.replace(/[:：]\s*$/, '') + ':', true), cell(value, false)] }));
       };
-      const addCustomTerms = (selector) => document.querySelectorAll(selector).forEach(row => {
+      const addCustomTerms = (selector) => document.querySelectorAll(selector).forEach((row, index, rows) => {
         const cLbl = cleanTextForXml(row.querySelector('.ip-cond-lbl-input')?.value || '').replace(/[:：]\s*$/, '');
         const cVal = cleanTextForXml(row.querySelector('.ip-cond-val-input')?.value || '');
         const cNum = cleanTextForXml(row.querySelector('.ip-cond-number')?.textContent || '').trim();
-        if (cLbl || cVal) addTerm(cNum ? `${cNum} ${cLbl}` : cLbl, cVal);
+        if (cLbl || cVal) addTerm(cNum ? `${cNum} ${cLbl}` : cLbl, cVal, selector.includes('#condIpCustomList ') && index >= rows.length - 2);
       });
       const addStandardTerm = (inputId) => {
         const input = document.getElementById(inputId);
@@ -1707,6 +1809,7 @@
       addCustomTerms('#condIpCustomList .ip-custom-cond-row');
       flushTerms();
       docElements.push(new Paragraph({
+        keepNext: true,
         spacing: { before: 100, after: 100, line: 260 },
         border: { top: { style: BorderStyle.SINGLE, size: 6, color: "AAB2BA", space: 5 } },
         children: [new TextRun({ text: "Предложение предназначено для предварительного согласования условий поставки.", italics: true, size: 19, font: "Arial", color: "4B5563" })]
@@ -1749,6 +1852,7 @@
 
     docElements.push(new Paragraph({
       tabStops: [{ type: TabStopType.RIGHT, position: 9600 }],
+      keepNext: true,
       spacing: { before: 180, line: 240 },
       border: isGlazyrin ? { top: { style: BorderStyle.SINGLE, size: 6, color: "D8E3DD", space: 7 } } : undefined,
       children: [
@@ -1919,8 +2023,7 @@
           recalc();
           saveState();
         } else if (target.classList.contains('col-price')) {
-          const num = parseNum(target.value);
-          target.setAttribute('data-raw', num);
+          target.setAttribute('data-raw', target.value);
           recalc();
           saveState();
         } else if (target.matches('.col-name, .col-desc, .col-country')) {
@@ -1932,16 +2035,16 @@
         const target = e.target;
         if (target.classList.contains('col-price')) {
           const raw = target.getAttribute('data-raw');
-          if (raw && parseNum(raw) > 0) target.value = String(raw).replace('.', ',');
+          if (raw && Number.isFinite(readNumber(raw)) && readNumber(raw) > 0) target.value = String(raw).replace('.', ',');
         }
       });
 
       itemsTable.addEventListener('focusout', (e) => {
         const target = e.target;
         if (target.classList.contains('col-price')) {
-          const num = parseNum(target.value || target.getAttribute('data-raw'));
-          target.setAttribute('data-raw', num);
-          target.value = num > 0 ? fmt(num) : '';
+          const num = readNumber(target.value);
+          target.setAttribute('data-raw', target.value);
+          if (Number.isFinite(num)) { target.dataset.raw = String(num); target.value = num > 0 ? fmt(num) : ''; }
           recalc();
           saveState();
         }
