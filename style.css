@@ -859,6 +859,11 @@ body.is-ip .stamp-box {
     display: table-header-group !important;
   }
 
+  /* The grand total belongs after all positions, not on every printed page. */
+  table.spec tfoot {
+    display: table-row-group !important;
+  }
+
   table.spec tr {
     page-break-inside: auto !important;
     break-inside: auto !important;
@@ -911,6 +916,32 @@ body.is-ip .stamp-box {
 body:not(.is-ip-glazyrin) .doc-section-heading,
 body:not(.is-ip-glazyrin) .doc-subsection-heading,
 body:not(.is-ip-glazyrin) .proposal-note { display: none; }
+body.is-ip:not(.is-ip-glazyrin) .glazyrin-only,
+body.is-ip:not(.is-ip-glazyrin) .ip-standard-number { display: none !important; }
+body.is-ip:not(.is-ip-glazyrin) .ip-cond-box { width: 50%; }
+body.is-ip:not(.is-ip-glazyrin) .ip-term-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin: 4px 0;
+}
+body.is-ip:not(.is-ip-glazyrin) .ip-term-row > .meta-input {
+  flex: 1 1 120px;
+  width: auto !important;
+  min-width: 0;
+}
+body.is-ip:not(.is-ip-glazyrin) .ip-custom-cond-row {
+  display: block;
+  overflow-wrap: anywhere;
+}
+body.is-ip:not(.is-ip-glazyrin) .ip-custom-cond-row > b { display: block; }
+body.is-ip:not(.is-ip-glazyrin) .ip-custom-cond-row .ip-cond-val-input {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  font: inherit;
+  overflow-wrap: anywhere;
+}
 body.is-ip-glazyrin .doc-section-heading,
 body.is-ip-glazyrin .doc-subsection-heading,
 body.is-ip-glazyrin .proposal-note { display: block; }
@@ -1107,6 +1138,8 @@ body.is-ip-glazyrin #condIpCustomList > .ip-custom-cond-row:not(:last-child) {
 /* Validation and shared IP print presentation. */
 [aria-invalid="true"] { outline:2px solid #b91c1c !important; background:#fff1f2 !important; }
 @media print {
+  body.is-ip:not(.is-ip-glazyrin) .ip-term-row .meta-input { display:none !important; }
+  body.is-ip:not(.is-ip-glazyrin) .ip-standard-value-print { display:inline !important; white-space:pre-wrap; overflow-wrap:anywhere; }
   body.is-ip:not(.is-ip-glazyrin) .ip-custom-cond-row { display:block; }
   body.is-ip:not(.is-ip-glazyrin) .ip-custom-cond-row .ip-cond-lbl-input,
   body.is-ip:not(.is-ip-glazyrin) .ip-custom-cond-row .ip-cond-val-input { display:none !important; }
