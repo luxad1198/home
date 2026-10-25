@@ -1,0 +1,64 @@
+name: Verify print PDF
+
+on:
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'style.css'
+      - 'app.js'
+      - 'scripts/generate-print-pdfs.cjs'
+      - 'scripts/check-print-pdfs.py'
+      - '.github/workflows/verify-print-pdf.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  print-pdf:
+    name: Generate and inspect PDFs
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout the tested revision
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install isolated print test dependencies
+        run: |
+          npm install --no-save --package-lock=false playwright@1.56.1
+          npx playwright install --with-deps chromium
+
+      - name: Generate PDFs from the actual application
+        shell: bash
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 > "$RUNNER_TEMP/print-pdf-http.log" 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for attempt in {1..20}; do
+            if curl --silent --fail http://127.0.0.1:8765/ > /dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          node scripts/generate-print-pdfs.cjs
+
+      - name: Verify PDFs and A4 pages
+        shell: bash
+        run: |
+          python3 -m venv "$RUNNER_TEMP/pdf-verify-venv"
+          "$RUNNER_TEMP/pdf-verify-venv/bin/pip" install pypdf==6.1.1
+          "$RUNNER_TEMP/pdf-verify-venv/bin/python" scripts/check-print-pdfs.py
+
+      - name: Attach generated PDFs to the workflow run
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: print-pdf
+          path: artifacts/print-pdf/*.pdf
+          retention-days: 14
+          if-no-files-found: warn
