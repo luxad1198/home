@@ -506,12 +506,43 @@ body.is-ip-glazyrin .stamp-box { display: none !important; }
   background: #f1f5f9;
   border-bottom-color: #64748b;
 }
-.head-client-cell .client-textarea,
-body.is-ip:not(.is-ip-glazyrin) #clientContainerIp .client-textarea {
-  display: inline-block;
-  width: calc(100% - 90px);
+/* ООО and IP Zakharov: customer caption and value share a real text baseline.
+   For printing, use a plain-text mirror instead of a textarea's internal line box. */
+.client-print-value { display: none; }
+.client-inline-row .client-label { white-space: nowrap; }
+.head-client-cell .client-inline-row,
+body.is-ip:not(.is-ip-glazyrin) #clientContainerIp .client-inline-row {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  width: 100%;
+  line-height: 1.25;
+}
+.head-client-cell .client-inline-row .client-textarea,
+body.is-ip:not(.is-ip-glazyrin) #clientContainerIp .client-inline-row .client-textarea {
+  display: block;
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 0;
   min-height: 1.25em;
-  vertical-align: top;
+  padding: 0;
+  margin: 0;
+  line-height: inherit;
+}
+@media print {
+  .head-client-cell .client-inline-row .client-textarea,
+  body.is-ip:not(.is-ip-glazyrin) #clientContainerIp .client-inline-row .client-textarea {
+    display: none !important;
+  }
+  .head-client-cell .client-inline-row .client-print-value,
+  body.is-ip:not(.is-ip-glazyrin) #clientContainerIp .client-inline-row .client-print-value {
+    display: block !important;
+    flex: 1 1 auto;
+    min-width: 0;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    font: inherit;
+  }
 }
 
 .title { text-align: center; font-size: 12pt; font-weight: bold; margin: 10px 0 6px; }
