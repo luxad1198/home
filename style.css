@@ -452,6 +452,8 @@ body.is-ip-glazyrin .stamp-box { display: none !important; }
 .kp-num-wrapper {
   display: inline-flex;
   align-items: baseline;
+  flex-wrap: wrap;
+  max-width: 100%;
   font-weight: bold;
 }
 .kp-prefix { font-weight: bold; margin-left: 2px; }
@@ -463,8 +465,22 @@ body.is-ip-glazyrin .stamp-box { display: none !important; }
   border-bottom: 1px dashed #777;
   background: transparent;
   outline: none;
-  width: 45px;
+  width: 90px; /* Fallback for browsers without field-sizing. */
+  min-width: 45px;
+  max-width: 100%;
+  field-sizing: content;
   padding: 0 2px;
+}
+/* Inputs clip their value in print. Mirror the complete number as ordinary text. */
+.kp-number-print { display: none; }
+@media print {
+  .kp-num-wrapper .kp-user-input { display: none !important; }
+  .kp-num-wrapper .kp-number-print {
+    display: inline !important;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    font: inherit;
+  }
 }
 
 .kp-ip-wrapper {
