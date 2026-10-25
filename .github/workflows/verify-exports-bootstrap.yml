@@ -43,6 +43,9 @@ jobs:
           python3 -m venv "$RUNNER_TEMP/pdf-venv"
           "$RUNNER_TEMP/pdf-venv/bin/pip" install pypdf==6.1.1
           "$RUNNER_TEMP/pdf-venv/bin/python" scripts/check-print-pdfs.py
+      - name: Compare shared Word and print PDF content
+        run: |
+          "$RUNNER_TEMP/pdf-venv/bin/python" scripts/check-export-parity.py
       - name: Render Word through LibreOffice and verify layout basics
         shell: bash
         run: |
