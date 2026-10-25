@@ -884,6 +884,12 @@ body.is-ip .stamp-box {
     break-inside: avoid !important;
   }
 
+  /* Keep the conditions with the signature when the remaining page is short. */
+  body:not(.is-ip-glazyrin) .closing-block {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
   .sign-row {
     margin-top: 18px !important;
   }
