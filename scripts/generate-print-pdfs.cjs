@@ -135,6 +135,10 @@ async function main() {
   }
   const selected = keys.length ? CASES.filter(scenario => keys.includes(scenario.key)) : CASES;
   fs.mkdirSync(OUTPUT_DIR, { recursive: true });
+  // A failed run must never leave an older PDF looking freshly verified.
+  for (const scenario of selected) {
+    fs.rmSync(path.join(OUTPUT_DIR, scenario.filename), { force: true });
+  }
   const browser = await chromium.launch({ headless: true });
   try {
     for (const scenario of selected) await generatePdf(browser, scenario);
