@@ -213,13 +213,14 @@
     if (itemSection) div.dataset.section = itemSection;
     div.innerHTML = `
       <b><span class="ip-cond-number"></span><input type="text" class="ip-cond-lbl-input" value="${escapeHtml(title)}"><span class="ip-cond-label-print"></span><span class="ip-cond-label-separator">:</span></b>
-      <input type="text" class="meta-input ip-cond-val-input" value="${escapeHtml(val)}" placeholder="значение" style="width: 320px;"><span class="ip-cond-value-print"></span>
+      <textarea class="auto-grow meta-input ip-cond-val-input" rows="1" placeholder="значение">${escapeHtml(val)}</textarea><span class="ip-cond-value-print"></span>
       <button type="button" class="btn-del btn-del-ip-cond no-print">✕</button>
     `;
     container.appendChild(div);
     updateIpConditionSeparator(div);
     const inp = div.querySelector('.ip-cond-lbl-input');
     adjustInputWidth(inp);
+    autoResizeTextarea(div.querySelector('.ip-cond-val-input'));
     renumberGlazyrinConditions();
     saveState();
   }
@@ -1818,6 +1819,7 @@
       const ipTime = cleanTextForXml(document.getElementById('ipDeliveryTime')?.value || '');
       const ipDel = cleanTextForXml(document.getElementById('deliverySelectIp')?.value || '');
       docElements.push(new Paragraph({
+        indent: { right: 4800 },
         spacing: { after: 50, line: 240 },
         children: [
           new TextRun({ text: "Срок поставки: ", bold: true, size: 22, font: "Times New Roman" }),
@@ -1825,6 +1827,7 @@
         ]
       }));
       docElements.push(new Paragraph({
+        indent: { right: 4800 },
         spacing: { after: 50, line: 240 },
         children: [
           new TextRun({ text: "Доставка: ", bold: true, size: 22, font: "Times New Roman" }),
@@ -1836,10 +1839,11 @@
         const cVal = cleanTextForXml(row.querySelector('.ip-cond-val-input')?.value || '');
         if (cLbl || cVal) {
           docElements.push(new Paragraph({
+            indent: { right: 4800 },
             spacing: { after: 50, line: 240 },
             children: [
               new TextRun({ text: `${cLbl}: `, bold: true, size: 22, font: "Times New Roman" }),
-              new TextRun({ text: cVal, size: 22, font: "Times New Roman" })
+              ...cVal.split('\n').map((line, i) => new TextRun({ text: line, break: i ? 1 : 0, size: 22, font: "Times New Roman" }))
             ]
           }));
         }
