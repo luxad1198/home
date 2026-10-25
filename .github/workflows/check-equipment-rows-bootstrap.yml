@@ -1,0 +1,89 @@
+name: Temporary precise equipment row verification
+# ONE-TIME PR #12 verification only. Remove after tests finish.
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/check-equipment-rows-bootstrap.yml'
+permissions:
+  contents: read
+jobs:
+  equipment:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned test-only dependencies
+        run: |
+          npm install --no-save --package-lock=false playwright@1.56.1 docx@8.5.0 jszip@3.10.1 file-saver@2.0.5
+          npx playwright install --with-deps chromium
+      - name: Verify all existing Word data rows and reject damaged DOCX
+        run: |
+          node --check scripts/import-docx-tests.cjs
+          node scripts/generate-word-documents.cjs && python3 scripts/check-word-documents.py
+          python3 - <<'PY'
+          from pathlib import Path
+          import io,subprocess,zipfile,xml.etree.ElementTree as ET
+          p=Path('artifacts/word-docx/rtstandard.docx')
+          original=p.read_bytes()
+          W='{http://schemas.openxmlformats.org/wordprocessingml/2006/main}'
+          with zipfile.ZipFile(io.BytesIO(original)) as z:
+              names={n:z.read(n) for n in z.namelist()}
+          root=ET.fromstring(names['word/document.xml'])
+          spec=next(t for t in root.iter(W+'tbl') if len(t.findall('./'+W+'tblGrid/'+W+'gridCol'))==7)
+          qty=spec.findall('./'+W+'tr')[1].findall('./'+W+'tc')[4].find('.//'+W+'t')
+          assert qty is not None and qty.text=='2'
+          qty.text='999'
+          names['word/document.xml']=ET.tostring(root,encoding='utf-8',xml_declaration=True)
+          b=io.BytesIO()
+          with zipfile.ZipFile(b,'w',zipfile.ZIP_DEFLATED) as z:
+              for n,v in names.items(): z.writestr(n,v)
+          try:
+              p.write_bytes(b.getvalue())
+              result=subprocess.run(['python3','scripts/check-word-documents.py','ooo'],capture_output=True,text=True)
+              assert result.returncode != 0, 'Wrong DOCX equipment quantity was accepted'
+              assert 'equipment row 1, column 5' in result.stderr, result.stderr
+              print('OK: wrong DOCX row quantity correctly rejected')
+          finally:
+              p.write_bytes(original)
+          PY
+      - name: Verify all existing Chromium PDFs and reject damaged extracted row
+        shell: bash
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 > "$RUNNER_TEMP/http.log" 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for attempt in {1..20}; do
+            if curl --silent --fail http://127.0.0.1:8765/ >/dev/null; then break; fi
+            sleep 1
+          done
+          python3 -m venv "$RUNNER_TEMP/pdf-env"
+          "$RUNNER_TEMP/pdf-env/bin/pip" install pypdf==6.1.1
+          node scripts/generate-print-pdfs.cjs
+          "$RUNNER_TEMP/pdf-env/bin/python" scripts/check-print-pdfs.py
+          "$RUNNER_TEMP/pdf-env/bin/python" - <<'PY'
+          import importlib.util,re
+          from pypdf import PdfReader
+          spec=importlib.util.spec_from_file_location('check','scripts/check-print-pdfs.py')
+          module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+          t='\n'.join(p.extract_text() or '' for p in PdfReader('artifacts/print-pdf/rtstandard-multipage.pdf').pages)
+          changed=re.sub(r'Россия\s+1\s+1\s*000,00\s+1\s*000,00','Россия 999 0,00 0,00',t,count=1)
+          assert changed != t, 'Could not mutate any equipment row'
+          try:
+              module.check_equipment_rows(changed,'long','RTPDF04','mutated.pdf')
+          except AssertionError as error:
+              assert 'equipment row 2' in str(error), error
+              print('OK: wrong PDF row values correctly rejected')
+          else:
+              raise AssertionError('Corrupted PDF equipment data was accepted')
+          PY
+      - name: Six real import regression scenarios
+        shell: bash
+        run: |
+          set -o pipefail
+          node scripts/import-docx-tests.cjs append replace cancel invalid undo roundtrip | tee "$RUNNER_TEMP/import.log"
+          grep -Eq '^# tests 6$' "$RUNNER_TEMP/import.log"
+          grep -Eq '^# pass 6$' "$RUNNER_TEMP/import.log"
+          grep -Eq '^# fail 0$' "$RUNNER_TEMP/import.log"
