@@ -12,10 +12,10 @@ from xml.etree import ElementTree as ET
 ROOT = Path("artifacts/word-docx")
 W = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
 SCENARIOS = {
-    "ooo": ("rtstandard.docx", "RTWORD01", "Марков Д.Е.", "НДС22%", "Тестоваяоплата30дней", 2),
-    "ip": ("zakharov.docx", "ZKWORD02", "Захаров М.С.", "НДС5%", "Тестовыйсрок14дней", 2),
-    "ip-glazyrin": ("glazyrin.docx", "GLWORD03", "Глазырин А.А.", "НДСнеоблагается", "Тестовыйсрок14дней", 2),
-    "long": ("rtstandard-multipage.docx", "RTWORD04", "Марков Д.Е.", "НДС22%", "Тестоваяоплата30дней", 20),
+    "ooo": ("rtstandard.docx", "RTPDF01", "Марков Д.Е.", "НДС22%", "Тестоваяоплата30дней", 2),
+    "ip": ("zakharov.docx", "ZKPDF02", "Захаров М.С.", "НДС5%", "Тестовыйсрок14дней", 2),
+    "ip-glazyrin": ("glazyrin.docx", "GLPDF03", "Глазырин А.А.", "НДСнеоблагается", "Тестовыйсрок14дней", 2),
+    "long": ("rtstandard-multipage.docx", "RTPDF04", "Марков Д.Е.", "НДС22%", "Тестоваяоплата30дней", 20),
 }
 
 
