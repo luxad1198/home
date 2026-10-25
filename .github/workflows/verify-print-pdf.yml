@@ -1,14 +1,7 @@
 name: Verify print PDF
 
+# PDF generation is intentionally opt-in: choose the PR branch in Actions.
 on:
-  pull_request:
-    paths:
-      - 'index.html'
-      - 'style.css'
-      - 'app.js'
-      - 'scripts/generate-print-pdfs.cjs'
-      - 'scripts/check-print-pdfs.py'
-      - '.github/workflows/verify-print-pdf.yml'
   workflow_dispatch:
 
 permissions:
