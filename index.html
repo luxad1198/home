@@ -160,6 +160,16 @@
       <button type="button" id="btnAddCondIp3" class="btn btn-add btn-cond-add ip-section-add no-print">+ Добавить пункт к разделу 3</button>
   </div>
 
+  <!-- Navigation to the browser's REAL paged print preview.
+       The editable sheet remains continuous; do not draw guessed A4 cuts. -->
+  <div class="page-break-guidance no-print" id="pageBreakGuidance">
+    <span id="pageBreakMessage">Веб-документ показан непрерывно. Точные границы страниц — в PDF / Печать.</span>
+    <button type="button" class="btn btn-page-preview" id="btnPreviewPages"
+      title="Показать реальные страницы A4 через стандартный предпросмотр браузера">
+      📄 Просмотреть страницы
+    </button>
+  </div>
+
   <!-- Лист А4 -->
   <div class="page">
     
