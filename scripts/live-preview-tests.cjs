@@ -111,6 +111,13 @@ async function runCase(browser, url, scenario) {
         mirror: getComputedStyle(el.querySelector('.ip-cond-value-print')).textAlign
       }));
       assert.equal(align.control, align.mirror, 'Glazyrin editor value alignment differs from print');
+      const visible = await row.locator('.ip-cond-value-print').evaluate(el => {
+        const computed = getComputedStyle(el);
+        return { color: computed.color, fill: computed.webkitTextFillColor, text: el.textContent };
+      });
+      assert(!/transparent|rgba\(0,\s*0,\s*0,\s*0\)/.test(visible.color + visible.fill),
+        'Glazyrin live condition is invisible');
+      assert(visible.text.includes('Ответственное лицо встречает транспорт.'));
     }
 
     // The live-view sync must never fill in an empty quantity or country.
