@@ -255,6 +255,10 @@ body.hide-bg-sidebar .bg-sidebar {
   z-index: 50;
   transition: transform 0.25s ease, opacity 0.25s ease;
 }
+/* The calculator card already defines the design language; apply its
+   sans-serif typography to labels and totals as well as the input controls.
+   This is scoped outside the printable proposal. */
+.calc-sidebar * { font-family: var(--ui-font); }
 .calc-sidebar.collapsed {
   transform: translateX(-360px);
   opacity: 0;
