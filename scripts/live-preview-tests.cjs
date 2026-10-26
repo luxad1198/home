@@ -94,8 +94,11 @@ async function runCase(browser, url, scenario) {
     } else if (scenario.company === 'ip') {
       const expected = 'Поставка по согласованию\nВторая строка условий';
       await page.locator('#ipDeliveryTime + .ip-standard-value-editor').fill(expected);
-      assert.equal(await page.locator('#ipDeliveryTime').inputValue(), expected,
-        'Inline condition editor lost the manually inserted newline');
+      const actual = await page.locator('#ipDeliveryTime').inputValue();
+      const diagnostic = await page.locator('#ipDeliveryTime + .ip-standard-value-editor')
+        .evaluate(el => ({ html: el.innerHTML, text: el.innerText, content: el.textContent }));
+      assert.equal(actual, expected,
+        'Inline condition editor lost a newline: ' + JSON.stringify(diagnostic));
       await verifyLiveMirror(page, '#ipDeliveryTime',
         '#ipDeliveryTime ~ .ip-standard-value-print');
     } else {
