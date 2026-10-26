@@ -8,12 +8,12 @@
   <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
   <!-- Стили -->
-  <link rel="stylesheet" href="style.css?v=20261026-unified-controls-1">
+  <link rel="stylesheet" href="style.css?v=20261026-liscorp-graphite-1">
 </head>
 <body>
 
   <!-- Кнопка вызова калькулятора -->
-  <button type="button" class="calc-toggle-panel-btn ui-button ui-button--dark ui-button--compact no-print" id="btnToggleCalc">📊 Калькулятор</button>
+  <button type="button" class="calc-toggle-panel-btn ui-button ui-button--primary ui-button--compact no-print" id="btnToggleCalc">📊 Калькулятор</button>
 
   <!-- Калькулятор -->
   <div class="calc-sidebar no-print" id="calcSidebar">
@@ -101,8 +101,9 @@
     <img src="bg-thumb6.webp" alt="">
   </div>
 
-  <!-- Панель действий: единая система элементов управления с калькулятором -->
+  <!-- LIScorp Graphite: only the toolbar is dark; the workspace stays light. -->
   <div class="panel no-print">
+    <div class="panel-brand"><span class="panel-brand-name">LIScorp</span><span class="panel-brand-divider">/</span><span>Генератор КП</span></div>
     <div class="panel-main">
       <div class="panel-left">
         <select class="company-select ui-field" id="companySelect" aria-label="Компания">
