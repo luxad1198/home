@@ -272,7 +272,7 @@
   function applyDeletedStandardConditions(ids = []) {
     const deleted = new Set(ids);
     document.querySelectorAll('#condIpBox .ip-term-row[data-section]').forEach(row => {
-      const input = row.querySelector('input, select');
+      const input = row.querySelector('input, textarea, select');
       row.classList.toggle('is-deleted', document.body.classList.contains('is-ip-glazyrin') && !!input && deleted.has(input.id));
     });
     renumberGlazyrinConditions();
@@ -1167,7 +1167,7 @@
       const deletedStandardConditionsByCompany = { ...(savedState.deletedStandardConditionsByCompany || {}) };
       const currentCompany = document.getElementById('companySelect').value;
       if (currentCompany === 'ip-glazyrin') {
-        deletedStandardConditionsByCompany[currentCompany] = [...document.querySelectorAll('#condIpBox .ip-term-row.is-deleted input[id]')].map(input => input.id);
+        deletedStandardConditionsByCompany[currentCompany] = [...document.querySelectorAll('#condIpBox .ip-term-row.is-deleted .meta-input[id]')].map(input => input.id);
       }
       if (currentCompany !== 'ooo') ipConditionsByCompany[currentCompany] = captureIpConditions();
       const state = {
