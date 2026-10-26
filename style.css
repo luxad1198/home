@@ -1314,7 +1314,10 @@ body.is-ip-glazyrin #condIpCustomList > .ip-custom-cond-row:not(:last-child) {
   min-width: 0;
   position: relative;
 }
-.client-inline-row { align-items: baseline; }
+.head-client-cell .client-inline-row,
+body.is-ip:not(.is-ip-glazyrin) #clientContainerIp .client-inline-row {
+  align-items: baseline;
+}
 .client-live-value > .client-print-value {
   display: block;
   min-height: 1.25em;
@@ -1388,10 +1391,41 @@ body.is-ip-glazyrin #condIpCustomList > .ip-custom-cond-row:not(:last-child) {
     -webkit-text-fill-color: #94a3b8;
     color: #94a3b8;
   }
-  /* Match the value column of Glazyrin's printed conditions on screen. */
+  /* Glazyrin's value mirrors hold the actual printed line box. Editing
+     controls occupy the same grid cell, so a long value cannot widen it. */
+  body.is-ip-glazyrin .ip-term-row > .ip-standard-value-print,
+  body.is-ip-glazyrin .ip-custom-cond-row > .ip-cond-value-print {
+    display: block;
+    grid-column: 2;
+    grid-row: 1;
+    width: 100%;
+    min-width: 0;
+    min-height: 1.3em;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    text-align: right;
+    pointer-events: none;
+  }
   body.is-ip-glazyrin .ip-term-row > .meta-input,
   body.is-ip-glazyrin .ip-custom-cond-row > .ip-cond-val-input {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: stretch;
+    width: 100% !important;
+    height: 100% !important;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    caret-color: #243b53;
+    border: none;
+    background: transparent;
+    padding: 0;
+    z-index: 1;
     text-align: right;
+  }
+  body.is-ip-glazyrin .ip-term-row > .meta-input:focus,
+  body.is-ip-glazyrin .ip-custom-cond-row > .ip-cond-val-input:focus {
+    outline: 1px solid #cbd5e1;
+    background: rgba(248,250,252,.40);
   }
 }
 /* The document footer/signature spacing no longer changes at print time. */
