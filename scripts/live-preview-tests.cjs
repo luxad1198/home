@@ -151,6 +151,9 @@ async function runCase(browser, url, scenario) {
     equalGeometry(before, await box(page, '#textTotalBlock'), slug + ' blur total');
     equalGeometry(tableBefore, await box(page, '#itemsTable'), slug + ' blur table');
 
+    // Hide fixed editing panels only for the screenshot; they normally float
+    // over the A4 paper and must not appear in a document-only comparison.
+    await page.addStyleTag({ content: '.calc-sidebar, .calc-toggle-panel-btn, .bg-sidebar { visibility: hidden !important; }' });
     // Full-page screenshot: compare visually against the PDF with the SAME data.
     await page.locator('.page').screenshot({ path: path.join(OUTPUT, slug + '-web.png') });
     // A print click populates only the existing print defaults / output mirrors.
