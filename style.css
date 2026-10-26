@@ -469,6 +469,13 @@ body.is-ip-glazyrin .stamp-box { display: none !important; }
   min-width: 45px;
   max-width: 100%;
   field-sizing: content;
+  min-height: 1.2em;
+  line-height: 1.2;
+  vertical-align: baseline;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  resize: none;
+  overflow: hidden;
   padding: 0 2px;
 }
 /* Inputs clip their value in print. Mirror the complete number as ordinary text. */
@@ -1296,4 +1303,107 @@ body.is-ip-glazyrin #condIpCustomList > .ip-custom-cond-row:not(:last-child) {
   body.is-ip .ip-cond-box { break-inside:auto !important; page-break-inside:auto !important; }
   .doc-section-heading, .doc-subsection-heading { break-after:avoid; page-break-after:avoid; }
   body.is-ip-glazyrin .proposal-note { break-after:avoid; page-break-after:avoid; }
+}
+
+/* Live document typography follows the same flow box used for PDF print.
+   Unlike prepareForPrint(), these mirrors never change user-entered values.
+   Textareas overlay their mirrors: focus changes paint, NOT document geometry. */
+.client-live-value {
+  display: block;
+  flex: 1 1 auto;
+  min-width: 0;
+  position: relative;
+}
+.client-inline-row { align-items: baseline; }
+.client-live-value > .client-print-value {
+  display: block;
+  min-height: 1.25em;
+  font: inherit;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+@media screen {
+  .page td.col-text-cell,
+  .page #condOooTbody td:has(> textarea.auto-grow) {
+    position: relative;
+  }
+  .page td.col-text-cell > .print-text-mirror,
+  .page #condOooTbody td > .print-text-mirror {
+    display: block;
+    min-height: 1.15em;
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+  .page td.col-text-cell > textarea.auto-grow,
+  .page #condOooTbody td > textarea.auto-grow,
+  .client-live-value > .client-textarea {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 1.15em;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    caret-color: #111827;
+    background: transparent;
+    resize: none;
+    overflow: hidden;
+    z-index: 1;
+  }
+  .page td.col-text-cell > textarea.auto-grow,
+  .page #condOooTbody td > textarea.auto-grow {
+    left: 4px;
+    width: calc(100% - 8px) !important;
+  }
+  .page #condOooTbody td > textarea.auto-grow {
+    left: 6px;
+    width: calc(100% - 12px) !important;
+  }
+  .client-live-value > .client-textarea {
+    min-height: 1.25em;
+    line-height: inherit;
+  }
+  .page td.col-text-cell > textarea.auto-grow:focus,
+  .page #condOooTbody td > textarea.auto-grow:focus,
+  .client-live-value > .client-textarea:focus {
+    color: #111827;
+    -webkit-text-fill-color: #111827;
+    background: rgba(248,250,252,.98);
+    outline: 1px solid #cbd5e1;
+  }
+  .page td.col-text-cell:focus-within > .print-text-mirror,
+  .page #condOooTbody td:focus-within > .print-text-mirror,
+  .client-live-value:focus-within > .client-print-value {
+    color: transparent;
+  }
+  .page td.col-text-cell > textarea.auto-grow::placeholder,
+  .page #condOooTbody td > textarea.auto-grow::placeholder,
+  .client-live-value > .client-textarea::placeholder {
+    -webkit-text-fill-color: #94a3b8;
+    color: #94a3b8;
+  }
+  /* Match the value column of Glazyrin's printed conditions on screen. */
+  body.is-ip-glazyrin .ip-term-row > .meta-input,
+  body.is-ip-glazyrin .ip-custom-cond-row > .ip-cond-val-input {
+    text-align: right;
+  }
+}
+/* The document footer/signature spacing no longer changes at print time. */
+.sign-row,
+body.is-ip .sign-row { margin-top: 18px; }
+
+@media print {
+  .client-live-value > .client-textarea { display: none !important; }
+  .client-live-value > .client-print-value {
+    display: block !important;
+    white-space: pre-wrap;
+    min-width: 0;
+    min-height: 0;
+  }
 }
