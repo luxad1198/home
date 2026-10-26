@@ -87,6 +87,10 @@ async function inspect(page,selector,background,expectedHeight=36){
       await page.locator('#btnImportEquipment').click();
       assert(!(await choose).isMultiple(),'Import selector changed');
       await inspect(page,'#btnCopyCalc',BG.blue);
+      for (const selector of ['.calc-title', '.calc-label', '.calc-res-row', '.calc-highlight-val']) {
+        const font=await page.locator(selector).first().evaluate(el=>getComputedStyle(el).fontFamily);
+        assert(/Segoe UI|Arial|Roboto/.test(font), selector + ' still uses document serif font');
+      }
       assert.equal(await page.locator('#btnCloseCalc').evaluate(el=>el.tagName),'BUTTON');
       await page.locator('#calcSidebar').screenshot({path:path.join(dest,company+'-calculator.png')});
       await page.locator('#btnFinWeeks').click();
