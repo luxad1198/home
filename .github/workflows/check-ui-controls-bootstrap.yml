@@ -1,0 +1,37 @@
+name: Temporary unified controls acceptance
+# One-time PR #16 UI visual/behavior check; remove before merge.
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/check-ui-controls-bootstrap.yml'
+permissions:
+  contents: read
+jobs:
+  controls:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser only, no full system apt refresh
+        run: |
+          npm install --no-save --package-lock=false playwright@1.56.1
+          npx playwright install chromium
+      - name: Verify calculator-style controls and actual UI interactions
+        shell: bash
+        run: |
+          set -o pipefail
+          node --check app.js
+          node --check scripts/check-ui-controls-pr16.cjs
+          node scripts/check-ui-controls-pr16.cjs | tee "$RUNNER_TEMP/controls.log"
+          grep -q 'UI CONTROLS ACCEPTANCE PASSED' "$RUNNER_TEMP/controls.log"
+      - name: Attach real browser screenshots (no Office documents)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unified-controls-before-approval
+          path: artifacts/ui-controls-pr16/*.png
+          retention-days: 3
+          if-no-files-found: ignore
