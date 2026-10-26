@@ -118,6 +118,11 @@ async function inspect(page,selector,background,expectedHeight=36){
     // responsive toolbar; its opener must not overlap the company selector.
     await page.locator('#btnCloseCalc').click();
     assert(await page.locator('#calcSidebar').evaluate(el=>el.classList.contains('collapsed')));
+    // The existing calculator has a 250ms collapse animation; capture the
+    // settled toolbar, not a frame with the floating panel halfway faded out.
+    await page.waitForFunction(() => getComputedStyle(
+      document.getElementById('calcSidebar')
+    ).opacity === '0');
     const top=await page.evaluate(()=>{
       const toggle=document.getElementById('btnToggleCalc').getBoundingClientRect();
       const panel=document.querySelector('.panel').getBoundingClientRect();
