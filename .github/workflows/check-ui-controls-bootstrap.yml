@@ -1,5 +1,5 @@
 name: Temporary unified controls acceptance
-# One-time PR #16 UI visual/behavior check; remove before merge.
+# One-time PR #16 UI visual/behavior rerun after harmonizing Glazyrin buttons and calculator fonts.
 on:
   pull_request:
     paths:
