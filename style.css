@@ -1,17 +1,20 @@
-/* Shared controls follow the existing calculator palette; document print CSS is independent. */
+/* LIScorp Graphite: screen-only UI tokens, never printed document colors. */
 :root {
-  --ui-blue: #2563eb;
-  --ui-blue-hover: #1d4ed8;
-  --ui-blue-soft: #eff6ff;
-  --ui-slate: #0f172a;
-  --ui-text: #334155;
-  --ui-muted: #64748b;
+  --ui-accent: #087f8c;
+  --ui-accent-hover: #086d78;
+  --ui-accent-soft: #e7f4f5;
+  --ui-graphite: #171c24;
+  --ui-text: #303946;
+  --ui-muted: #53616b;
   --ui-surface: #ffffff;
-  --ui-soft: #f8fafc;
-  --ui-border: #cbd5e1;
-  --ui-danger: #be123c;
-  --ui-danger-soft: #fff1f2;
-  --ui-danger-border: #fecdd3;
+  --ui-soft: #f3f5f6;
+  --ui-border: #c9d0d5;
+  --ui-danger: #b42335;
+  --ui-danger-soft: #fcedee;
+  --ui-danger-border: #e6b6bd;
+  --ui-panel-foreground: #edf3f6;
+  --ui-panel-control: #303946;
+  --ui-panel-control-border: #44515f;
   --ui-radius: 6px;
   --ui-height: 36px;
   --ui-compact-height: 30px;
@@ -26,7 +29,7 @@
   color-adjust: exact !important;
 }
 body { 
-  background: #52525b; 
+  background: #f3f5f6; 
   margin: 0; 
   padding: 20px 10px 40px; 
   color: #000; 
@@ -84,7 +87,49 @@ body.hide-bg-sidebar .bg-sidebar {
   box-shadow: 0 3px 12px rgba(15, 23, 42, .15);
   font-family: var(--ui-font);
 }
-.panel { padding: 12px 14px; }
+.panel {
+  padding: 12px 14px;
+  background: var(--ui-graphite);
+  border-color: #242d38;
+  color: var(--ui-panel-foreground);
+}
+/* A quiet LIScorp signature in the only dark application surface. */
+.panel-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  color: #c9d5dc;
+  font: 500 12px/1.3 var(--ui-font);
+}
+.panel-brand::before {
+  content: "";
+  width: 4px;
+  height: 21px;
+  background: var(--ui-accent);
+  border-radius: 3px;
+}
+.panel-brand-name { color: #fff; font-weight: 700; letter-spacing: .02em; }
+.panel-brand-divider { color: #91a5ae; }
+.panel .company-select { background: #f3f5f6; color: #171c24; }
+.panel .ui-button--outline {
+  background: transparent;
+  border-color: #2ba4ae;
+  color: #eef8f9;
+}
+.panel .ui-button--outline:hover { background: #25444c; border-color: #6bd1d8; }
+.panel .ui-button--neutral {
+  background: var(--ui-panel-control);
+  border-color: var(--ui-panel-control-border);
+  color: var(--ui-panel-foreground);
+}
+.panel .ui-button--neutral:hover { background: #3d4b58; border-color: #647586; }
+.panel .ui-button--danger {
+  background: #462a34;
+  border-color: #79545e;
+  color: #ffd8dd;
+}
+.panel .ui-button--danger:hover { background: #583340; border-color: #a96b79; }
 .panel-main {
   display: flex;
   flex-wrap: wrap;
@@ -101,7 +146,7 @@ body.hide-bg-sidebar .bg-sidebar {
   gap: 8px;
   padding-top: 10px;
   margin-top: 10px;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid #39424d;
 }
 .editor-tools {
   padding: 10px 12px;
@@ -142,31 +187,31 @@ body.hide-bg-sidebar .bg-sidebar {
   transition: background-color .15s, border-color .15s, box-shadow .15s;
 }
 .ui-button--primary {
-  background: var(--ui-blue);
-  border-color: var(--ui-blue);
+  background: var(--ui-accent);
+  border-color: var(--ui-accent);
   color: #fff;
 }
-.ui-button--primary:hover { background: var(--ui-blue-hover); border-color: var(--ui-blue-hover); }
+.ui-button--primary:hover { background: var(--ui-accent-hover); border-color: var(--ui-accent-hover); }
 .ui-button--outline {
   background: var(--ui-surface);
-  border-color: #93c5fd;
-  color: #1d4ed8;
+  border-color: #44a5ad;
+  color: #086d78;
 }
-.ui-button--outline:hover { background: var(--ui-blue-soft); border-color: var(--ui-blue); }
+.ui-button--outline:hover { background: var(--ui-accent-soft); border-color: var(--ui-accent); }
 .ui-button--neutral {
   background: var(--ui-soft);
   border-color: var(--ui-border);
   color: var(--ui-text);
 }
-.ui-button--neutral:hover { background: #e2e8f0; border-color: #94a3b8; }
+.ui-button--neutral:hover { background: #e4eaed; border-color: #a2aeb6; }
 .ui-button--danger {
   background: var(--ui-danger-soft);
   border-color: var(--ui-danger-border);
   color: var(--ui-danger);
 }
-.ui-button--danger:hover { background: #ffe4e6; border-color: #fda4af; }
-.ui-button--dark { background: var(--ui-slate); border-color: var(--ui-slate); color: #fff; }
-.ui-button--dark:hover { background: #1e293b; border-color: #1e293b; }
+.ui-button--danger:hover { background: #f9dfe2; border-color: #d58e9a; }
+.ui-button--dark { background: var(--ui-graphite); border-color: var(--ui-graphite); color: #fff; }
+.ui-button--dark:hover { background: #303946; border-color: #303946; }
 .ui-button--compact {
   min-height: var(--ui-compact-height);
   padding: 0 9px;
@@ -178,7 +223,7 @@ body.hide-bg-sidebar .bg-sidebar {
 .ui-field:focus-visible,
 .calc-input:focus-visible,
 .calc-toggle-btn:focus-visible {
-  outline: 2px solid var(--ui-blue);
+  outline: 2px solid var(--ui-accent);
   outline-offset: 2px;
 }
 .ui-button:disabled, .ui-button[disabled] {
@@ -200,18 +245,18 @@ body.hide-bg-sidebar .bg-sidebar {
   font: 600 15px/1 var(--ui-font);
   cursor: pointer;
 }
-.ui-icon-button:hover { background: #e2e8f0; }
+.ui-icon-button:hover { background: #e4eaed; }
 .ui-field {
   min-height: var(--ui-height);
   padding: 0 10px;
   border: 1px solid var(--ui-border);
   border-radius: var(--ui-radius);
   background: var(--ui-surface);
-  color: var(--ui-slate);
+  color: var(--ui-graphite);
   font: 500 13px var(--ui-font);
   outline: none;
 }
-.ui-field:focus { border-color: var(--ui-blue); }
+.ui-field:focus { border-color: var(--ui-accent); }
 .ui-field--compact {
   min-height: var(--ui-compact-height);
   font-size: 12px;
@@ -237,7 +282,7 @@ body.hide-bg-sidebar .bg-sidebar {
   font: 600 12px var(--ui-font);
   cursor: pointer;
 }
-.btn-del:hover { background: #ffe4e6; }
+.btn-del:hover { background: #f9dfe2; }
 
 /* Калькулятор */
 .calc-sidebar {
@@ -323,7 +368,7 @@ body.hide-bg-sidebar .bg-sidebar {
   font-family: inherit;
   outline: none;
 }
-.calc-input:focus { border-color: #2563eb; }
+.calc-input:focus { border-color: var(--ui-accent); }
 .calc-input:disabled {
   background: #f1f5f9;
   color: #94a3b8;
@@ -349,7 +394,7 @@ body.hide-bg-sidebar .bg-sidebar {
 }
 .calc-toggle-btn:hover:not(.active) { background: #cbd5e1; }
 .calc-toggle-btn.active {
-  background: var(--ui-blue);
+  background: var(--ui-accent);
   color: #fff;
 }
 
@@ -382,7 +427,7 @@ body.hide-bg-sidebar .bg-sidebar {
 .calc-highlight-lbl {
   font-size: 10px;
   font-weight: 700;
-  color: #1e40af;
+  color: #086d78;
   text-transform: uppercase;
 }
 .calc-highlight-val {
@@ -422,8 +467,8 @@ body.hide-bg-sidebar .bg-sidebar {
 .btn-page-preview {
   flex: 0 0 auto;
   background: #fff;
-  color: #1e40af;
-  border-color: #93c5fd;
+  color: #086d78;
+  border-color: #44a5ad;
   white-space: nowrap;
 }
 @media (max-width: 650px) {
@@ -1409,7 +1454,7 @@ body.is-ip-glazyrin #condIpCustomList > .ip-custom-cond-row:not(:last-child) {
 #equipmentImportDialog td:nth-child(2) { min-width:170px; }
 #equipmentImportDialog td:nth-child(3) { min-width:240px; }
 .equipment-import-actions { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:16px; }
-/* The import confirmation now uses the same blue primary component. */
+/* Import confirmation uses the shared LIScorp accent component. */
 #equipmentImportApply:disabled { opacity:.5; cursor:default; }
 #equipmentImportNotice { font-size:13px; }
 @media print { .equipment-import-tools, #equipmentImportDialog { display:none !important; } }
