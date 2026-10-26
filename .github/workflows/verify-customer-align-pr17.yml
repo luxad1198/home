@@ -62,6 +62,12 @@ jobs:
                 }else{
                   assert.equal(initial.inputFont,initial.labelFont,company+' font mismatch');
                   assert.equal(initial.inputLine,initial.labelLine,company+' line height mismatch');
+                  const fit=await row.evaluate(el=>{
+                    const ta=el.querySelector('textarea'),c=document.createElement('canvas').getContext('2d');
+                    c.font=getComputedStyle(ta).font;
+                    return {needed:c.measureText(ta.placeholder).width,available:ta.clientWidth};
+                  });
+                  assert(fit.needed<=fit.available+1,company+' placeholder wraps or clips: '+JSON.stringify(fit));
                 }
                 await row.screenshot({path:'artifacts/customer-align-pr17/'+company+'-empty.png'});
                 await page.locator(sel).fill('ООО Тестовый заказчик');
