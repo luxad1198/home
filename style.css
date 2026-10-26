@@ -1552,6 +1552,30 @@ body.is-ip-glazyrin #condIpCustomList > .ip-custom-cond-row:not(:last-child) {
   overflow-wrap: anywhere;
   word-break: break-word;
 }
+/* Screen only: render the empty customer hint with the label's actual
+   text metrics, rather than the textarea's different placeholder baseline. */
+@media screen {
+  .head-client-cell .client-live-value:has(.client-textarea:placeholder-shown)::before,
+  body.is-ip:not(.is-ip-glazyrin) #clientContainerIp .client-live-value:has(.client-textarea:placeholder-shown)::before {
+    content: "можете вписать наименование заказчика";
+    position: absolute;
+    top: 0;
+    left: 0;
+    color: #8192a9;
+    font: inherit;
+    line-height: 1.25;
+    pointer-events: none;
+    white-space: nowrap;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .head-client-cell .client-textarea::placeholder,
+  body.is-ip:not(.is-ip-glazyrin) #clientContainerIp .client-textarea::placeholder {
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+  }
+}
 @media screen {
   .page td.col-text-cell,
   .page #condOooTbody td:has(> textarea.auto-grow) {
