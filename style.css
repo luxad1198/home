@@ -301,6 +301,44 @@ body.hide-bg-sidebar .bg-sidebar {
 }
 .btn-copy-calc:hover { background: #1d4ed8; }
 
+/* Real page preview guidance — outside the editable document.
+   Chromium's @page fragmentation is not represented by equal-height screen cuts. */
+.page-break-guidance {
+  width: 210mm;
+  max-width: 100%;
+  min-height: 48px;
+  margin: 0 auto 12px;
+  padding: 6px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  background: #f8fafc;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font: 12px/1.35 Arial, sans-serif;
+  position: relative;
+  /* On narrow screens the fixed calculator can overlap the A4 column.
+     Keep this brief guidance readable above it. */
+  z-index: 60;
+}
+.page-break-guidance #pageBreakMessage {
+  flex: 1 1 auto;
+  min-width: 0;
+  font: inherit;
+}
+.btn-page-preview {
+  flex: 0 0 auto;
+  background: #fff;
+  color: #1e40af;
+  border-color: #93c5fd;
+  white-space: nowrap;
+}
+@media (max-width: 650px) {
+  .page-break-guidance { flex-wrap: wrap; }
+}
+
 /* Лист А4 */
 .page {
   width: 210mm;
@@ -1372,9 +1410,15 @@ body.is-ip-glazyrin #condIpCustomList > .ip-custom-cond-row:not(:last-child) {
   min-width: 0;
   position: relative;
 }
-.head-client-cell .client-inline-row,
-body.is-ip:not(.is-ip-glazyrin) #clientContainerIp .client-inline-row {
-  align-items: baseline;
+/* While the customer is empty the mirror has no text baseline. Align
+   its box with the label's top edge, so the overlaid textarea placeholder
+   stays on the same line before typing, too. Printing still uses the
+   baseline rule above, and the populated value keeps its geometry. */
+@media screen {
+  .head-client-cell .client-inline-row,
+  body.is-ip:not(.is-ip-glazyrin) #clientContainerIp .client-inline-row {
+    align-items: flex-start;
+  }
 }
 .client-live-value > .client-print-value {
   display: block;
