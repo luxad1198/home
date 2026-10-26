@@ -114,6 +114,17 @@ async function inspect(page,selector,background,expectedHeight=36){
     const page=await context.newPage();
     await page.route('https://**/*',r=>r.abort());
     await page.goto(url,{waitUntil:'load'});
+    // The calculator is a floating panel. Close it to examine the underlying
+    // responsive toolbar; its opener must not overlap the company selector.
+    await page.locator('#btnCloseCalc').click();
+    assert(await page.locator('#calcSidebar').evaluate(el=>el.classList.contains('collapsed')));
+    const top=await page.evaluate(()=>{
+      const toggle=document.getElementById('btnToggleCalc').getBoundingClientRect();
+      const panel=document.querySelector('.panel').getBoundingClientRect();
+      return {toggleBottom:toggle.bottom,panelTop:panel.top};
+    });
+    assert(top.panelTop>=top.toggleBottom+6,
+      'Calculator opener overlaps company toolbar: '+JSON.stringify(top));
     await page.locator('.panel').screenshot({path:path.join(dest,'mobile-toolbar.png')});
     await page.locator('.editor-tools').screenshot({path:path.join(dest,'mobile-tools.png')});
     const sizes=await page.evaluate(()=>{
