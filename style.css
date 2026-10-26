@@ -1246,6 +1246,11 @@ body.is-ip-glazyrin .ip-term-row > .ip-standard-delete {
     display: inline !important;
     width: auto;
   }
+  /* Keep the user's intentional newlines in Glazyrin's printed extra terms.
+     The general grid rule above uses white-space: normal and collapses them. */
+  body.is-ip-glazyrin .ip-custom-cond-row > .ip-cond-value-print {
+    white-space: pre-wrap !important;
+  }
 }
 
 /* Keep the divider between every added condition in the PDF. */
