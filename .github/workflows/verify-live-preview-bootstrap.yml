@@ -51,6 +51,10 @@ jobs:
       - name: Generate corresponding PDF first-page images for visual review
         shell: bash
         run: |
+          if ! command -v pdftoppm >/dev/null; then
+            sudo apt-get update -qq
+            sudo apt-get install -y --no-install-recommends poppler-utils
+          fi
           mkdir -p artifacts/live-preview/printed-images
           for file in artifacts/live-preview/*-pdf.pdf; do
             name=$(basename "$file" -pdf.pdf)
