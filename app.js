@@ -210,8 +210,26 @@
   }
 
   function readInlineConditionEditor(editor) {
-    // Chrome adds a terminal line break to multi-line contenteditable markup.
-    return editor.innerText.replace(/\r/g, '').replace(/\n+$/, '');
+    // A plaintext-only contenteditable may encode Enter as <div>, <p> or
+    // <br>. innerText on an INLINE editor can silently concatenate block
+    // boundaries; preserve explicit line breaks before saving/printing.
+    const readChildren = parent => {
+      let output = '';
+      for (const node of parent.childNodes) {
+        if (node.nodeType === Node.TEXT_NODE) {
+          output += node.nodeValue || '';
+        } else if (node.nodeName === 'BR') {
+          output += '\n';
+        } else if (node.nodeType === Node.ELEMENT_NODE) {
+          const block = node.nodeName === 'DIV' || node.nodeName === 'P';
+          if (block && output && !output.endsWith('\n')) output += '\n';
+          output += readChildren(node);
+          if (block && node.nextSibling && !output.endsWith('\n')) output += '\n';
+        }
+      }
+      return output;
+    };
+    return readChildren(editor).replace(/\r/g, '').replace(/\n+$/, '');
   }
 
   function addCondRowIp(title = 'Документы', val = 'УПД, Счет', section = null) {
