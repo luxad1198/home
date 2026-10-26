@@ -92,8 +92,12 @@ async function runCase(browser, url, scenario) {
       await page.locator('#condOooWarranty').fill('Гарантия на оборудование\nВторая строка условий');
       await verifyLiveMirror(page, '#condOooWarranty', '#condOooWarranty + .print-text-mirror');
     } else if (scenario.company === 'ip') {
-      await page.locator('#ipDeliveryTime + .ip-standard-value-editor')
-        .fill('Поставка по согласованию\nВторая строка условий');
+      const expected = 'Поставка по согласованию\nВторая строка условий';
+      await page.locator('#ipDeliveryTime + .ip-standard-value-editor').fill(expected);
+      assert.equal(await page.locator('#ipDeliveryTime').inputValue(), expected,
+        'Inline condition editor lost the manually inserted newline');
+      await verifyLiveMirror(page, '#ipDeliveryTime',
+        '#ipDeliveryTime ~ .ip-standard-value-print');
     } else {
       await page.locator('#ipPaymentTerms').fill('Оплата по согласованию');
       await page.locator('#btnAddCondIp2').click();
