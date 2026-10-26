@@ -1316,6 +1316,53 @@ body.is-ip-glazyrin #condIpCustomList > .ip-custom-cond-row:not(:last-child) {
   body.is-ip-glazyrin .proposal-note { break-after:avoid; page-break-after:avoid; }
 }
 
+/* The LLC proposal number uses one flowing text box in both screen and print.
+   Its editor overlays the mirror instead of imposing a 90px column. */
+.kp-number-live {
+  display: inline-block;
+  position: relative;
+  flex: 0 1 auto;
+  width: max-content;
+  max-width: 100%;
+  min-width: 45px;
+  vertical-align: baseline;
+}
+.kp-num-wrapper .kp-number-live > .kp-number-print {
+  display: block;
+  min-height: 1.2em;
+  font: inherit;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+@media screen {
+  .kp-num-wrapper .kp-number-live > .kp-user-input {
+    position: absolute;
+    inset: 0;
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 0;
+    max-width: none;
+    margin: 0;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    caret-color: #111827;
+    background: transparent;
+    border: 0;
+    padding: 0;
+  }
+  .kp-num-wrapper .kp-number-live > .kp-user-input:focus {
+    color: #111827;
+    -webkit-text-fill-color: #111827;
+    outline: 1px solid #cbd5e1;
+    background: rgba(248,250,252,.98);
+  }
+  .kp-number-live:focus-within > .kp-number-print { color: transparent; }
+}
+@media print {
+  .kp-num-wrapper .kp-number-live > .kp-user-input { display: none !important; }
+  .kp-num-wrapper .kp-number-live > .kp-number-print { display: block !important; }
+}
+
 /* Live document typography follows the same flow box used for PDF print.
    Unlike prepareForPrint(), these mirrors never change user-entered values.
    Textareas overlay their mirrors: focus changes paint, NOT document geometry. */
