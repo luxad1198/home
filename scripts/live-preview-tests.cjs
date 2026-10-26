@@ -99,8 +99,12 @@ async function runCase(browser, url, scenario) {
         .evaluate(el => ({ html: el.innerHTML, text: el.innerText, content: el.textContent }));
       assert.equal(actual, expected,
         'Inline condition editor lost a newline: ' + JSON.stringify(diagnostic));
-      await verifyLiveMirror(page, '#ipDeliveryTime',
-        '#ipDeliveryTime ~ .ip-standard-value-print');
+      // Zakharov edits the VISIBLE contenteditable; the print mirror is
+      // correctly hidden on screen and must nonetheless hold the same value.
+      await page.waitForFunction(() => document.querySelector(
+        '#ipDeliveryTime ~ .ip-standard-value-print'
+      )?.textContent === document.getElementById('ipDeliveryTime').value);
+      assert(await page.locator('#ipDeliveryTime + .ip-standard-value-editor').isVisible());
     } else {
       await page.locator('#ipPaymentTerms').fill('Оплата по согласованию');
       await page.locator('#btnAddCondIp2').click();
