@@ -65,8 +65,12 @@ jobs:
                 }
                 await row.screenshot({path:'artifacts/customer-align-pr17/'+company+'-empty.png'});
                 await page.locator(sel).fill('ООО Тестовый заказчик');
-                const mirrorText=await row.locator('.client-print-value').textContent();
-                assert.equal(mirrorText,'ООО Тестовый заказчик',company+' mirror not updated');
+                // Live print mirror sync runs in requestAnimationFrame, not synchronously on input.
+                await page.waitForFunction((selector)=> {
+                  const el=document.querySelector(selector);
+                  return el?.closest('.client-inline-row')?.querySelector('.client-print-value')
+                    ?.textContent==='ООО Тестовый заказчик';
+                },sel);
                 await row.screenshot({path:'artifacts/customer-align-pr17/'+company+'-filled.png'});
                 if(company!=='ip-glazyrin'){
                   await page.emulateMedia({media:'print'});
