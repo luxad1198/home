@@ -599,7 +599,9 @@
     document.querySelectorAll('textarea.auto-grow').forEach(el => autoResizeTextarea(el));
   }
 
-  function prepareForPrint() {
+  // Pure view synchronization. It never changes form fields or saved values;
+  // edit/restore/import/company switch may all call it safely.
+  function syncDocumentPresentation() {
     // An input may show only part of a long proposal number in Chromium PDF.
     // Print the complete text without altering the editable number field.
     const kpNumberPrint = document.getElementById('kpNumPrint');
@@ -613,11 +615,6 @@
         if (ta && mirror) mirror.textContent = ta.value;
       });
 
-      const countryInp = row.querySelector('.col-country');
-      if (countryInp && !countryInp.value.trim()) countryInp.value = 'Китай';
-
-      const qtyInp = row.querySelector('.col-qty');
-      if (qtyInp && !qtyInp.value.trim()) qtyInp.value = '1';
     });
 
     document.querySelectorAll('#condOooTbody tr').forEach(row => {
@@ -652,8 +649,8 @@
       const labelMirror = row.querySelector('.ip-cond-label-print');
       const valueMirror = row.querySelector('.ip-cond-value-print');
       if (labelMirror) {
-        // The screen editor already suppresses the separator when the label ends with ':'.
-// Preserve the user's colon in the print mirror; stripping it loses punctuation.
+        // The screen editor suppresses an extra colon for labels that already end with ':'.
+        // Preserve the user's own punctuation in the live/printed mirror.
         labelMirror.textContent = label?.value || '';
         copyTextStyle(labelMirror, document.body.classList.contains('is-ip-glazyrin') ? labelStyle : getComputedStyle(label));
       }
@@ -681,6 +678,27 @@
       if (mirror) mirror.textContent = document.getElementById('clientBoxIp')?.value || '';
       clientBoxIp.classList.toggle('print-hide-client', isEmpty);
     }
+  }
+
+  let presentationSyncFrame = 0;
+  function queueDocumentPresentationSync() {
+    if (presentationSyncFrame) return;
+    presentationSyncFrame = requestAnimationFrame(() => {
+      presentationSyncFrame = 0;
+      syncDocumentPresentation();
+    });
+  }
+
+  function prepareForPrint() {
+    syncDocumentPresentation();
+    // Preserve established print defaults without ever changing form data in
+    // the live preview sync above. Validation and export still happen normally.
+    document.querySelectorAll('#tableBody tr').forEach(row => {
+      const countryInp = row.querySelector('.col-country');
+      if (countryInp && !countryInp.value.trim()) countryInp.value = 'Китай';
+      const qtyInp = row.querySelector('.col-qty');
+      if (qtyInp && !qtyInp.value.trim()) qtyInp.value = '1';
+    });
   }
 
   function updatePrefixFromDateString(str) {
@@ -1095,6 +1113,7 @@
 
   function saveState() {
     if (restoringState) return;
+    queueDocumentPresentationSync();
     try {
       const rows = [];
       document.querySelectorAll('#tableBody tr').forEach(row => {
@@ -2047,6 +2066,16 @@
     document.getElementById('btnAddCondIp2')?.addEventListener('click', () => addCondRowIp('Дополнительное условие', '', '2'));
     document.getElementById('btnAddCondIp3')?.addEventListener('click', () => addCondRowIp('Дополнительное условие', '', '3'));
 
+    // Synchronize the printed text with what is being typed BEFORE the
+    // next browser paint. Do not call prepareForPrint() on edit: it contains
+    // legacy print defaults that can alter fields with blank quantities.
+    document.addEventListener('input', (e) => {
+      if (e.target.closest('.page')) queueDocumentPresentationSync();
+    });
+    document.addEventListener('change', (e) => {
+      if (e.target.closest('.page')) queueDocumentPresentationSync();
+    });
+
     // Авто-растягивание текстовых областей
     document.addEventListener('input', (e) => {
       if (e.target.matches('textarea.auto-grow')) {
@@ -2171,8 +2200,12 @@
     initAutoResize();
     recalc();
     updateDocumentTitle();
+    syncDocumentPresentation();
   });
 
-  window.addEventListener('load', () => initAutoResize());
+  window.addEventListener('load', () => {
+    initAutoResize();
+    syncDocumentPresentation();
+  });
 
 })();
