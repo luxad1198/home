@@ -153,6 +153,33 @@ async function runCase(browser, url, scenario) {
       assert.equal(await page.locator('#tableBody tr').count(), 19);
     }
 
+    // Restoring localStorage and switching the company must refresh every
+    // visible mirror without changing the underlying saved proposal.
+    await page.reload({ waitUntil: 'load' });
+    assert.equal(await page.locator('#companySelect').inputValue(), scenario.company);
+    assert.equal(await page.locator(clientSelector).inputValue(), clientText);
+    assert.equal(await page.locator(numberSelector).inputValue(), 'PREVIEW-VERY-LONG-2026-001');
+    assert.equal(await page.locator('#tableBody tr').count(), scenario.long ? 19 : 1);
+    await verifyLiveMirror(page, clientSelector,
+      isIp ? '#clientContainerIp .client-print-value' : '#clientContainerOoo .client-print-value');
+    await verifyLiveMirror(page, '#tableBody tr:first-child .col-desc',
+      '#tableBody tr:first-child .col-text-cell:nth-child(3) .print-text-mirror');
+    if (scenario.company === 'ip') {
+      assert.equal(await page.locator('#ipDeliveryTime').inputValue(),
+        'Поставка по согласованию\nВторая строка условий');
+    }
+    if (scenario.company === 'ip-glazyrin') {
+      const restored = page.locator('#condIpCustomList2 .ip-custom-cond-row').last();
+      assert.equal(await restored.locator('.ip-cond-val-input').inputValue(),
+        'Разгрузка оборудования по согласованному графику.\nОтветственное лицо встречает транспорт.');
+    }
+    const alternate = scenario.company === 'ooo' ? 'ip' : 'ooo';
+    await page.locator('#companySelect').selectOption(alternate);
+    await page.locator('#companySelect').selectOption(scenario.company);
+    await verifyLiveMirror(page, clientSelector,
+      isIp ? '#clientContainerIp .client-print-value' : '#clientContainerOoo .client-print-value');
+    assert.equal(await page.locator('#tableBody tr').count(), scenario.long ? 19 : 1);
+
     // Finishing an edit, focusing it again or blurring it must not shift the
     // surrounding printable blocks when the actual value is unchanged.
     const desc = first.locator('.col-desc');
@@ -164,6 +191,15 @@ async function runCase(browser, url, scenario) {
     await sleepFrame(page);
     equalGeometry(before, await box(page, '#textTotalBlock'), slug + ' focus total');
     equalGeometry(tableBefore, await box(page, '#itemsTable'), slug + ' focus table');
+    // Type a character while focused, then delete it: on both transitions
+    // the on-screen print mirror must update before the next paint.
+    await desc.press('End');
+    await desc.press('!');
+    await verifyLiveMirror(page, '#tableBody tr:first-child .col-desc',
+      '#tableBody tr:first-child .col-text-cell:nth-child(3) .print-text-mirror');
+    await desc.press('Backspace');
+    await verifyLiveMirror(page, '#tableBody tr:first-child .col-desc',
+      '#tableBody tr:first-child .col-text-cell:nth-child(3) .print-text-mirror');
     await desc.blur();
     await sleepFrame(page);
     equalGeometry(before, await box(page, '#textTotalBlock'), slug + ' blur total');
