@@ -1598,6 +1598,15 @@ body.is-ip-glazyrin #condIpCustomList > .ip-custom-cond-row:not(:last-child) {
     min-height: 1.25em;
     line-height: inherit;
   }
+  /* Match the 11pt recipient label; .auto-grow otherwise forces 9.5pt. */
+  .head-client-cell .client-live-value > .client-textarea,
+  body.is-ip:not(.is-ip-glazyrin) #clientContainerIp .client-live-value > .client-textarea {
+    font-size: inherit;
+  }
+  /* Zakharov's 48% column clips the final placeholder word at 11pt. */
+  body.is-ip:not(.is-ip-glazyrin) #clientContainerIp {
+    width: 50% !important;
+  }
   .page td.col-text-cell > textarea.auto-grow:focus,
   .page #condOooTbody td > textarea.auto-grow:focus,
   .client-live-value > .client-textarea:focus {
