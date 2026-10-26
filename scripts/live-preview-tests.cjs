@@ -75,6 +75,35 @@ async function runCase(browser, url, scenario) {
     const clientSelector = isIp ? '#clientBoxIp' : '#clientBox';
     const clientText = 'Тестовый заказчик с длинным названием оборудования и организации\n' +
       'Вторая строка для проверки сохранения ручного переноса';
+    if (scenario.company !== 'ip-glazyrin') {
+      const container = scenario.company === 'ooo' ? '#clientContainerOoo' : '#clientContainerIp';
+      const customer = page.locator(clientSelector);
+      const assertCustomerBaseline = async label => {
+        const caption = await box(page, container + ' .client-label');
+        const editor = await box(page, clientSelector);
+        assert(Math.abs(caption.y - editor.y) <= 1.5,
+          slug + ': ' + label + ' customer placeholder/input starts ' +
+          Math.round(editor.y - caption.y) + 'px away from Заказчику');
+      };
+      assert.equal(await customer.inputValue(), '', slug + ': customer must start empty');
+      await assertCustomerBaseline('empty');
+      if (!scenario.long) {
+        await page.locator(container).screenshot({
+          path: path.join(OUTPUT, slug + '-customer-empty.png')
+        });
+      }
+      await customer.fill('АО ЗСД');
+      await sleepFrame(page);
+      await assertCustomerBaseline('populated');
+      if (!scenario.long) {
+        await page.locator(container).screenshot({
+          path: path.join(OUTPUT, slug + '-customer-filled.png')
+        });
+      }
+      await customer.fill('');
+      await sleepFrame(page);
+      await assertCustomerBaseline('cleared');
+    }
     await page.locator(clientSelector).fill(clientText);
     await verifyLiveMirror(page, clientSelector,
       isIp ? '#clientContainerIp .client-print-value' : '#clientContainerOoo .client-print-value');
