@@ -52,7 +52,7 @@ async function generatePdf(browser, scenario) {
       await page.locator('#condOooPay').fill('Тестовая оплата 30 дней');
     } else if (scenario.company === 'ip') {
       await page.locator('#ipDeliveryTime + .ip-standard-value-editor')
-        .fill('Тестовый срок 14 дней');
+        .fill('Тестовый срок 14 дней\nДополнительная строка условия');
     } else {
       await page.locator('#ipDeliveryTime').fill('Тестовый срок 14 дней');
     }

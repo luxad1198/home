@@ -8,7 +8,7 @@
   <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
   <!-- Стили -->
-  <link rel="stylesheet" href="style.css?v=20261025-live-preview-2">
+  <link rel="stylesheet" href="style.css?v=20261026-preview-parity-1">
 </head>
 <body>
 
@@ -180,16 +180,20 @@
         <td class="head-meta-cell">
           <div class="kp-num-wrapper">
             КП № <span class="kp-prefix" id="kpPrefix">10-20/</span>
-            <input type="text" class="kp-user-input" id="kpNumInput" placeholder="1" value="1">
-            <span class="kp-number-print" id="kpNumPrint" aria-hidden="true"></span>
+            <span class="kp-number-live">
+              <textarea rows="1" class="kp-user-input" id="kpNumInput" placeholder="1">1</textarea>
+              <span class="kp-number-print" id="kpNumPrint" aria-hidden="true"></span>
+            </span>
           </div><br>
           От <input type="text" id="docDate" class="meta-input" style="width: 155px;">
         </td>
         <td class="head-client-cell" id="clientContainerOoo">
           <div class="client-inline-row">
             <span class="client-label">Заказчику:</span>
-            <textarea rows="2" class="auto-grow client-textarea" id="clientBox" placeholder="можете вписать наименование заказчика"></textarea>
+            <span class="client-live-value">
+              <textarea rows="2" class="auto-grow client-textarea" id="clientBox" placeholder="можете вписать наименование заказчика"></textarea>
             <span class="client-print-value" aria-hidden="true"></span>
+            </span>
           </div>
         </td>
       </tr>
@@ -207,7 +211,7 @@
         <div class="head-ip-meta-left">
           <div class="kp-ip-wrapper">
             <span id="kpNumLabel">Исх. №</span>&nbsp;
-            <input type="text" class="kp-ip-input" id="kpNumInputIp" placeholder="номер" value="">
+            <textarea rows="1" class="kp-ip-input" id="kpNumInputIp" placeholder="номер"></textarea>
           </div>
           <div>
             От <input type="text" id="docDateIp" class="meta-input" style="width: 155px;">
@@ -216,8 +220,10 @@
         <div style="width: 48%; padding-left: 15px;" id="clientContainerIp">
           <div class="client-inline-row">
             <span class="client-label">Заказчику:</span>
-            <textarea rows="2" class="auto-grow client-textarea" id="clientBoxIp" placeholder="можете вписать наименование заказчика"></textarea>
+            <span class="client-live-value">
+              <textarea rows="2" class="auto-grow client-textarea" id="clientBoxIp" placeholder="можете вписать наименование заказчика"></textarea>
             <span class="client-print-value" aria-hidden="true"></span>
+            </span>
           </div>
         </div>
       </div>
@@ -322,7 +328,7 @@
 
     <!-- Условия ИП -->
     <div class="ip-cond-box" id="condIpBox">
-      <div class="ip-term-row" data-section="2"><b><span class="ip-standard-number">2.1. </span><span class="ip-term-label">Срок поставки</span>:</b> <input type="text" id="ipDeliveryTime" class="meta-input" value="1-2 недели" style="width: 340px;"><span class="ip-standard-value-editor" data-placeholder="значение" contenteditable="plaintext-only" role="textbox" aria-label="Срок поставки"></span><span class="ip-standard-value-print"></span> <button type="button" class="btn-del ip-standard-delete no-print" data-delete-standard="ipDeliveryTime" aria-label="Удалить пункт 2.1">✕</button></div>
+      <div class="ip-term-row" data-section="2"><b><span class="ip-standard-number">2.1. </span><span class="ip-term-label">Срок поставки</span>:</b> <textarea rows="1" id="ipDeliveryTime" class="meta-input" style="width: 340px;">1-2 недели</textarea><span class="ip-standard-value-editor" data-placeholder="значение" contenteditable="plaintext-only" role="textbox" aria-label="Срок поставки"></span><span class="ip-standard-value-print"></span> <button type="button" class="btn-del ip-standard-delete no-print" data-delete-standard="ipDeliveryTime" aria-label="Удалить пункт 2.1">✕</button></div>
       <div class="ip-term-row glazyrin-only" data-section="2"><b><span class="ip-standard-number">2.2. </span><span class="ip-term-label">Условия оплаты</span>:</b> <input type="text" id="ipPaymentTerms" class="meta-input" value="По согласованию" style="width: 340px;"><span class="ip-standard-value-print"></span> <button type="button" class="btn-del ip-standard-delete no-print" data-delete-standard="ipPaymentTerms" aria-label="Удалить пункт 2.2">✕</button></div>
       <div class="ip-term-row" data-section="2"><b><span class="ip-standard-number">2.3. </span><span class="ip-term-label">Место и способ поставки</span>:</b>
         <select class="meta-input" id="deliverySelectIp">
@@ -380,6 +386,6 @@
 
   <!-- Скрипты логики -->
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-  <script src="app.js?v=20261025-live-preview-2"></script>
+  <script src="app.js?v=20261026-preview-parity-1"></script>
 </body>
 </html>

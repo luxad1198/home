@@ -139,6 +139,13 @@ def check(key):
                 f"between {before!r} and {after!r}"
             )
 
+    # The Zakharov standard delivery term is an inline contenteditable;
+    # preserve its manual Enter across input storage and Word export.
+    if key == "ip" and not has_explicit_break(
+        document, "Тестовый срок 14 дней", "Дополнительная строка условия"
+    ):
+        raise AssertionError(f"{filename}: Zakharov delivery term lost the manual Word line break")
+
     # ООО: the first customer name must follow "Заказчику:" on the SAME line.
     # Check explicit OOXML breaks, not just total text (which hides line breaks).
     if key in ("ooo", "long", "conditions-ooo"):

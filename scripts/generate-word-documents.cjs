@@ -82,7 +82,7 @@ async function generateWord(browser, url, scenario) {
       // IP Zakharov edits the value through the visible contenteditable proxy.
       // The underlying #ipDeliveryTime input is deliberately hidden in screen CSS.
       await page.locator('#ipDeliveryTime + .ip-standard-value-editor')
-        .fill('Тестовый срок 14 дней');
+        .fill('Тестовый срок 14 дней\nДополнительная строка условия');
     } else {
       await page.locator('#ipDeliveryTime').fill('Тестовый срок 14 дней');
     }

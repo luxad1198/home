@@ -210,8 +210,26 @@
   }
 
   function readInlineConditionEditor(editor) {
-    // Chrome adds a terminal line break to multi-line contenteditable markup.
-    return editor.innerText.replace(/\r/g, '').replace(/\n+$/, '');
+    // A plaintext-only contenteditable may encode Enter as <div>, <p> or
+    // <br>. innerText on an INLINE editor can silently concatenate block
+    // boundaries; preserve explicit line breaks before saving/printing.
+    const readChildren = parent => {
+      let output = '';
+      for (const node of parent.childNodes) {
+        if (node.nodeType === Node.TEXT_NODE) {
+          output += node.nodeValue || '';
+        } else if (node.nodeName === 'BR') {
+          output += '\n';
+        } else if (node.nodeType === Node.ELEMENT_NODE) {
+          const block = node.nodeName === 'DIV' || node.nodeName === 'P';
+          if (block && output && !output.endsWith('\n')) output += '\n';
+          output += readChildren(node);
+          if (block && node.nextSibling && !output.endsWith('\n')) output += '\n';
+        }
+      }
+      return output;
+    };
+    return readChildren(editor).replace(/\r/g, '').replace(/\n+$/, '');
   }
 
   function addCondRowIp(title = 'Документы', val = 'УПД, Счет', section = null) {
@@ -254,7 +272,7 @@
   function applyDeletedStandardConditions(ids = []) {
     const deleted = new Set(ids);
     document.querySelectorAll('#condIpBox .ip-term-row[data-section]').forEach(row => {
-      const input = row.querySelector('input, select');
+      const input = row.querySelector('input, textarea, select');
       row.classList.toggle('is-deleted', document.body.classList.contains('is-ip-glazyrin') && !!input && deleted.has(input.id));
     });
     renumberGlazyrinConditions();
@@ -599,7 +617,9 @@
     document.querySelectorAll('textarea.auto-grow').forEach(el => autoResizeTextarea(el));
   }
 
-  function prepareForPrint() {
+  // Pure view synchronization. It never changes form fields or saved values;
+  // edit/restore/import/company switch may all call it safely.
+  function syncDocumentPresentation() {
     // An input may show only part of a long proposal number in Chromium PDF.
     // Print the complete text without altering the editable number field.
     const kpNumberPrint = document.getElementById('kpNumPrint');
@@ -613,11 +633,6 @@
         if (ta && mirror) mirror.textContent = ta.value;
       });
 
-      const countryInp = row.querySelector('.col-country');
-      if (countryInp && !countryInp.value.trim()) countryInp.value = 'Китай';
-
-      const qtyInp = row.querySelector('.col-qty');
-      if (qtyInp && !qtyInp.value.trim()) qtyInp.value = '1';
     });
 
     document.querySelectorAll('#condOooTbody tr').forEach(row => {
@@ -652,8 +667,8 @@
       const labelMirror = row.querySelector('.ip-cond-label-print');
       const valueMirror = row.querySelector('.ip-cond-value-print');
       if (labelMirror) {
-        // The screen editor already suppresses the separator when the label ends with ':'.
-// Preserve the user's colon in the print mirror; stripping it loses punctuation.
+        // The screen editor suppresses an extra colon for labels that already end with ':'.
+        // Preserve the user's own punctuation in the live/printed mirror.
         labelMirror.textContent = label?.value || '';
         copyTextStyle(labelMirror, document.body.classList.contains('is-ip-glazyrin') ? labelStyle : getComputedStyle(label));
       }
@@ -681,6 +696,27 @@
       if (mirror) mirror.textContent = document.getElementById('clientBoxIp')?.value || '';
       clientBoxIp.classList.toggle('print-hide-client', isEmpty);
     }
+  }
+
+  let presentationSyncFrame = 0;
+  function queueDocumentPresentationSync() {
+    if (presentationSyncFrame) return;
+    presentationSyncFrame = requestAnimationFrame(() => {
+      presentationSyncFrame = 0;
+      syncDocumentPresentation();
+    });
+  }
+
+  function prepareForPrint() {
+    syncDocumentPresentation();
+    // Preserve established print defaults without ever changing form data in
+    // the live preview sync above. Validation and export still happen normally.
+    document.querySelectorAll('#tableBody tr').forEach(row => {
+      const countryInp = row.querySelector('.col-country');
+      if (countryInp && !countryInp.value.trim()) countryInp.value = 'Китай';
+      const qtyInp = row.querySelector('.col-qty');
+      if (qtyInp && !qtyInp.value.trim()) qtyInp.value = '1';
+    });
   }
 
   function updatePrefixFromDateString(str) {
@@ -1095,6 +1131,7 @@
 
   function saveState() {
     if (restoringState) return;
+    queueDocumentPresentationSync();
     try {
       const rows = [];
       document.querySelectorAll('#tableBody tr').forEach(row => {
@@ -1130,7 +1167,7 @@
       const deletedStandardConditionsByCompany = { ...(savedState.deletedStandardConditionsByCompany || {}) };
       const currentCompany = document.getElementById('companySelect').value;
       if (currentCompany === 'ip-glazyrin') {
-        deletedStandardConditionsByCompany[currentCompany] = [...document.querySelectorAll('#condIpBox .ip-term-row.is-deleted input[id]')].map(input => input.id);
+        deletedStandardConditionsByCompany[currentCompany] = [...document.querySelectorAll('#condIpBox .ip-term-row.is-deleted .meta-input[id]')].map(input => input.id);
       }
       if (currentCompany !== 'ooo') ipConditionsByCompany[currentCompany] = captureIpConditions();
       const state = {
@@ -1864,7 +1901,9 @@
         spacing: { after: 50, line: 240 },
         children: [
           new TextRun({ text: "Срок поставки: ", bold: true, size: 22, font: "Times New Roman" }),
-          new TextRun({ text: ipTime, size: 22, font: "Times New Roman" })
+          ...ipTime.split('\n').map((line, i) => new TextRun({
+            text: line, break: i ? 1 : 0, size: 22, font: "Times New Roman"
+          }))
         ]
       }));
       docElements.push(new Paragraph({
@@ -2047,6 +2086,16 @@
     document.getElementById('btnAddCondIp2')?.addEventListener('click', () => addCondRowIp('Дополнительное условие', '', '2'));
     document.getElementById('btnAddCondIp3')?.addEventListener('click', () => addCondRowIp('Дополнительное условие', '', '3'));
 
+    // Synchronize the printed text with what is being typed BEFORE the
+    // next browser paint. Do not call prepareForPrint() on edit: it contains
+    // legacy print defaults that can alter fields with blank quantities.
+    document.addEventListener('input', (e) => {
+      if (e.target.closest('.page')) queueDocumentPresentationSync();
+    });
+    document.addEventListener('change', (e) => {
+      if (e.target.closest('.page')) queueDocumentPresentationSync();
+    });
+
     // Авто-растягивание текстовых областей
     document.addEventListener('input', (e) => {
       if (e.target.matches('textarea.auto-grow')) {
@@ -2171,8 +2220,12 @@
     initAutoResize();
     recalc();
     updateDocumentTitle();
+    syncDocumentPresentation();
   });
 
-  window.addEventListener('load', () => initAutoResize());
+  window.addEventListener('load', () => {
+    initAutoResize();
+    syncDocumentPresentation();
+  });
 
 })();
