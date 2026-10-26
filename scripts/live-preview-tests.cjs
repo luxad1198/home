@@ -62,7 +62,10 @@ async function runCase(browser, url, scenario) {
   page.on('pageerror', e => errors.push(e.message));
   page.setDefaultTimeout(20000);
   await page.route('https://**/*', r => r.abort());
-  await page.addInitScript(() => { window.print = () => {}; });
+  await page.addInitScript(() => {
+    window.__printPreviewRequests = 0;
+    window.print = () => { window.__printPreviewRequests++; };
+  });
   const slug = scenario.company + (scenario.long ? '-long' : '-short');
   try {
     const response = await page.goto(url, { waitUntil: 'load' });
@@ -179,6 +182,29 @@ async function runCase(browser, url, scenario) {
     await verifyLiveMirror(page, clientSelector,
       isIp ? '#clientContainerIp .client-print-value' : '#clientContainerOoo .client-print-value');
     assert.equal(await page.locator('#tableBody tr').count(), scenario.long ? 19 : 1);
+
+    // The editor only measures its OWN height. It must not invent page
+    // breaks or counts: those are computed by Chromium's print engine.
+    const guidance = page.locator('#pageBreakGuidance');
+    await page.waitForFunction(long => (
+      document.getElementById('pageBreakGuidance')?.dataset.screenOverflow === String(long)
+    ), scenario.long);
+    assert(await guidance.isVisible(), slug + ': page guidance must remain accessible');
+    assert(await guidance.evaluate(el => !el.closest('.page') && el.classList.contains('no-print')),
+      slug + ': guidance must be outside the actual printed document');
+    const label = await page.locator('#pageBreakMessage').innerText();
+    assert(label.includes('предпросмотре PDF'),
+      slug + ': guidance claims a possibly inaccurate screen page break');
+    if (scenario.long) {
+      const customerBeforePreview = await page.locator(clientSelector).inputValue();
+      const countBefore = await page.evaluate(() => window.__printPreviewRequests);
+      await page.locator('#btnPreviewPages').click();
+      assert.equal(await page.evaluate(() => window.__printPreviewRequests),
+        countBefore + 1, slug + ': native print preview was not requested');
+      assert.equal(await page.locator(clientSelector).inputValue(), customerBeforePreview,
+        slug + ': page preview altered the customer');
+      await guidance.screenshot({ path: path.join(OUTPUT, slug + '-page-guidance.png') });
+    }
 
     // Finishing an edit, focusing it again or blurring it must not shift the
     // surrounding printable blocks when the actual value is unchanged.
