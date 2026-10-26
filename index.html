@@ -8,7 +8,7 @@
   <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
   <!-- Стили -->
-  <link rel="stylesheet" href="style.css?v=20261025-live-preview-2">
+  <link rel="stylesheet" href="style.css?v=20261026-preview-parity-1">
 </head>
 <body>
 
@@ -180,7 +180,7 @@
         <td class="head-meta-cell">
           <div class="kp-num-wrapper">
             КП № <span class="kp-prefix" id="kpPrefix">10-20/</span>
-            <input type="text" class="kp-user-input" id="kpNumInput" placeholder="1" value="1">
+            <textarea rows="1" class="kp-user-input" id="kpNumInput" placeholder="1">1</textarea>
             <span class="kp-number-print" id="kpNumPrint" aria-hidden="true"></span>
           </div><br>
           От <input type="text" id="docDate" class="meta-input" style="width: 155px;">
@@ -188,8 +188,10 @@
         <td class="head-client-cell" id="clientContainerOoo">
           <div class="client-inline-row">
             <span class="client-label">Заказчику:</span>
-            <textarea rows="2" class="auto-grow client-textarea" id="clientBox" placeholder="можете вписать наименование заказчика"></textarea>
+            <span class="client-live-value">
+              <textarea rows="2" class="auto-grow client-textarea" id="clientBox" placeholder="можете вписать наименование заказчика"></textarea>
             <span class="client-print-value" aria-hidden="true"></span>
+            </span>
           </div>
         </td>
       </tr>
@@ -216,8 +218,10 @@
         <div style="width: 48%; padding-left: 15px;" id="clientContainerIp">
           <div class="client-inline-row">
             <span class="client-label">Заказчику:</span>
-            <textarea rows="2" class="auto-grow client-textarea" id="clientBoxIp" placeholder="можете вписать наименование заказчика"></textarea>
+            <span class="client-live-value">
+              <textarea rows="2" class="auto-grow client-textarea" id="clientBoxIp" placeholder="можете вписать наименование заказчика"></textarea>
             <span class="client-print-value" aria-hidden="true"></span>
+            </span>
           </div>
         </div>
       </div>
@@ -380,6 +384,6 @@
 
   <!-- Скрипты логики -->
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-  <script src="app.js?v=20261025-live-preview-2"></script>
+  <script src="app.js?v=20261026-preview-parity-1"></script>
 </body>
 </html>
