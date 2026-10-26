@@ -8,18 +8,18 @@
   <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
   <!-- Стили -->
-  <link rel="stylesheet" href="style.css?v=20261026-preview-parity-1">
+  <link rel="stylesheet" href="style.css?v=20261026-unified-controls-1">
 </head>
 <body>
 
   <!-- Кнопка вызова калькулятора -->
-  <button class="calc-toggle-panel-btn no-print" id="btnToggleCalc">📊 Калькулятор</button>
+  <button type="button" class="calc-toggle-panel-btn ui-button ui-button--dark ui-button--compact no-print" id="btnToggleCalc">📊 Калькулятор</button>
 
   <!-- Калькулятор -->
   <div class="calc-sidebar no-print" id="calcSidebar">
     <div class="calc-title">
       <span>📊 Расчет цен и налогов</span>
-      <span style="cursor:pointer; font-size:16px;" id="btnCloseCalc">✕</span>
+      <button type="button" class="ui-icon-button" id="btnCloseCalc" aria-label="Закрыть калькулятор">✕</button>
     </div>
 
     <div class="calc-field">
@@ -37,8 +37,8 @@
       </div>
       <div style="display: flex; gap: 6px; align-items: center;">
         <input type="number" id="calcFinDaysInput" class="calc-input" placeholder="дней (напр. 30)" value="0" min="0">
-        <button type="button" id="btnWeekMinus" style="display:none; padding:5px 8px; cursor:pointer;">-1н</button>
-        <button type="button" id="btnWeekPlus" style="display:none; padding:5px 8px; cursor:pointer;">+1н</button>
+        <button type="button" id="btnWeekMinus" class="ui-button ui-button--neutral ui-button--compact" style="display:none;">−1н</button>
+        <button type="button" id="btnWeekPlus" class="ui-button ui-button--neutral ui-button--compact" style="display:none;">+1н</button>
       </div>
       <div style="font-size:11px; color:#64748b; margin-top:2px;" id="calcFinCostVal">Стоимость денег: 0,00 ₽</div>
     </div>
@@ -84,7 +84,7 @@
       </div>
     </div>
 
-    <button type="button" class="btn-copy-calc" id="btnCopyCalc">📋 Скопировать цену в буфер</button>
+    <button type="button" class="btn-copy-calc ui-button ui-button--primary ui-button--full" id="btnCopyCalc">📋 Скопировать цену в буфер</button>
   </div>
 
   <!-- Фоновые миниатюры слева -->
@@ -101,29 +101,33 @@
     <img src="bg-thumb6.webp" alt="">
   </div>
 
-  <!-- Панель действий -->
+  <!-- Панель действий: единая система элементов управления с калькулятором -->
   <div class="panel no-print">
-    <div class="panel-left">
-      <select class="company-select" id="companySelect">
-        <option value="ooo">🏢 ООО «РТСтандарт» (НДС 22%)</option>
-        <option value="ip">👤 ИП Захаров М.С. (УСН + НДС 5%)</option>
-        <option value="ip-glazyrin">✍️ ИП Глазырин А.А. (УСН 4% + 1%, без НДС)</option>
-      </select>
-      <button class="btn btn-add" id="btnAddRow">+ Добавить позицию</button>
-      <button class="btn btn-toggle-bg" id="btnToggleBg">🖼️ Скрыть картинки</button>
-      <button class="btn btn-clear" id="btnClearForm">🗑️ Очистить бланк</button>
+    <div class="panel-main">
+      <div class="panel-left">
+        <select class="company-select ui-field" id="companySelect" aria-label="Компания">
+          <option value="ooo">🏢 ООО «РТСтандарт» (НДС 22%)</option>
+          <option value="ip">👤 ИП Захаров М.С. (УСН + НДС 5%)</option>
+          <option value="ip-glazyrin">✍️ ИП Глазырин А.А. (УСН 4% + 1%, без НДС)</option>
+        </select>
+      </div>
+      <div class="panel-right">
+        <button type="button" class="btn btn-word ui-button ui-button--outline" id="btnExportWord" title="Скачать чистый документ Word">📝 Скачать Word</button>
+        <button type="button" class="btn ui-button ui-button--primary" id="btnPrint">🖨️ PDF / Печать</button>
+      </div>
     </div>
-    <div class="panel-right">
-      <button class="btn btn-word" id="btnExportWord" title="Скачать чистый документ Word">📝 Скачать Word</button>
-      <button class="btn" id="btnPrint">🖨️ PDF / Печать</button>
+    <div class="panel-actions">
+      <button type="button" class="btn btn-add ui-button ui-button--neutral" id="btnAddRow">+ Добавить позицию</button>
+      <button type="button" class="btn btn-toggle-bg ui-button ui-button--neutral" id="btnToggleBg">🖼️ Скрыть картинки</button>
+      <button type="button" class="btn btn-clear ui-button ui-button--danger" id="btnClearForm">🗑️ Очистить бланк</button>
     </div>
   </div>
 
   <div class="editor-tools no-print">
     <div class="equipment-import-tools no-print">
-      <button type="button" id="btnImportEquipment">Импорт из Word</button>
+      <button type="button" class="ui-button ui-button--neutral" id="btnImportEquipment">📥 Импорт из Word</button>
       <input type="file" id="equipmentFile" accept=".docx" hidden>
-      <button type="button" id="btnUndoEquipmentImport" hidden>Отменить импорт</button>
+      <button type="button" class="ui-button ui-button--neutral" id="btnUndoEquipmentImport" hidden>Отменить импорт</button>
       <span id="equipmentImportNotice" role="status"></span>
     </div>
     <dialog id="equipmentImportDialog" class="no-print" aria-labelledby="equipmentImportTitle">
@@ -136,16 +140,16 @@
         <tbody id="equipmentImportPreview"></tbody>
       </table></div>
       <div class="equipment-import-actions">
-        <label>Способ импорта <select id="equipmentImportMode"><option value="append">Добавить к текущим позициям</option><option value="replace">Заменить всю таблицу</option></select></label>
-        <button type="button" id="equipmentImportCancel">Отмена</button>
-        <button type="button" id="equipmentImportApply" disabled>Импортировать</button>
+        <label>Способ импорта <select id="equipmentImportMode" class="ui-field"><option value="append">Добавить к текущим позициям</option><option value="replace">Заменить всю таблицу</option></select></label>
+        <button type="button" class="ui-button ui-button--neutral" id="equipmentImportCancel">Отмена</button>
+        <button type="button" class="ui-button ui-button--primary" id="equipmentImportApply" disabled>Импортировать</button>
       </div>
     </dialog>
     <!-- Умный конструктор срока поставки (общий для ООО и ИП) -->
     <div class="delivery-builder-box no-print">
-      <span style="font-size:8.5pt; color:#475569; font-weight:600;">⚡ Срок поставки цифрами:</span>
-      <input type="text" class="delivery-input-short" id="deliveryDaysInput" placeholder="5-10" value="5-10">
-      <select class="delivery-select-unit" id="deliveryUnitSelect">
+      <span class="delivery-builder-label">⚡ Срок поставки цифрами:</span>
+      <input type="text" class="delivery-input-short ui-field ui-field--compact" id="deliveryDaysInput" placeholder="5-10" value="5-10">
+      <select class="delivery-select-unit ui-field ui-field--compact" id="deliveryUnitSelect">
         <option value="work_days">рабочих дней</option>
         <option value="cal_days">календарных дней</option>
         <option value="weeks">недель</option>
@@ -153,18 +157,18 @@
     </div>
 
     <div id="genericAddConditionBox" style="margin-bottom: 14px;" class="no-print">
-      <button type="button" class="btn btn-add btn-cond-add" id="btnAddCondRow">+ Добавить условие</button>
+      <button type="button" class="btn btn-add btn-cond-add ui-button ui-button--neutral" id="btnAddCondRow">+ Добавить условие</button>
     </div>
 
-      <button type="button" id="btnAddCondIp2" class="btn btn-add btn-cond-add ip-section-add no-print">+ Добавить пункт к разделу 2</button>
-      <button type="button" id="btnAddCondIp3" class="btn btn-add btn-cond-add ip-section-add no-print">+ Добавить пункт к разделу 3</button>
+      <button type="button" id="btnAddCondIp2" class="btn btn-add btn-cond-add ui-button ui-button--neutral ip-section-add no-print">+ Добавить пункт к разделу 2</button>
+      <button type="button" id="btnAddCondIp3" class="btn btn-add btn-cond-add ui-button ui-button--neutral ip-section-add no-print">+ Добавить пункт к разделу 3</button>
   </div>
 
   <!-- Navigation to the browser's REAL paged print preview.
        The editable sheet remains continuous; do not draw guessed A4 cuts. -->
   <div class="page-break-guidance no-print" id="pageBreakGuidance">
     <span id="pageBreakMessage">Веб-документ показан непрерывно. Точные границы страниц — в PDF / Печать.</span>
-    <button type="button" class="btn btn-page-preview" id="btnPreviewPages"
+    <button type="button" class="btn btn-page-preview ui-button ui-button--outline" id="btnPreviewPages"
       title="Показать реальные страницы A4 через стандартный предпросмотр браузера">
       📄 Просмотреть страницы
     </button>
