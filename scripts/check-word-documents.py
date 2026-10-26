@@ -146,6 +146,29 @@ def check(key):
                 f"{filename}: equipment row {index + 1} is {name!r}, expected {expected_name!r}"
             )
 
+        # Match all seven cells in this SAME equipment row. A valid grand
+        # total must not hide a damaged quantity, unit price or description.
+        first = index == 0
+        expected = (
+            str(index + 1),
+            expected_name,
+            compact("Процессор и память\nВторая строка с дополнительными характеристиками")
+            if first else compact(
+                "Описание технических параметров, комплектации и гарантийных условий. " * 3
+            ),
+            "Китай" if first else "Россия",
+            "2" if first else "1",
+            "12000,00" if first else "1000,00",
+            "24000,00" if first else "1000,00",
+        )
+        for col_index, (cell, expected_value) in enumerate(zip(cells, expected)):
+            actual = compact(text_content(cell))
+            if actual != expected_value:
+                raise AssertionError(
+                    f"{filename}: equipment row {index + 1}, column {col_index + 1}: "
+                    f"{actual!r} != {expected_value!r}"
+                )
+
     # The sum must be in the last cell of the actual total row.
     # Merely finding '24 000,00' anywhere also matches the first equipment position.
     total_cells = spec_rows[-1].findall("./" + W + "tc")

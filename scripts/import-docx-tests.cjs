@@ -43,8 +43,11 @@ async function fixtureDocx({ badQty, badPrice, noTable } = {}) {
   const zip = new JSZip();
   const productRows = [
     ['1', 'Импортный сервер', 'Процессор и ОЗУ\nДве строки описания', 'Россия',
-      badQty ? '0' : '2', badPrice ? 'Н/Д' : '1 250,50', '2 501,00'],
-    ['2', 'Импортный коммутатор', 'Порты Ethernet', 'Китай', '1', '200,00', '200,00']
+      '2', '1 250,50', '2 501,00'],
+    // Deliberately make the SECOND position invalid: the parser must not
+    // commit any rows after successfully reading the first valid position.
+    ['2', 'Импортный коммутатор', 'Порты Ethernet', 'Китай',
+      badQty ? '0' : '1', badPrice ? 'Н/Д' : '200,00', '200,00']
   ];
   const table = noTable ? '<w:p><w:r><w:t>Произвольный документ без оборудования</w:t></w:r></w:p>'
     : '<w:tbl>' + row(['№', 'Наименование', 'Характеристики', 'Страна', 'Количество', 'Цена за ед.', 'Сумма']) +
@@ -99,7 +102,8 @@ async function startingEquipment(page) {
   await row.locator('.col-price').fill('100');
   assert.equal(await row.locator('.col-price').getAttribute('data-raw'), '100');
   await checkTable(page, [
-    { name: 'Существующий сервер', qty: 3, price: 100 }
+    { name: 'Существующий сервер', desc: 'Исходная комплектация',
+      country: 'Россия', qty: 3, price: 100 }
   ], 300);
 }
 function numeric(s) {
@@ -112,16 +116,26 @@ async function checkTable(page, expectedRows, expectedTotal) {
     const row = rows.nth(i);
     const expected = expectedRows[i];
     assert.equal(await row.locator('.col-name').inputValue(), expected.name);
+    assert.equal(await row.locator('.col-desc').inputValue(), expected.desc,
+      'Description changed in equipment row ' + (i + 1));
+    assert.equal(await row.locator('.col-country').inputValue(), expected.country,
+      'Country changed in equipment row ' + (i + 1));
     assert.equal(Number(await row.locator('.col-qty').inputValue()), expected.qty);
     assert.equal(numeric(await row.locator('.col-price').getAttribute('data-raw')), expected.price);
+    assert.equal(numeric(await row.locator('.col-total').innerText()),
+      Number((expected.qty * expected.price).toFixed(2)),
+      'Wrong row total in equipment row ' + (i + 1));
     assert.equal((await row.locator('.row-idx').innerText()).trim(), String(i + 1));
   }
   assert.equal(numeric(await page.locator('#grandTotal').innerText()), expectedTotal);
 }
-const original = { name: 'Существующий сервер', qty: 3, price: 100 };
+const original = { name: 'Существующий сервер', desc: 'Исходная комплектация',
+  country: 'Россия', qty: 3, price: 100 };
 const imported = [
-  { name: 'Импортный сервер', qty: 2, price: 1250.5 },
-  { name: 'Импортный коммутатор', qty: 1, price: 200 }
+  { name: 'Импортный сервер', desc: 'Процессор и ОЗУ\nДве строки описания',
+    country: 'Россия', qty: 2, price: 1250.5 },
+  { name: 'Импортный коммутатор', desc: 'Порты Ethernet',
+    country: 'Китай', qty: 1, price: 200 }
 ];
 
 async function selectDocx(page, buffer, name = 'equipment.docx') {
@@ -229,6 +243,10 @@ if (selected.includes('invalid')) test('import: reject corrupt, unrelated and in
       assert.equal(await page.locator('#equipmentImportPreview tr').count(), 0);
       await page.locator('#equipmentImportCancel').click();
       await checkTable(page, [original], 300);
+      // Catch silent corruption of localStorage even when the visible table
+      // looks unchanged immediately after the rejected file.
+      await page.reload({ waitUntil: 'load' });
+      await checkTable(page, [original], 300);
     }
   });
 });
@@ -274,7 +292,8 @@ if (selected.includes('roundtrip')) test('import: reads real DOCX exported by th
     await page.waitForFunction(() =>
       document.getElementById('equipmentImportStatus').textContent.includes('Найдено позиций: 1'));
     await chooseAndApply(page, 'replace');
-    await checkTable(page, [{ name: 'Экспортированный сервер', qty: 2, price: 1250.5 }], 2501);
+    await checkTable(page, [{ name: 'Экспортированный сервер',
+      desc: 'Описание на двух\nстроках', country: 'Россия', qty: 2, price: 1250.5 }], 2501);
     assert.equal(await page.locator('#tableBody tr').first().locator('.col-desc').inputValue(),
       'Описание на двух\nстроках');
   });
