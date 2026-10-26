@@ -1410,9 +1410,15 @@ body.is-ip-glazyrin #condIpCustomList > .ip-custom-cond-row:not(:last-child) {
   min-width: 0;
   position: relative;
 }
-.head-client-cell .client-inline-row,
-body.is-ip:not(.is-ip-glazyrin) #clientContainerIp .client-inline-row {
-  align-items: baseline;
+/* While the customer is empty the mirror has no text baseline. Align
+   its box with the label's top edge, so the overlaid textarea placeholder
+   stays on the same line before typing, too. Printing still uses the
+   baseline rule above, and the populated value keeps its geometry. */
+@media screen {
+  .head-client-cell .client-inline-row,
+  body.is-ip:not(.is-ip-glazyrin) #clientContainerIp .client-inline-row {
+    align-items: flex-start;
+  }
 }
 .client-live-value > .client-print-value {
   display: block;
