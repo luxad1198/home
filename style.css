@@ -1596,6 +1596,8 @@ body.is-ip-glazyrin #condIpCustomList > .ip-custom-cond-row:not(:last-child) {
   }
   .client-live-value > .client-textarea {
     min-height: 1.25em;
+    /* .auto-grow's 9.5pt must not shrink the customer placeholder below the 11pt label. */
+    font-size: inherit;
     line-height: inherit;
   }
   .page td.col-text-cell > textarea.auto-grow:focus,
