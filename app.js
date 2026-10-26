@@ -1315,6 +1315,35 @@
     } catch (e) { return false; } finally { restoringState = false; }
   }
 
+  // A true PDF page break depends on @page margins, repeated table headers,
+  // block fragmentation and printer settings. The screen flow has none of
+  // those boundaries, so only detect that its own height exceeds one A4.
+  // Never draw speculative cuts or claim an exact printed page count.
+  function initPageBreakGuidance() {
+    const page = document.querySelector('.page');
+    const guidance = document.getElementById('pageBreakGuidance');
+    const label = document.getElementById('pageBreakMessage');
+    if (!page || !guidance || !label) return;
+
+    const refresh = () => {
+      const bounds = page.getBoundingClientRect();
+      // .page is 210 mm wide; compare screen size to the 297 / 210 A4 ratio.
+      // This only describes SCREEN overflow, not the Chromium page count.
+      const tallerThanA4 = bounds.width > 0
+        && bounds.height > bounds.width * 297 / 210 + 2;
+      guidance.dataset.screenOverflow = String(tallerThanA4);
+      label.textContent = tallerThanA4
+        ? 'Высота документа в редакторе больше одного A4. Реальные разрывы страниц — в предпросмотре PDF.'
+        : 'Редактор показывает непрерывный документ. Реальные разрывы и число страниц — в предпросмотре PDF.';
+    };
+
+    if ('ResizeObserver' in window) {
+      new ResizeObserver(refresh).observe(page);
+    }
+    window.addEventListener('resize', refresh);
+    refresh();
+  }
+
   function prepareAndPrint() {
     if (!validateEquipment(true)) return;
     initAutoResize();
@@ -2023,6 +2052,9 @@
     document.getElementById('btnClearForm')?.addEventListener('click', clearForm);
     document.getElementById('btnExportWord')?.addEventListener('click', exportToWord);
     document.getElementById('btnPrint')?.addEventListener('click', prepareAndPrint);
+    // Open the SAME native print dialog as PDF / Print. No second
+    // export pipeline; only Chromium can show its real printed page breaks.
+    document.getElementById('btnPreviewPages')?.addEventListener('click', prepareAndPrint);
     document.getElementById('btnCopyCalc')?.addEventListener('click', copyCalcPrice);
 
     // Переключатели калькулятора
@@ -2206,6 +2238,7 @@
 
   window.addEventListener('DOMContentLoaded', () => {
     bindEvents();
+    initPageBreakGuidance();
     initBackgroundVisibility();
     loadState();
     
