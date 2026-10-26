@@ -42,6 +42,41 @@ CUSTOM_TERMS = {
 }
 
 
+# Explicit user-entered newlines in one custom condition, not just two
+# fragments that might appear anywhere in the Word document.
+MULTILINE_TERMS = {
+    "conditions-ooo": (
+        "Проверка серийных номеров и комплектности.",
+        "При расхождениях оформляется акт.",
+    ),
+    "conditions-ip": (
+        "УПД и счёт передаются по электронной почте.",
+        "Оригиналы направляются отдельным письмом.",
+    ),
+    "conditions-ip-glazyrin": (
+        "Разгрузка оборудования по согласованному графику.",
+        "Ответственное лицо встречает транспорт.",
+    ),
+}
+
+
+def has_explicit_break(document, before, after):
+    for paragraph in document.iter(W + "p"):
+        lines = [""]
+        for part in paragraph.iter():
+            if part.tag in (W + "br", W + "cr"):
+                lines.append("")
+            elif part.tag == W + "t":
+                lines[-1] += part.text or ""
+        if any(
+            compact(before) in compact(line) and
+            compact(after) in compact("".join(lines[index + 1:]))
+            for index, line in enumerate(lines[:-1])
+        ):
+            return True
+    return False
+
+
 def compact(s):
     return re.sub(r"\s+", "", s or "")
 
@@ -95,6 +130,14 @@ def check(key):
             "Сервисное обслуживание и поддержка"
         ) in doc_text:
             raise AssertionError(f"{filename}: deleted standard condition was exported")
+
+    if key in MULTILINE_TERMS:
+        before, after = MULTILINE_TERMS[key]
+        if not has_explicit_break(document, before, after):
+            raise AssertionError(
+                f"{filename}: custom condition lost the explicit Word line break "
+                f"between {before!r} and {after!r}"
+            )
 
     # ООО: the first customer name must follow "Заказчику:" on the SAME line.
     # Check explicit OOXML breaks, not just total text (which hides line breaks).
