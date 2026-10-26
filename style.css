@@ -183,6 +183,8 @@ body.hide-bg-sidebar .bg-sidebar {
   cursor: not-allowed;
   box-shadow: none;
 }
+/* Author-level display:inline-flex must not override the HTML hidden attribute. */
+.ui-button[hidden] { display: none !important; }
 .ui-icon-button {
   display: inline-grid;
   place-items: center;
