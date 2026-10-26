@@ -1901,7 +1901,9 @@
         spacing: { after: 50, line: 240 },
         children: [
           new TextRun({ text: "Срок поставки: ", bold: true, size: 22, font: "Times New Roman" }),
-          new TextRun({ text: ipTime, size: 22, font: "Times New Roman" })
+          ...ipTime.split('\n').map((line, i) => new TextRun({
+            text: line, break: i ? 1 : 0, size: 22, font: "Times New Roman"
+          }))
         ]
       }));
       docElements.push(new Paragraph({
