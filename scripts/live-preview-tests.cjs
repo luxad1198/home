@@ -35,7 +35,9 @@ function serve() {
 async function box(page, selector) {
   return page.locator(selector).evaluate(el => {
     const r = el.getBoundingClientRect();
-    return { x: r.x, y: r.y, width: r.width, height: r.height };
+    // Use DOCUMENT coordinates: focusing a field in a long A4 document
+    // scrolls the viewport but must not count as a layout shift.
+    return { x: r.x + scrollX, y: r.y + scrollY, width: r.width, height: r.height };
   });
 }
 function equalGeometry(a, b, label, tolerance = 1.5) {
