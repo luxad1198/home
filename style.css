@@ -493,6 +493,8 @@ body.is-ip-glazyrin .stamp-box { display: none !important; }
 .kp-ip-wrapper {
   display: inline-flex;
   align-items: baseline;
+  flex-wrap: wrap;
+  max-width: 100%;
   font-weight: normal;
 }
 .kp-ip-input {
@@ -504,6 +506,15 @@ body.is-ip-glazyrin .stamp-box { display: none !important; }
   background: transparent;
   outline: none;
   width: 90px;
+  min-width: 45px;
+  max-width: 100%;
+  min-height: 1.2em;
+  line-height: 1.2;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  field-sizing: content;
+  resize: none;
+  overflow: hidden;
   padding: 0 2px;
 }
 
@@ -1413,7 +1424,9 @@ body.is-ip:not(.is-ip-glazyrin) #clientContainerIp .client-inline-row {
     align-self: stretch;
     width: 100% !important;
     height: 100% !important;
-    color: transparent;
+    /* Keep computed CSS color intact for syncDocumentPresentation(), which
+       copies it to the visible mirror. Hide only the native text paint. */
+    color: #374151;
     -webkit-text-fill-color: transparent;
     caret-color: #243b53;
     border: none;
