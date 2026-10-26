@@ -1,3 +1,26 @@
+/* LIScorp Graphite: screen-only UI tokens, never printed document colors. */
+:root {
+  --ui-accent: #087f8c;
+  --ui-accent-hover: #086d78;
+  --ui-accent-soft: #e7f4f5;
+  --ui-graphite: #171c24;
+  --ui-text: #303946;
+  --ui-muted: #53616b;
+  --ui-surface: #ffffff;
+  --ui-soft: #f3f5f6;
+  --ui-border: #c9d0d5;
+  --ui-danger: #b42335;
+  --ui-danger-soft: #fcedee;
+  --ui-danger-border: #e6b6bd;
+  --ui-panel-foreground: #edf3f6;
+  --ui-panel-control: #303946;
+  --ui-panel-control-border: #44515f;
+  --ui-radius: 6px;
+  --ui-height: 36px;
+  --ui-compact-height: 30px;
+  --ui-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
 * { 
   box-sizing: border-box; 
   font-family: 'Times New Roman', Times, serif; 
@@ -6,7 +29,7 @@
   color-adjust: exact !important;
 }
 body { 
-  background: #52525b; 
+  background: #f3f5f6; 
   margin: 0; 
   padding: 20px 10px 40px; 
   color: #000; 
@@ -51,81 +74,216 @@ body.hide-bg-sidebar .bg-sidebar {
 }
 
 /* Верхняя панель */
-.panel {
-  width: 210mm;
-  margin: 0 auto 12px;
-  background: #fff;
-  padding: 10px 16px;
-  border-radius: 6px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-family: Arial, sans-serif;
-  position: relative;
-  z-index: 20;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-}
+.panel,
 .editor-tools {
   width: 210mm;
+  max-width: calc(100vw - 20px);
   margin: 0 auto 12px;
-  padding: 8px 12px;
+  background: var(--ui-surface);
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  position: relative;
+  z-index: 20;
+  box-shadow: 0 3px 12px rgba(15, 23, 42, .15);
+  font-family: var(--ui-font);
+}
+.panel {
+  padding: 12px 14px;
+  background: var(--ui-graphite);
+  border-color: #242d38;
+  color: var(--ui-panel-foreground);
+}
+/* A quiet LIScorp signature in the only dark application surface. */
+.panel-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  color: #c9d5dc;
+  font: 500 12px/1.3 var(--ui-font);
+}
+.panel-brand::before {
+  content: "";
+  width: 4px;
+  height: 21px;
+  background: var(--ui-accent);
+  border-radius: 3px;
+}
+.panel-brand > span { font-family: var(--ui-font); }
+.panel-brand-name { color: #fff; font-weight: 700; letter-spacing: .02em; }
+.panel-brand-divider { color: #91a5ae; }
+.panel .company-select { background: #f3f5f6; color: #171c24; }
+.panel .ui-button--outline {
+  background: transparent;
+  border-color: #2ba4ae;
+  color: #eef8f9;
+}
+.panel .ui-button--outline:hover { background: #25444c; border-color: #6bd1d8; }
+.panel .ui-button--neutral {
+  background: var(--ui-panel-control);
+  border-color: var(--ui-panel-control-border);
+  color: var(--ui-panel-foreground);
+}
+.panel .ui-button--neutral:hover { background: #3d4b58; border-color: #647586; }
+.panel .ui-button--danger {
+  background: #462a34;
+  border-color: #79545e;
+  color: #ffd8dd;
+}
+.panel .ui-button--danger:hover { background: #583340; border-color: #a96b79; }
+.panel-main {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px 12px;
+}
+.panel-left { display: flex; flex: 1 1 305px; min-width: 0; }
+.panel-right { display: flex; gap: 8px; flex-wrap: wrap; }
+.panel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding-top: 10px;
+  margin-top: 10px;
+  border-top: 1px solid #39424d;
+}
+.editor-tools {
+  padding: 10px 12px;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 8px 12px;
-  background: #fff;
-  border-radius: 6px;
-  position: relative;
-  z-index: 20;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
 }
 .editor-tools .equipment-import-tools,
 .editor-tools .delivery-builder-box,
 .editor-tools #genericAddConditionBox {
   margin: 0 !important;
 }
-.panel-left { 
-  display: flex; 
-  gap: 6px; 
-  align-items: center; 
-  flex-wrap: wrap; 
+@media screen and (max-width: 600px) {
+  /* The fixed calculator opener occupies the first 30px on mobile.
+     Reserve a separate strip above the toolbar; do not change print A4. */
+  .panel { margin-top: 40px; }
+  .panel-right { width: 100%; }
+  .panel-right .ui-button { flex: 1 1 auto; }
+  .panel-actions .ui-button { flex: 1 1 auto; }
 }
-.panel-right { 
-  display: flex; 
-  gap: 6px; 
-  align-items: center; 
-}
-.btn {
-  padding: 7px 12px;
-  border-radius: 4px;
+/* A single component contract for buttons outside the printed A4 document. */
+.ui-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: var(--ui-height);
+  padding: 0 13px;
+  border: 1px solid transparent;
+  border-radius: var(--ui-radius);
+  background: var(--ui-soft);
+  color: var(--ui-text);
+  font: 600 13px/1.2 var(--ui-font);
+  white-space: nowrap;
+  text-align: center;
   cursor: pointer;
-  font-weight: 600;
-  font-size: 12.5px;
-  font-family: Arial, sans-serif;
-  border: 1px solid #1d4ed8;
-  background: #1d4ed8;
+  transition: background-color .15s, border-color .15s, box-shadow .15s;
+}
+.ui-button--primary {
+  background: var(--ui-accent);
+  border-color: var(--ui-accent);
   color: #fff;
-  transition: opacity 0.15s, background-color 0.15s;
 }
-.btn:hover { opacity: 0.9; }
-.btn-add { background: #f3f4f6; color: #111; border-color: #cbd5e1; }
-.btn-toggle-bg { background: #f8fafc; color: #334155; border-color: #cbd5e1; }
-.btn-clear { background: #fff1f2; color: #e11d48; border-color: #fecdd3; }
-.btn-word { background: #0284c7; border-color: #0369a1; color: #fff; }
-.btn-del { background: #fee2e2; color: #b91c1c; border: 1px solid #f87171; padding: 2px 6px; font-size: 11px; cursor: pointer; border-radius: 3px; }
-
-.company-select {
-  padding: 7px 8px;
-  border-radius: 4px;
-  border: 1px solid #94a3b8;
-  font-family: Arial, sans-serif;
+.ui-button--primary:hover { background: var(--ui-accent-hover); border-color: var(--ui-accent-hover); }
+.ui-button--outline {
+  background: var(--ui-surface);
+  border-color: #44a5ad;
+  color: #086d78;
+}
+.ui-button--outline:hover { background: var(--ui-accent-soft); border-color: var(--ui-accent); }
+.ui-button--neutral {
+  background: var(--ui-soft);
+  border-color: var(--ui-border);
+  color: var(--ui-text);
+}
+.ui-button--neutral:hover { background: #e4eaed; border-color: #a2aeb6; }
+.ui-button--danger {
+  background: var(--ui-danger-soft);
+  border-color: var(--ui-danger-border);
+  color: var(--ui-danger);
+}
+.ui-button--danger:hover { background: #f9dfe2; border-color: #d58e9a; }
+.ui-button--dark { background: var(--ui-graphite); border-color: var(--ui-graphite); color: #fff; }
+.ui-button--dark:hover { background: #303946; border-color: #303946; }
+.ui-button--compact {
+  min-height: var(--ui-compact-height);
+  padding: 0 9px;
   font-size: 12px;
-  font-weight: bold;
-  background: #f8fafc;
-  color: #0f172a;
+}
+.ui-button--full { width: 100%; }
+.ui-button:focus-visible,
+.ui-icon-button:focus-visible,
+.ui-field:focus-visible,
+.calc-input:focus-visible,
+.calc-toggle-btn:focus-visible {
+  outline: 2px solid var(--ui-accent);
+  outline-offset: 2px;
+}
+.ui-button:disabled, .ui-button[disabled] {
+  opacity: .5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+/* Author-level display:inline-flex must not override the HTML hidden attribute. */
+.ui-button[hidden] { display: none !important; }
+.ui-icon-button {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid transparent;
+  border-radius: var(--ui-radius);
+  background: transparent;
+  color: var(--ui-text);
+  font: 600 15px/1 var(--ui-font);
   cursor: pointer;
+}
+.ui-icon-button:hover { background: #e4eaed; }
+.ui-field {
+  min-height: var(--ui-height);
+  padding: 0 10px;
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius);
+  background: var(--ui-surface);
+  color: var(--ui-graphite);
+  font: 500 13px var(--ui-font);
   outline: none;
 }
+.ui-field:focus { border-color: var(--ui-accent); }
+.ui-field--compact {
+  min-height: var(--ui-compact-height);
+  font-size: 12px;
+}
+.company-select {
+  width: 100%;
+  min-width: 0;
+  background: var(--ui-soft);
+  font-weight: 600;
+  cursor: pointer;
+}
+/* Editing-only deletion buttons retain the original table gutter geometry. */
+.btn-del {
+  display: inline-grid;
+  place-items: center;
+  min-width: 24px;
+  min-height: 24px;
+  padding: 0 4px;
+  border: 1px solid var(--ui-danger-border);
+  border-radius: var(--ui-radius);
+  background: var(--ui-danger-soft);
+  color: var(--ui-danger);
+  font: 600 12px var(--ui-font);
+  cursor: pointer;
+}
+.btn-del:hover { background: #f9dfe2; }
 
 /* Калькулятор */
 .calc-sidebar {
@@ -146,6 +304,10 @@ body.hide-bg-sidebar .bg-sidebar {
   z-index: 50;
   transition: transform 0.25s ease, opacity 0.25s ease;
 }
+/* The calculator card already defines the design language; apply its
+   sans-serif typography to labels and totals as well as the input controls.
+   This is scoped outside the printable proposal. */
+.calc-sidebar * { font-family: var(--ui-font); }
 .calc-sidebar.collapsed {
   transform: translateX(-360px);
   opacity: 0;
@@ -157,16 +319,7 @@ body.hide-bg-sidebar .bg-sidebar {
   left: max(12px, calc(50% - 105mm - 330px));
   top: 18px;
   z-index: 55;
-  padding: 6px 12px;
-  background: #0f172a;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  font-family: Arial, sans-serif;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  box-shadow: 0 2px 8px rgba(15,23,42,.25);
 }
 
 @media (max-width: 1460px) {
@@ -216,7 +369,7 @@ body.hide-bg-sidebar .bg-sidebar {
   font-family: inherit;
   outline: none;
 }
-.calc-input:focus { border-color: #2563eb; }
+.calc-input:focus { border-color: var(--ui-accent); }
 .calc-input:disabled {
   background: #f1f5f9;
   color: #94a3b8;
@@ -226,23 +379,23 @@ body.hide-bg-sidebar .bg-sidebar {
 .calc-toggle {
   display: inline-flex;
   background: #e2e8f0;
-  border-radius: 4px;
+  border-radius: var(--ui-radius);
   padding: 2px;
   gap: 2px;
 }
 .calc-toggle-btn {
+  min-height: 26px;
   border: none;
   background: transparent;
-  padding: 2px 7px;
-  font-size: 10px;
-  font-weight: 600;
+  padding: 2px 9px;
+  font: 600 11px/1.2 var(--ui-font);
   cursor: pointer;
-  border-radius: 3px;
-  color: #475569;
-  font-family: inherit;
+  border-radius: 4px;
+  color: var(--ui-text);
 }
+.calc-toggle-btn:hover:not(.active) { background: #cbd5e1; }
 .calc-toggle-btn.active {
-  background: #2563eb;
+  background: var(--ui-accent);
   color: #fff;
 }
 
@@ -275,7 +428,7 @@ body.hide-bg-sidebar .bg-sidebar {
 .calc-highlight-lbl {
   font-size: 10px;
   font-weight: 700;
-  color: #1e40af;
+  color: #086d78;
   text-transform: uppercase;
 }
 .calc-highlight-val {
@@ -283,23 +436,7 @@ body.hide-bg-sidebar .bg-sidebar {
   font-weight: 800;
   color: #0f172a;
 }
-.btn-copy-calc {
-  width: 100%;
-  margin-top: 10px;
-  padding: 8px;
-  background: #2563eb;
-  color: #fff;
-  border: none;
-  border-radius: 5px;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-}
-.btn-copy-calc:hover { background: #1d4ed8; }
+.btn-copy-calc { margin-top: 10px; }
 
 /* Real page preview guidance — outside the editable document.
    Chromium's @page fragmentation is not represented by equal-height screen cuts. */
@@ -331,8 +468,8 @@ body.hide-bg-sidebar .bg-sidebar {
 .btn-page-preview {
   flex: 0 0 auto;
   background: #fff;
-  color: #1e40af;
-  border-color: #93c5fd;
+  color: #086d78;
+  border-color: #44a5ad;
   white-space: nowrap;
 }
 @media (max-width: 650px) {
@@ -836,35 +973,23 @@ table.cond td {
 /* Блок умного срока поставки */
 .delivery-builder-box {
   display: flex;
-  gap: 6px;
+  flex-wrap: wrap;
+  gap: 8px;
   align-items: center;
   margin-bottom: 6px;
-  background: #f8fafc;
+  background: var(--ui-soft);
   padding: 4px 8px;
-  border-radius: 4px;
-  border: 1px dashed #cbd5e1;
+  border-radius: var(--ui-radius);
+  border: 1px solid #e2e8f0;
   width: fit-content;
-  font-family: Arial, sans-serif;
+  font-family: var(--ui-font);
 }
-.delivery-input-short {
-  width: 75px;
-  padding: 2px 6px;
-  border: 1px solid #94a3b8;
-  border-radius: 4px;
-  font-family: Arial, sans-serif;
-  font-size: 9pt;
-  outline: none;
+.delivery-builder-label {
+  font: 600 12px/1.3 var(--ui-font);
+  color: #475569;
 }
-.delivery-select-unit {
-  padding: 2px 4px;
-  border: 1px solid #94a3b8;
-  border-radius: 4px;
-  font-family: Arial, sans-serif;
-  font-size: 9pt;
-  outline: none;
-  background: #fff;
-  cursor: pointer;
-}
+.delivery-input-short { width: 75px; }
+.delivery-select-unit { cursor: pointer; }
 
 /* Условия ИП */
 .ip-cond-box {
@@ -1244,8 +1369,8 @@ body.is-ip-glazyrin .ip-standard-delete {
   padding: 2px 6px;
 }
 body.is-ip-glazyrin .ip-section-add {
-  margin: 3px 0 6px; padding: 4px 8px; border-color: #b7c2cc;
-  background: #f7f8f9; color: #334155;
+  margin: 3px 0 6px;
+  /* Colors, height and padding now come from the shared neutral variant. */
 }
 
 /* Align every condition in two shared columns; keep long values readable in PDF. */
@@ -1318,8 +1443,7 @@ body.is-ip-glazyrin #condIpCustomList > .ip-custom-cond-row:not(:last-child) {
 
 /* Equipment import controls never enter the printed proposal. */
 .equipment-import-tools { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:12px 0; }
-.equipment-import-tools button, #equipmentImportDialog button { padding:8px 12px; cursor:pointer; }
-#equipmentImportDialog { width:min(1100px, 95vw); max-height:90vh; border:1px solid #cbd5e1; border-radius:10px; padding:20px; color:#243b53; }
+#equipmentImportDialog { width:min(1100px, 95vw); max-height:90vh; border:1px solid #cbd5e1; border-radius:8px; padding:20px; color:var(--ui-text); }
 #equipmentImportDialog::backdrop { background:#0f172a99; }
 #equipmentImportDialog h2 { margin:0 0 12px; font-size:20px; }
 #equipmentImportDialog p { overflow-wrap:anywhere; }
@@ -1330,8 +1454,8 @@ body.is-ip-glazyrin #condIpCustomList > .ip-custom-cond-row:not(:last-child) {
 #equipmentImportDialog td { white-space:pre-wrap; overflow-wrap:anywhere; }
 #equipmentImportDialog td:nth-child(2) { min-width:170px; }
 #equipmentImportDialog td:nth-child(3) { min-width:240px; }
-.equipment-import-actions { display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-top:16px; }
-#equipmentImportApply { background:#2f5d50; color:white; border:0; border-radius:4px; }
+.equipment-import-actions { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:16px; }
+/* Import confirmation uses the shared LIScorp accent component. */
 #equipmentImportApply:disabled { opacity:.5; cursor:default; }
 #equipmentImportNotice { font-size:13px; }
 @media print { .equipment-import-tools, #equipmentImportDialog { display:none !important; } }
@@ -1544,4 +1668,17 @@ body.is-ip .sign-row { margin-top: 18px; }
     min-width: 0;
     min-height: 0;
   }
+}
+
+/* Typography in popup controls (the proposal itself stays Times New Roman). */
+#equipmentImportDialog :is(h2, p, label, select, th, td),
+.equipment-import-tools #equipmentImportNotice {
+  font-family: var(--ui-font);
+}
+#equipmentImportDialog .ui-field { max-width: 100%; }
+.calc-input {
+  border-radius: var(--ui-radius);
+}
+@media (max-width: 600px) {
+  .editor-tools .equipment-import-tools { width: 100%; }
 }
