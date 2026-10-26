@@ -35,6 +35,22 @@ CUSTOM_TERMS = {
         "3.4.Поддержка", "Консультации по оборудованию в течение трёх рабочих дней.",
     ),
 }
+# A newline must survive in the ACTUAL printed PDF. Finding both phrases
+# after whitespace removal does not prove that the manual break was kept.
+MULTILINE_TERMS = {
+    "conditions-ooo": (
+        "Проверка серийных номеров и комплектности.",
+        "При расхождениях оформляется акт.",
+    ),
+    "conditions-ip": (
+        "УПД и счёт передаются по электронной почте.",
+        "Оригиналы направляются отдельным письмом.",
+    ),
+    "conditions-ip-glazyrin": (
+        "Разгрузка оборудования по согласованному графику.",
+        "Ответственное лицо встречает транспорт.",
+    ),
+}
 A4_WIDTH_PT, A4_HEIGHT_PT = 595.28, 841.89
 
 
@@ -145,6 +161,17 @@ def main():
                 r"\s+", "", "Сервисное обслуживание и поддержка"
             ) in flat:
                 raise AssertionError(f"{filename}: removed standard condition printed")
+
+        if key in MULTILINE_TERMS:
+            before, after = MULTILINE_TERMS[key]
+            # Requiring an extracted text-line boundary is stronger than the
+            # existing compact text checks, though it is not a visual guarantee.
+            pattern = re.escape(before) + r"[ \t]*\r?\n[ \t]*" + re.escape(after)
+            if not re.search(pattern, text):
+                raise AssertionError(
+                    f"{filename}: explicit printed line break is missing "
+                    f"between {before!r} and {after!r}"
+                )
 
         print(f"OK {filename}: {len(reader.pages)} A4 pages, exact table total, equipment, client, condition, VAT and signer")
 
