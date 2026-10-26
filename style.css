@@ -115,7 +115,10 @@ body.hide-bg-sidebar .bg-sidebar {
 .editor-tools #genericAddConditionBox {
   margin: 0 !important;
 }
-@media (max-width: 600px) {
+@media screen and (max-width: 600px) {
+  /* The fixed calculator opener occupies the first 30px on mobile.
+     Reserve a separate strip above the toolbar; do not change print A4. */
+  .panel { margin-top: 40px; }
   .panel-right { width: 100%; }
   .panel-right .ui-button { flex: 1 1 auto; }
   .panel-actions .ui-button { flex: 1 1 auto; }
