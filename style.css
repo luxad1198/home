@@ -319,7 +319,9 @@ body.hide-bg-sidebar .bg-sidebar {
   border-radius: 6px;
   font: 12px/1.35 Arial, sans-serif;
   position: relative;
-  z-index: 20;
+  /* On narrow screens the fixed calculator can overlap the A4 column.
+     Keep this brief guidance readable above it. */
+  z-index: 60;
 }
 .page-break-guidance #pageBreakMessage {
   flex: 1 1 auto;
