@@ -12,7 +12,7 @@ const { chromium } = require('playwright');
 const JSZip = require('jszip');
 
 const ROOT = path.resolve(__dirname, '..');
-const DEFAULT_CASES = ['append', 'replace', 'cancel', 'invalid', 'undo'];
+const DEFAULT_CASES = ['append', 'replace', 'cancel', 'invalid', 'undo', 'technical'];
 const CASES = [...DEFAULT_CASES, 'roundtrip'];
 const args = process.argv.slice(2);
 if (args.some(k => !CASES.includes(k))) {
@@ -39,7 +39,7 @@ function cell(value) {
 function row(values) {
   return '<w:tr>' + values.map(cell).join('') + '</w:tr>';
 }
-async function fixtureDocx({ badQty, badPrice, noTable } = {}) {
+async function fixtureDocx({ badQty, badPrice, noTable, technicalDetails } = {}) {
   const zip = new JSZip();
   const productRows = [
     ['1', 'Импортный сервер', 'Процессор и ОЗУ\nДве строки описания', 'Россия',
@@ -49,7 +49,18 @@ async function fixtureDocx({ badQty, badPrice, noTable } = {}) {
     ['2', 'Импортный коммутатор', 'Порты Ethernet', 'Китай',
       badQty ? '0' : '1', badPrice ? 'Н/Д' : '200,00', '200,00']
   ];
+  // Five-column Word tables may include «Количество» and «оборудованием»
+  // inside LONG characteristic cells. Those must never become a new header.
+  const technicalRows = [
+    ['1', 'МФУ Pantum BM4311ADW', 'Возможность печати: Да\nКоличество картриджей: 2 шт\nКомплект поставляется с оборудованием: Да', 'Китай', '4'],
+    ['2', 'Принтер Kyocera ECOSYS PA4000x', 'Количество страниц в месяц: 80000 шт\nКабель поставляется с оборудованием: Да', 'Вьетнам', '3'],
+    ['3', 'МФУ Canon i-SENSYS MF752Cdw', 'Количество картриджей, поставляемых с оборудованием: 2 шт\nВозможность сканирования: Да', 'Вьетнам', '2'],
+    ['4', 'Сканер Avision AD340GFN', 'Тип сканирования: Протяжный и планшетный\nИнтерфейс подключения: USB', 'Китай', '2']
+  ];
   const table = noTable ? '<w:p><w:r><w:t>Произвольный документ без оборудования</w:t></w:r></w:p>'
+    : technicalDetails ? '<w:tbl>' +
+      row(['№', 'Наименование товара', 'Основные характеристики предложенного товара и прочие условия', 'Страна', 'Количество, шт.']) +
+      technicalRows.map(row).join('') + '</w:tbl>'
     : '<w:tbl>' + row(['№', 'Наименование', 'Характеристики', 'Страна', 'Количество', 'Цена за ед.', 'Сумма']) +
       productRows.map(row).join('') +
       row(['ИТОГО:', '', '', '', '', '', '2 701,00']) + '</w:tbl>';
@@ -269,6 +280,37 @@ if (selected.includes('undo')) test('import: undo confirmation restores previous
     await checkTable(page, [original], 300);
   });
 });
+if (selected.includes('technical')) test('import: long characteristics do not override 5-column Word header', async () => {
+  await withPage(async page => {
+    await startingEquipment(page);
+    await selectDocx(page, await fixtureDocx({ technicalDetails: true }), 'technical-5-columns.docx');
+    await page.waitForFunction(() =>
+      document.getElementById('equipmentImportStatus').textContent.includes('Найдено позиций: 4.'));
+    assert.match(await page.locator('#equipmentImportStatus').innerText(), /Без цены: 4/);
+    assert.equal(await page.locator('#equipmentImportPreview tr').count(), 4);
+    const data = [
+      { name: 'МФУ Pantum BM4311ADW',
+        desc: 'Возможность печати: Да\nКоличество картриджей: 2 шт\nКомплект поставляется с оборудованием: Да',
+        country: 'Китай', qty: 4, price: 0 },
+      { name: 'Принтер Kyocera ECOSYS PA4000x',
+        desc: 'Количество страниц в месяц: 80000 шт\nКабель поставляется с оборудованием: Да',
+        country: 'Вьетнам', qty: 3, price: 0 },
+      { name: 'МФУ Canon i-SENSYS MF752Cdw',
+        desc: 'Количество картриджей, поставляемых с оборудованием: 2 шт\nВозможность сканирования: Да',
+        country: 'Вьетнам', qty: 2, price: 0 },
+      { name: 'Сканер Avision AD340GFN',
+        desc: 'Тип сканирования: Протяжный и планшетный\nИнтерфейс подключения: USB',
+        country: 'Китай', qty: 2, price: 0 }
+    ];
+    await chooseAndApply(page, 'replace');
+    await checkTable(page, data, 0);
+    await page.reload({ waitUntil: 'load' });
+    await checkTable(page, data, 0);
+    assert(await page.locator('#btnUndoEquipmentImport').isHidden(),
+      'A page reload must not unexpectedly restore an old undo action');
+  });
+});
+
 if (selected.includes('roundtrip')) test('import: reads real DOCX exported by the proposal app', async () => {
   await withPage(async page => {
     const row = page.locator('#tableBody tr').first();
