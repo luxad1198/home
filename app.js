@@ -792,10 +792,12 @@
     const columns = cells => {
       const names = cells.map(normalize);
       return {
-        name: names.findIndex(s => /наименование|названиетовара|оборудование/.test(s)),
+        // Look for short column HEADINGS, not keywords inside product specs.
+        // Long descriptions often contain both «количество» and «оборудованием».
+        name: names.findIndex(s => s.length <= 80 && /^(?:наименование|названиетовара|оборудование)/.test(s)),
         desc: names.findIndex(s => /характеристик|описание|параметры/.test(s)),
         country: names.findIndex(s => /страна|происхождение/.test(s)),
-        qty: names.findIndex(s => /количество|колво/.test(s)),
+        qty: names.findIndex(s => s.length <= 40 && /^(?:количество|колво)/.test(s)),
         price: names.findIndex(s => /цена|стоимостьзаед/.test(s) && !/сумма|общая/.test(s))
       };
     };
@@ -818,7 +820,7 @@
           for (let i = 1; i < Math.min(span, 100); i++) cells.push('');
         }
         const header = columns(cells);
-        if (header.name >= 0 && header.qty >= 0) { map = header; continue; }
+        if (header.name >= 0 && header.qty >= 0 && header.name !== header.qty) { map = header; continue; }
         if (!map || !cells.some(Boolean) || /^(итого|всего|общая стоимость)(?:\s|:|$)/i.test(cells.find(Boolean) || '')) continue;
         // Word forms often repeat a technical row numbering the columns 1…N.
         // Match the complete sequence, never just a numeric product name.
