@@ -1,0 +1,35 @@
+name: Temporary DOCX import technical-details regression
+
+on:
+  pull_request:
+    paths:
+      - 'app.js'
+      - 'scripts/import-docx-tests.cjs'
+      - '.github/workflows/import-technical-pr-temporary.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install test dependencies and Chromium
+        run: |
+          npm install --no-save --package-lock=false playwright@1.56.1 docx@8.5.0 jszip@3.10.1 file-saver@2.0.5
+          npx playwright install chromium
+      - name: Verify all six focused DOCX import paths
+        shell: bash
+        run: |
+          set -o pipefail
+          node --check app.js
+          node --check scripts/import-docx-tests.cjs
+          node scripts/import-docx-tests.cjs | tee "$RUNNER_TEMP/import-tests.log"
+          grep -q 'tests 6' "$RUNNER_TEMP/import-tests.log"
+          grep -q 'pass 6' "$RUNNER_TEMP/import-tests.log"
+          grep -q 'fail 0' "$RUNNER_TEMP/import-tests.log"
