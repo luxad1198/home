@@ -149,6 +149,20 @@ body.hide-bg-sidebar .bg-sidebar {
   margin-top: 10px;
   border-top: 1px solid #39424d;
 }
+/* An editing-only counter, kept next to the Add position button. */
+.position-count {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--ui-height);
+  padding: 0 10px;
+  border: 1px solid var(--ui-panel-control-border);
+  border-radius: var(--ui-radius);
+  color: var(--ui-panel-foreground);
+  background: var(--ui-panel-control);
+  font: 600 13px/1.2 var(--ui-font);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
 .editor-tools {
   padding: 10px 12px;
   display: flex;
