@@ -123,6 +123,8 @@ function numeric(s) {
 async function checkTable(page, expectedRows, expectedTotal) {
   const rows = page.locator('#tableBody tr');
   assert.equal(await rows.count(), expectedRows.length, 'Equipment row count changed');
+  assert.equal(await page.locator('#positionCount').innerText(),
+    'Позиций: ' + expectedRows.length, 'Toolbar equipment counter is out of sync');
   for (let i = 0; i < expectedRows.length; i++) {
     const row = rows.nth(i);
     const expected = expectedRows[i];

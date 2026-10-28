@@ -943,7 +943,7 @@
     });
   }
 
-  function addRow(focusNew = false) {
+  function addRow() {
     const tbody = document.getElementById('tableBody');
     const idx = tbody.children.length + 1;
     const tr = document.createElement('tr');
@@ -969,7 +969,8 @@
     initAutoResize();
     recalc();
     saveState();
-    if (focusNew) tr.querySelector('.col-name').focus();
+    // Do not focus the new row: the browser would scroll to the bottom
+    // of long quotations even though the user clicked in the toolbar.
   }
 
   function deleteRow(btn) {
@@ -2049,7 +2050,7 @@
     document.getElementById('btnCloseCalc')?.addEventListener('click', toggleCalcPanel);
     document.getElementById('companySelect')?.addEventListener('change', onCompanyChange);
     initEquipmentImport();
-    document.getElementById('btnAddRow')?.addEventListener('click', () => addRow(true));
+    document.getElementById('btnAddRow')?.addEventListener('click', addRow);
     document.getElementById('btnToggleBg')?.addEventListener('click', toggleBackgroundImages);
     document.getElementById('btnClearForm')?.addEventListener('click', clearForm);
     document.getElementById('btnExportWord')?.addEventListener('click', exportToWord);
@@ -2236,10 +2237,28 @@
     });
   }
 
+  // Observe table rows, not form values: works for add/delete, DOCX import,
+  // undo, clear, and restoring persisted equipment without special-case hooks.
+  function initPositionCount() {
+    const counter = document.getElementById('positionCount');
+    const tbody = document.getElementById('tableBody');
+    if (!counter || !tbody) return;
+    const refresh = () => {
+      counter.textContent = 'Позиций: ' + tbody.rows.length;
+    };
+    new MutationObserver(refresh).observe(tbody, { childList: true });
+    refresh();
+  }
+
+  // Open the editor at the A4 sheet instead of showing the toolbar first.
+  // The controls stay above the sheet and are reachable by scrolling up.
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+
   window.addEventListener('beforeprint', prepareForPrint);
 
   window.addEventListener('DOMContentLoaded', () => {
     bindEvents();
+    initPositionCount();
     initPageBreakGuidance();
     initBackgroundVisibility();
     loadState();
@@ -2261,6 +2280,12 @@
   window.addEventListener('load', () => {
     initAutoResize();
     syncDocumentPresentation();
+    if (!window.location.hash) {
+      requestAnimationFrame(() => {
+        const sheet = document.querySelector('.page');
+        if (sheet) window.scrollTo(0, window.scrollY + sheet.getBoundingClientRect().top - 8);
+      });
+    }
   });
 
 })();
