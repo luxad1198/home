@@ -571,8 +571,11 @@ body.hide-bg-sidebar .bg-sidebar {
 /* The Zakharov outgoing number and date read as one compact line. */
 body.is-ip:not(.is-ip-glazyrin) .head-ip-meta-left { gap: 5px; }
 body.is-ip:not(.is-ip-glazyrin) .kp-ip-input {
-  width: 48px; /* Fallback where field-sizing: content is unsupported. */
-  min-width: 30px;
+  /* Let Chromium size the actual number. A fixed 48px box left a
+     conspicuous gap after short values such as "Q7". */
+  width: auto;
+  min-width: 0;
+  padding: 0;
 }
 body.is-ip:not(.is-ip-glazyrin) #docDateIp {
   width: 190px !important; /* Full date must not be clipped in print. */
