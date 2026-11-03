@@ -112,6 +112,15 @@ def check(key):
     document, footers = read_document(ROOT / filename)
     doc_text = compact(text_content(document))
 
+    if key in ("ooo", "long", "conditions-ooo"):
+        # The removed mobile must not appear in the ООО document footer/contact block.
+        assert compact("+7 (981) 040-10-70") not in doc_text, (
+            f"{filename}: removed mobile contact still appears in Word"
+        )
+        assert compact("+7 (812) 983-44-33") in doc_text, (
+            f"{filename}: remaining city contact was lost from Word"
+        )
+
     expected_total = "42000,00" if key == "long" else "24000,00"
     for term in (marker, "Тестовыйзаказчик", "TEST-DOCX" if key == "ooo" else "Q7", signer, tax, condition, expected_total):
         if compact(term) not in doc_text:
