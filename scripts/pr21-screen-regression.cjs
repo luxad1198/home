@@ -95,6 +95,9 @@ for (const entry of [
       await row.locator('.col-country').fill('Китай');
       await row.locator('.col-qty').fill('2');
       await row.locator('.col-price').fill('12000');
+      // Capture the ordinary, unfocused document: price is formatted just as
+      // it is before exporting Word/PDF, not as a raw edit-in-progress value.
+      await row.locator('.col-price').press('Tab');
       await appearance(page,entry.company==='ip',entry.company==='ip-glazyrin'?0:20);
       if(entry.company==='ip'){
         const date = await page.locator('#docDateIp').inputValue();
