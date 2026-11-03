@@ -574,6 +574,9 @@ body.is-ip:not(.is-ip-glazyrin) .kp-ip-input {
   width: 48px; /* Fallback where field-sizing: content is unsupported. */
   min-width: 30px;
 }
+body.is-ip:not(.is-ip-glazyrin) #docDateIp {
+  width: 190px !important; /* Full date must not be clipped in print. */
+}
 
 /* Строгая двухколоночная шапка ИП Глазырина */
 body.is-ip-glazyrin .head-ip-container {
