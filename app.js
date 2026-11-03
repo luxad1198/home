@@ -2012,7 +2012,6 @@
           new TextRun({ text: "Коммерческий департамент", break: 1, size: 20, font: "Times New Roman" }),
           new TextRun({ text: "ООО «РТСтандарт»", break: 1, size: 20, font: "Times New Roman" }),
           new TextRun({ text: "E-mail: info@liscorp.ru", break: 1, size: 20, font: "Times New Roman" }),
-          new TextRun({ text: "+7 (981) 040-10-70", break: 1, size: 20, font: "Times New Roman" }),
           new TextRun({ text: "+7 (812) 983-44-33", break: 1, size: 20, font: "Times New Roman" }),
           new TextRun({ text: "https://liscorp.ru/", break: 1, size: 20, font: "Times New Roman" })
         ]
