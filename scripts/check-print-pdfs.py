@@ -140,6 +140,12 @@ def main():
             if expected not in flat:
                 raise AssertionError(f"{filename}: missing printed value {expected!r}")
 
+        if key in ("ip", "conditions-ip") and not re.search(
+            r"Исх\.№Q7от«\d{2}»[а-яё]+\d{4}года", flat,
+            flags=re.IGNORECASE
+        ):
+            raise AssertionError(f"{filename}: Zakharov outgoing number/date formatting incorrect")
+
         condition = "Тестоваяоплата30дней" if key in ("ooo", "long", "conditions-ooo") else "Тестовыйсрок14дней"
         if condition not in flat:
             raise AssertionError(f"{filename}: missing modified delivery/payment condition")
