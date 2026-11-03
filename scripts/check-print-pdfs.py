@@ -123,6 +123,12 @@ def main():
             text += page.extract_text() or ""
 
         flat = re.sub(r"\s+", "", text)
+        if key in ("ooo", "long", "conditions-ooo"):
+            if re.sub(r"\s+", "", "+7 (981) 040-10-70") in flat:
+                raise AssertionError(f"{filename}: removed mobile contact is still in PDF")
+            if re.sub(r"\s+", "", "+7 (812) 983-44-33") not in flat:
+                raise AssertionError(f"{filename}: city contact is missing in PDF")
+
         # Match only the NUMERIC 'ИТОГО: 24 000,00' from the actual table.
         # 'ИТОГО: 24 000 (прописью)' is a separate paragraph and must not qualify.
         table_totals = re.findall(r"ИТОГО:\s*(\d[\d\s\u00a0]*,\d{2})", text)
