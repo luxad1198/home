@@ -219,11 +219,53 @@ def check(key):
                     f"{actual!r} != {expected_value!r}"
                 )
 
+    # The classic forms have a one-line visual gap after the title.
+    if key in ("ooo", "ip", "long", "conditions-ooo", "conditions-ip"):
+        titles = [
+            paragraph for paragraph in document.iter(W + "p")
+            if text_content(paragraph).strip() == "КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ"
+        ]
+        if len(titles) != 1:
+            raise AssertionError(f"{filename}: expected exactly one proposal title")
+        spacing = titles[0].find("./" + W + "pPr/" + W + "spacing")
+        if spacing is None or spacing.get(W + "after") != "340":
+            raise AssertionError(f"{filename}: title-to-intro spacing incorrect")
+
+    # Verify the actual monetary cells' paragraph alignment, not just text.
+    monetary_align = (
+        "center" if key in ("ip", "conditions-ip") else "right"
+    )
+    for row in equipment_rows:
+        cells = row.findall("./" + W + "tc")
+        for col_index in (5, 6):
+            paragraph = cells[col_index].find("./" + W + "p")
+            justify = paragraph.find("./" + W + "pPr/" + W + "jc")
+            if justify is None or justify.get(W + "val") != monetary_align:
+                raise AssertionError(
+                    f"{filename}: column {col_index + 1} not {monetary_align} aligned"
+                )
+
+    if key in ("ip", "conditions-ip"):
+        rows_with_number = [
+            text_content(p) for p in document.iter(W + "p")
+            if "Исх. № Q7" in text_content(p)
+        ]
+        if len(rows_with_number) != 1 or not re.search(
+            r"Исх\. № Q7 от «\d{2}» [а-яё]+ \d{4} года",
+            rows_with_number[0],
+            flags=re.IGNORECASE
+        ):
+            raise AssertionError(f"{filename}: outgoing date/number format incorrect")
+
     # The sum must be in the last cell of the actual total row.
     # Merely finding '24 000,00' anywhere also matches the first equipment position.
     total_cells = spec_rows[-1].findall("./" + W + "tc")
     if len(total_cells) != 2 or compact(text_content(total_cells[0])).upper() != "ИТОГО:":
         raise AssertionError(f"{filename}: malformed total row")
+    grand_paragraph = total_cells[1].find("./" + W + "p")
+    grand_justify = grand_paragraph.find("./" + W + "pPr/" + W + "jc")
+    if grand_justify is None or grand_justify.get(W + "val") != monetary_align:
+        raise AssertionError(f"{filename}: grand total not {monetary_align} aligned")
     actual_total = compact(text_content(total_cells[1]))
     if actual_total != expected_total:
         raise AssertionError(
