@@ -397,6 +397,16 @@
 
     document.body.classList.toggle('is-ip', isIp);
     document.body.classList.toggle('is-ip-glazyrin', isGlazyrin);
+    // Both IP forms share the editable date field; only Zakharov prints
+    // the day in Russian guillemets. Switching to Glazyrin restores it.
+    const ipDate = document.getElementById('docDateIp');
+    if (isIp && ipDate) {
+      ipDate.value = isGlazyrin
+        ? unformatZakharovDate(ipDate.value)
+        : formatZakharovDate(ipDate.value);
+    }
+    const ipDateLabel = document.getElementById('ipDateLabel');
+    if (ipDateLabel) ipDateLabel.textContent = isGlazyrin ? 'От' : 'от';
     if (isIp) restoreIpConditions(comp);
     else applyDeletedStandardConditions([]);
     syncInlineConditionEditors();
@@ -740,13 +750,27 @@
     }
   }
 
+  // Preserve arbitrary manually entered dates; normalize only recognisable
+  // Russian dates. Quotes are guillemets, never straight inch marks.
+  function formatZakharovDate(value) {
+    const match = String(value ?? '').trim()
+      .match(/^[«"“]?([0-3]?\d)[»"”]?\s+([а-яё]+)\s+(\d{4})(?:\s+года)?$/i);
+    return match
+      ? `«${match[1].padStart(2, '0')}» ${match[2]} ${match[3]} года`
+      : value;
+  }
+
+  function unformatZakharovDate(value) {
+    return String(value ?? '').replace(/^«(\d{1,2})»(?=\s)/, '$1');
+  }
+
   function onDateInput(input) {
     const isIp = isSoleProprietor();
     if (!isIp) {
       updatePrefixFromDateString(input.value);
     }
     const other = isIp ? document.getElementById('docDate') : document.getElementById('docDateIp');
-    if (other) other.value = input.value;
+    if (other) other.value = isIp ? unformatZakharovDate(input.value) : input.value;
     updateDocumentTitle();
     saveState();
   }
@@ -765,7 +789,8 @@
     const dOoo = document.getElementById('docDate');
     if (dOoo) dOoo.value = dStr;
     const dIp = document.getElementById('docDateIp');
-    if (dIp) dIp.value = dStr;
+    if (dIp) dIp.value = document.getElementById('companySelect')?.value === 'ip'
+      ? formatZakharovDate(dStr) : dStr;
   }
 
   // DOCX import: read only the main document, never comments, styling or HTML.
@@ -1643,7 +1668,7 @@
       }));
 
       const ipMetaChildren = [
-        new TextRun({ text: `Исх. № ${fullNum}        От ${dateVal}`, size: 22, font: "Times New Roman" })
+        new TextRun({ text: `Исх. № ${fullNum} от ${formatZakharovDate(dateVal)}`, size: 22, font: "Times New Roman" })
       ];
 
       if (clientVal.trim()) {
@@ -1662,7 +1687,7 @@
     // 2. Заголовок
     docElements.push(new Paragraph({
       alignment: isGlazyrin ? AlignmentType.LEFT : AlignmentType.CENTER,
-      spacing: { before: 180, after: 120 },
+      spacing: { before: 180, after: isGlazyrin ? 120 : 340 },
       children: [new TextRun({ text: company.documentTitle || "КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ", bold: true, size: isGlazyrin ? 25 : 24, color: isGlazyrin ? "1F2937" : "000000", font: isGlazyrin ? "Arial" : "Times New Roman" })]
     }));
 
@@ -1699,6 +1724,8 @@
       { dxa: 1300 }
     ];
 
+    // Only Zakharov centers monetary data. Other two forms stay unchanged.
+    const monetaryAlign = isIp && !isGlazyrin ? AlignmentType.CENTER : AlignmentType.RIGHT;
     const makeHeaderCell = (text, idx) => new TableCell({
       width: { size: colWidths[idx].dxa, type: WidthType.DXA },
       borders: tableBorders,
@@ -1764,8 +1791,8 @@
           makeDataCell(desc, AlignmentType.LEFT, 2),
           makeDataCell(country, AlignmentType.CENTER, 3),
           makeDataCell(qty, AlignmentType.CENTER, 4),
-          makeDataCell(price, AlignmentType.RIGHT, 5),
-          makeDataCell(total, AlignmentType.RIGHT, 6)
+          makeDataCell(price, monetaryAlign, 5),
+          makeDataCell(total, monetaryAlign, 6)
         ]
       }));
     });
@@ -1789,7 +1816,7 @@
           shading: { fill: totalBgColor, type: ShadingType.CLEAR },
           verticalAlign: VerticalAlign.TOP,
           children: [new Paragraph({
-            alignment: AlignmentType.RIGHT,
+            alignment: monetaryAlign,
             children: [new TextRun({ text: grandTotalVal, size: 19, font: "Times New Roman" })]
           })]
         })
@@ -2087,6 +2114,11 @@
     });
     document.getElementById('docDate')?.addEventListener('input', (e) => onDateInput(e.target));
     document.getElementById('docDateIp')?.addEventListener('input', (e) => onDateInput(e.target));
+    document.getElementById('docDateIp')?.addEventListener('change', (e) => {
+      if (document.getElementById('companySelect').value !== 'ip') return;
+      e.target.value = formatZakharovDate(e.target.value);
+      onDateInput(e.target);
+    });
     document.getElementById('clientBox')?.addEventListener('input', () => {
       saveState();
       updateDocumentTitle();
