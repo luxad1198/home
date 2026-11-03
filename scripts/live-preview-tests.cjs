@@ -108,6 +108,36 @@ async function runCase(browser, url, scenario) {
     await verifyLiveMirror(page, clientSelector,
       isIp ? '#clientContainerIp .client-print-value' : '#clientContainerOoo .client-print-value');
     const numberSelector = isIp ? '#kpNumInputIp' : '#kpNumInput';
+    if (scenario.company === 'ip') {
+      // The number input must not reserve 48px for a two-character number:
+      // measure the ACTUAL text end, not merely the input/date box gap.
+      for (const number of ['Q7', 'TEST-DOCX-2026']) {
+        await page.locator(numberSelector).fill(number);
+        const measured = await page.evaluate(() => {
+          const input = document.querySelector('#kpNumInputIp');
+          const label = document.querySelector('#ipDateLabel');
+          const box = input.getBoundingClientRect();
+          const font = getComputedStyle(input).font;
+          const ctx = document.createElement('canvas').getContext('2d');
+          ctx.font = font;
+          const actualTextWidth = ctx.measureText(input.value).width;
+          return {
+            spareWidth: box.width - actualTextWidth,
+            actualTextToDate: label.getBoundingClientRect().left -
+              (box.left + actualTextWidth),
+            inputWidth: box.width
+          };
+        });
+        assert(measured.spareWidth >= -2 && measured.spareWidth <= 3,
+          slug + ': number input reserves invisible space: ' + JSON.stringify(measured));
+        if (number === 'Q7') {
+          assert(measured.actualTextToDate >= 2 && measured.actualTextToDate <= 10,
+            slug + ': short number and date have excess whitespace: ' + JSON.stringify(measured));
+        }
+        // For long numbers, wrapping is allowed rather than clipping the date
+        // or overlapping the customer; the text must still fit its input.
+      }
+    }
     await page.locator(numberSelector).fill('PREVIEW-VERY-LONG-2026-001');
 
     const first = page.locator('#tableBody tr').first();

@@ -568,6 +568,18 @@ body.hide-bg-sidebar .bg-sidebar {
   gap: 15px;
   flex-wrap: wrap;
 }
+/* The Zakharov outgoing number and date read as one compact line. */
+body.is-ip:not(.is-ip-glazyrin) .head-ip-meta-left { gap: 5px; }
+body.is-ip:not(.is-ip-glazyrin) .kp-ip-input {
+  /* Let Chromium size the actual number. A fixed 48px box left a
+     conspicuous gap after short values such as "Q7". */
+  width: auto;
+  min-width: 0;
+  padding: 0;
+}
+body.is-ip:not(.is-ip-glazyrin) #docDateIp {
+  width: 190px !important; /* Full date must not be clipped in print. */
+}
 
 /* Строгая двухколоночная шапка ИП Глазырина */
 body.is-ip-glazyrin .head-ip-container {
@@ -774,6 +786,8 @@ body.is-ip:not(.is-ip-glazyrin) #clientContainerIp .client-inline-row .client-te
 
 .title { text-align: center; font-size: 12pt; font-weight: bold; margin: 10px 0 6px; }
 .intro { text-align: justify; text-indent: 10mm; font-size: 11pt; margin-bottom: 8px; line-height: 1.15; }
+/* One readable blank line after the title for the two traditional proposals. */
+body:not(.is-ip-glazyrin) .title { margin-bottom: 21px; }
 
 /* Таблица спецификации */
 table.spec { 
@@ -834,6 +848,12 @@ table.spec th {
 
 body.is-ip table.spec th { background-color: #fff !important; }
 body.is-ip .t-tot { background-color: #fff !important; }
+/* Zakharov only: center both monetary columns, including the grand total,
+   in the editor and in Chromium's printed PDF. */
+body.is-ip:not(.is-ip-glazyrin) table.spec .col-price,
+body.is-ip:not(.is-ip-glazyrin) table.spec td.col-total {
+  text-align: center;
+}
 
 /* Distinctive product quotation style for IP Glazyrin */
 body.is-ip-glazyrin .head-ip-container { border-bottom: 2px solid #2F5D50; }
