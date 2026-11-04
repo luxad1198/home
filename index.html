@@ -87,6 +87,17 @@
     <button type="button" class="btn-copy-calc ui-button ui-button--primary ui-button--full" id="btnCopyCalc">📋 Скопировать цену в буфер</button>
   </div>
 
+  <button type="button" class="price-toggle-panel-btn ui-button ui-button--primary ui-button--compact no-print" id="btnTogglePrices" aria-controls="priceSidebar" aria-expanded="true">₽ Список цен</button>
+  <div class="price-sidebar no-print" id="priceSidebar">
+    <div class="calc-title">
+      <span>₽ Цены за единицу</span>
+      <button type="button" class="ui-icon-button" id="btnClosePrices" aria-label="Скрыть список цен">✕</button>
+    </div>
+    <label class="calc-label" for="priceColumnInput">Вставьте один столбец цен из буфера обмена</label>
+    <textarea id="priceColumnInput" class="calc-input price-column-input" spellcheck="false" placeholder="40000&#10;80860&#10;58910&#10;36300&#10;304700" aria-describedby="priceColumnStatus"></textarea>
+    <div class="price-column-status" id="priceColumnStatus" role="status" aria-live="polite">Вставьте цены для сверки с позициями КП.</div>
+  </div>
+
   <!-- Фоновые миниатюры слева -->
   <div class="bg-sidebar bg-left no-print" id="bgLeft">
     <img src="bg-thumb1.webp" alt="">

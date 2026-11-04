@@ -336,10 +336,39 @@ body.hide-bg-sidebar .bg-sidebar {
   box-shadow: 0 2px 8px rgba(15,23,42,.25);
 }
 
+.price-sidebar {
+  position: fixed;
+  right: max(12px, calc(50% - 105mm - 330px));
+  top: 60px;
+  width: min(310px, calc(100vw - 24px));
+  max-height: 88dvh;
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 8px;
+  padding: 14px;
+  box-shadow: 0 4px 18px rgba(0,0,0,.35);
+  font: 12px/1.35 var(--ui-font);
+  z-index: 50;
+  transition: transform .25s ease, opacity .25s ease;
+}
+.price-sidebar * { font-family: var(--ui-font); }
+.price-sidebar.collapsed { transform: translateX(360px); opacity: 0; pointer-events: none; }
+.price-toggle-panel-btn {
+  position: fixed;
+  right: max(12px, calc(50% - 105mm - 330px));
+  top: 18px;
+  z-index: 55;
+  box-shadow: 0 2px 8px rgba(15,23,42,.25);
+}
+.price-column-input { display: block; min-height: 180px; resize: vertical; text-align: right; font-variant-numeric: tabular-nums; }
+.price-column-status { margin-top: 9px; color: #475569; line-height: 1.4; }
+.price-column-status.has-warning { color: #b45309; font-weight: 600; }
+
 @media (max-width: 1460px) {
   .calc-sidebar, .calc-toggle-panel-btn {
     left: 12px;
   }
+  .price-sidebar, .price-toggle-panel-btn { right: 12px; }
 }
 
 @media (max-width: 600px) {
@@ -351,6 +380,9 @@ body.hide-bg-sidebar .bg-sidebar {
     top: 56px;
     width: calc(100vw - 24px);
   }
+  .price-toggle-panel-btn { top: 12px; }
+  .calc-toggle-panel-btn, .price-toggle-panel-btn { padding-inline: 8px; font-size: 11px; }
+  .price-sidebar { top: 56px; width: calc(100vw - 24px); }
 }
 
 .calc-title {
