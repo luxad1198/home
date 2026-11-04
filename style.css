@@ -372,6 +372,12 @@ body.hide-bg-sidebar .bg-sidebar {
 .price-markup-btn:disabled { opacity: .55; cursor: not-allowed; }
 .price-markup-status { margin-top: 8px; color: var(--ui-muted); }
 .price-markup-note { margin-top: 6px; color: var(--ui-muted); font-size: 11px; }
+.pricing-fixed-tools { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--ui-border); }
+.pricing-target { display: flex; align-items: center; gap: 6px; margin: 7px 0; }
+.pricing-target span { flex: 1; overflow-wrap: anywhere; }
+.pricing-target button { font-size: 11px; }
+#pricingTargets { max-height: 220px; overflow: auto; overscroll-behavior-y: contain; }
+#pricingModeTools[hidden], #btnAcceptPricingTotal[hidden], #btnCancelPricingTotal[hidden] { display: none; }
 
 @media (max-width: 1460px) {
   .calc-sidebar, .calc-toggle-panel-btn {

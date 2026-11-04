@@ -6,6 +6,161 @@
   let currentMarginMode = 'rub';
   let currentFinMode = 'days';
   let pricingBasis = null;
+  let pricingModeActive = false;
+  let pricingSelection = [];
+  let fixedPricing = null;
+  let pendingPricing = null;
+  let fixedPricingMessage = '';
+
+  function pricingRows() {
+    return [...document.querySelectorAll('#tableBody tr')].map(row => ({
+      price: Math.round(readNumber(row.querySelector('.col-price').dataset.raw ?? row.querySelector('.col-price').value) * 100),
+      qty: row.querySelector('.col-qty').value === '' ? 1 : Number(row.querySelector('.col-qty').value),
+      name: row.querySelector('.col-name').value || 'Без наименования'
+    }));
+  }
+
+  function pricingRowsValid(rows) {
+    return rows.length > 0 && rows.every(row => Number.isSafeInteger(row.price) && row.price >= 0
+      && Number.isSafeInteger(row.qty) && row.qty >= 1 && row.qty <= 1000000)
+      && Number.isSafeInteger(rows.reduce((sum, row) => sum + row.price * row.qty, 0));
+  }
+
+  // Work in integer kopecks. Try ten-rouble prices first, then use a
+  // balancing position for the residue; accept only verified totals.
+  function distributeFixedTotal(rows, target, selected) {
+    const output = rows.map(row => row.price);
+    const total = prices => prices.reduce((sum, price, i) => sum + price * rows[i].qty, 0);
+    if (!selected.length) return { prices: output, total: total(output) };
+    const outside = rows.reduce((sum, row, i) => sum + (selected.includes(i) ? 0 : row.price * row.qty), 0);
+    const available = target - outside;
+    if (available < 0) { selected.forEach(i => output[i] = 0); return { prices: output, total: total(output) }; }
+    const weight = selected.reduce((sum, i) => sum + rows[i].qty * Math.max(rows[i].price, 1), 0);
+    const egcd = (x, y) => y === 0 ? [x, 1, 0] : (() => { const [g, u, v] = egcd(y, x % y); return [g, v, u - Math.floor(x / y) * v]; })();
+    const quantityGcd = selected.reduce((g, i) => egcd(g, rows[i].qty)[0], 0);
+    let best = null;
+    for (const step of [1000, 1]) {
+      for (const residue of [...selected].sort((a, b) => rows[a].qty - rows[b].qty)) {
+        const prices = [...output];
+        let used = 0;
+        for (const i of selected) {
+          if (i === residue) continue;
+          prices[i] = Math.round(available * Math.max(rows[i].price, 1) / weight / step) * step;
+          used += prices[i] * rows[i].qty;
+        }
+        prices[residue] = Math.round((available - used) / rows[residue].qty);
+        if (prices.some(price => price < 0 || price > 1e14 || !Number.isSafeInteger(price))) continue;
+        const candidate = { prices, total: total(prices) };
+        if (!Number.isSafeInteger(candidate.total)) continue;
+        if (candidate.total === target) return candidate;
+        // A cent adjustment across two positions can preserve an exact total
+        // even when neither quantity alone divides the rounding residue.
+        if (available % quantityGcd === 0) for (const a of selected) for (const b of selected) {
+          if (a >= b) continue;
+          const [g, x, y] = egcd(rows[a].qty, rows[b].qty);
+          const delta = target - candidate.total;
+          if (delta % g) continue;
+          const adjusted = [...prices]; adjusted[a] += x * delta / g; adjusted[b] += y * delta / g;
+          if (adjusted.every(price => Number.isSafeInteger(price) && price >= 0 && price <= 1e14) && total(adjusted) === target) return { prices: adjusted, total: target };
+        }
+        if (!best || Math.abs(candidate.total - target) < Math.abs(best.total - target)) best = candidate;
+      }
+    }
+    return best || { prices: output, total: total(output) };
+  }
+
+  function resetFixedPricing(message = '') {
+    fixedPricing = null;
+    pendingPricing = null;
+    fixedPricingMessage = message;
+  }
+
+  function updateFixedPricingUI() {
+    const rows = pricingRows();
+    pricingSelection = pricingSelection.filter(i => Number.isInteger(i) && i >= 0 && i < rows.length);
+    if (fixedPricing && (fixedPricing.qty.length !== rows.length || rows.some((row, i) => row.qty !== fixedPricing.qty[i]))) {
+      resetFixedPricing('Количество или список позиций изменились. Зафиксируйте итог заново.');
+      pricingSelection = [];
+    }
+    document.getElementById('pricingModeTools').hidden = !pricingModeActive;
+    const toggle = document.getElementById('btnPricingMode');
+    toggle.textContent = pricingModeActive ? 'Выключить режим расценки' : 'Включить режим расценки';
+    toggle.setAttribute('aria-expanded', String(pricingModeActive));
+    const list = document.getElementById('pricingTargets');
+    list.replaceChildren();
+    rows.forEach((row, i) => {
+      const label = document.createElement('label'); label.className = 'pricing-target';
+      const checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.dataset.pricingIndex = i;
+      checkbox.checked = pricingSelection.includes(i); checkbox.disabled = !!fixedPricing?.pinned.includes(i);
+      const text = document.createElement('span'); text.textContent = `${i + 1}. ${row.name}${checkbox.disabled ? ' — цена закреплена' : ''}`;
+      label.append(checkbox, text);
+      if (checkbox.disabled) {
+        const unlock = document.createElement('button'); unlock.type = 'button'; unlock.className = 'ui-button ui-button--neutral ui-button--compact'; unlock.dataset.unlockPricing = i; unlock.textContent = 'Открепить'; label.append(unlock);
+      }
+      list.append(label);
+    });
+    const button = document.getElementById('btnFixPricingTotal');
+    button.textContent = fixedPricing ? 'Снять фиксацию итога' : 'Зафиксировать итог КП';
+    button.disabled = !fixedPricing && (!pricingRowsValid(rows) || !pricingSelection.length);
+    document.getElementById('fixedPricingStatus').textContent = fixedPricingMessage || (fixedPricing
+      ? `Итог зафиксирован: ${fmt(fixedPricing.target / 100)} ₽. Выбранные позиции распределяют разницу пропорционально их стоимости.`
+      : 'Выберите позиции для распределения и зафиксируйте текущий итог КП.');
+    const accept = document.getElementById('btnAcceptPricingTotal'); accept.hidden = !pendingPricing;
+    document.getElementById('btnCancelPricingTotal').hidden = !pendingPricing;
+    if (pendingPricing) accept.textContent = `Принять итог ${fmt(pendingPricing.total / 100)} ₽`;
+    document.getElementById('btnMarkupPrices').disabled ||= pricingModeActive && !!fixedPricing;
+    document.getElementById('btnApplyPrices').disabled ||= pricingModeActive && !!fixedPricing;
+  }
+
+  function fixPricingTotal() {
+    if (fixedPricing) resetFixedPricing();
+    else {
+      const rows = pricingRows();
+      if (!pricingRowsValid(rows) || !pricingSelection.length) return;
+      fixedPricing = { target: rows.reduce((sum, row) => sum + row.price * row.qty, 0), qty: rows.map(row => row.qty), prices: rows.map(row => row.price), pinned: [] };
+      fixedPricingMessage = '';
+    }
+    updatePriceColumnStatus(); updateMarkupControl(); updateFixedPricingUI(); saveState();
+  }
+
+  function applyFixedPricing(proposal) {
+    document.querySelectorAll('#tableBody tr').forEach((row, i) => {
+      const price = row.querySelector('.col-price'); price.dataset.raw = String(proposal.prices[i] / 100); price.value = fmt(proposal.prices[i] / 100);
+    });
+    fixedPricing.target = proposal.total;
+    fixedPricing.prices = [...proposal.prices];
+    fixedPricing.pinned = proposal.pinned;
+    pricingSelection = pricingSelection.filter(i => !proposal.pinned.includes(i));
+    pendingPricing = null; fixedPricingMessage = '';
+    recalc(); saveState();
+  }
+
+  function commitFixedPrice(input) {
+    if (!pricingModeActive || !fixedPricing) return false;
+    const rows = pricingRows();
+    const index = [...document.querySelectorAll('#tableBody tr')].indexOf(input.closest('tr'));
+    const value = readNumber(input.value);
+    const previous = fixedPricing.prices[index];
+    if (Number.isFinite(value) && Math.round(value * 100) === previous) {
+      input.dataset.raw = String(previous / 100); input.value = fmt(previous / 100); return true;
+    }
+    rows.forEach((row, i) => row.price = fixedPricing.prices[i]);
+    input.dataset.raw = String(previous / 100); input.value = fmt(previous / 100);
+    pendingPricing = null;
+    if (!Number.isFinite(value)) {
+      fixedPricingMessage = 'Введите корректную цену. Предыдущие цены сохранены.';
+    } else {
+      rows[index].price = Math.round(value * 100);
+      if (!pricingRowsValid(rows)) { fixedPricingMessage = 'Сумма слишком велика для точного распределения. Предыдущие цены сохранены.'; updateFixedPricingUI(); return true; }
+      const pinned = [...new Set([...fixedPricing.pinned, index])];
+      const selected = pricingSelection.filter(i => !pinned.includes(i));
+      const proposal = { ...distributeFixedTotal(rows, fixedPricing.target, selected), pinned };
+      if (proposal.total === fixedPricing.target) { applyFixedPricing(proposal); return true; }
+      pendingPricing = proposal;
+      fixedPricingMessage = `Точный итог при выбранных позициях и округлении не получился. Доступен итог ${fmt(proposal.total / 100)} ₽ (разница ${fmt((proposal.total - fixedPricing.target) / 100)} ₽). Примите его или отмените изменение.`;
+    }
+    updateFixedPricingUI(); return true;
+  }
 
   const DEFAULT_DELIVERY_TIME_OOO = '5-10 (пять-десять) рабочих дней';
   const DEFAULT_PAY_OOO = '100% постоплата';
@@ -385,10 +540,12 @@
     const { lines, warnings } = parsed;
     status.textContent = warnings.length ? `⚠ ${warnings.join(' ')}` : `Строк: ${lines}. Совпадает с числом позиций КП.`;
     status.classList.toggle('has-warning', warnings.length > 0);
-    button.disabled = warnings.length > 0;
+    button.disabled = warnings.length > 0 || (pricingModeActive && !!fixedPricing);
   }
 
   function applyPriceColumn() {
+    if (pricingModeActive && fixedPricing) return;
+    resetFixedPricing();
     // Revalidate at click time in case the number of positions has changed.
     const parsed = parsePriceColumn();
     if (!parsed || parsed.warnings.length) { updatePriceColumnStatus(); return; }
@@ -436,11 +593,12 @@
     const proposal = markupProposal();
     const label = document.getElementById('priceCoefficient');
     label.textContent = proposal.coefficient === undefined ? '—' : proposal.coefficient.toLocaleString('ru-RU', { maximumFractionDigits: 6 });
-    document.getElementById('btnMarkupPrices').disabled = !!proposal.reason;
+    document.getElementById('btnMarkupPrices').disabled = !!proposal.reason || !!fixedPricing;
     document.getElementById('priceMarkupStatus').textContent = proposal.reason || 'Цены КП готовы к расценке.';
   }
 
   function markupPrices() {
+    if (!pricingModeActive || fixedPricing) return;
     const proposal = markupProposal();
     if (proposal.reason) { updateMarkupControl(); return; }
     document.querySelectorAll('#tableBody tr').forEach((row, i) => {
@@ -852,6 +1010,7 @@
   }
 
   function prepareForPrint() {
+    if (document.activeElement?.classList.contains('col-price')) commitFixedPrice(document.activeElement);
     syncDocumentPresentation();
     // Preserve established print defaults without ever changing form data in
     // the live preview sync above. Validation and export still happen normally.
@@ -1019,6 +1178,7 @@
       price: row.querySelector('.col-price').getAttribute('data-raw') || 0
     }));
     const writeRows = rows => {
+      resetFixedPricing('Список оборудования заменён. Зафиксируйте итог заново.'); pricingSelection = [];
       const tbody = document.getElementById('tableBody');
       const template = tbody.firstElementChild.cloneNode(true);
       const fragment = document.createDocumentFragment();
@@ -1103,6 +1263,7 @@
   }
 
   function addRow() {
+    resetFixedPricing('Список позиций изменился. Зафиксируйте итог заново.'); pricingSelection = [];
     const tbody = document.getElementById('tableBody');
     const idx = tbody.children.length + 1;
     const tr = document.createElement('tr');
@@ -1133,6 +1294,7 @@
   }
 
   function deleteRow(btn) {
+    resetFixedPricing('Список позиций изменился. Зафиксируйте итог заново.'); pricingSelection = [];
     const tbody = document.getElementById('tableBody');
     if (tbody.children.length > 1) {
       btn.closest('tr').remove();
@@ -1176,6 +1338,7 @@
       document.getElementById('grandTotal').textContent = '—';
       document.getElementById('textTotalBlock').textContent = 'Проверьте выделенные количество и цену. Экспорт недоступен до исправления.';
       updateMarkupControl();
+      updateFixedPricingUI();
       return;
     }
     document.getElementById('grandTotal').textContent = fmt(grandTotal);
@@ -1200,6 +1363,7 @@
     document.getElementById('textTotalBlock').innerHTML =
       `<b>ИТОГО: ${fmtInt(t.rub)} (${tRubW}) ${tRubDecl} ${String(t.kop).padStart(2, '0')} ${tKopDecl}</b>, ${vatPhrase}.`;
     updateMarkupControl();
+    updateFixedPricingUI();
   }
 
   function updateDocumentTitle() {
@@ -1229,6 +1393,7 @@
 
   function clearForm() {
     if (!confirm('Вы уверены, что хотите полностью очистить бланк?')) return;
+    resetFixedPricing(); pricingSelection = [];
     localStorage.removeItem(STORAGE_KEY);
     ipConditionsByCompany = {};
     applyDeletedStandardConditions([]);
@@ -1374,6 +1539,8 @@
         calcFinMode: currentFinMode,
         priceColumnInput: document.getElementById('priceColumnInput').value,
         pricingBasis,
+        fixedPricing,
+        pricingSelection,
         rows: rows
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -1393,6 +1560,9 @@
       }
       const state = JSON.parse(raw);
       pricingBasis = state.pricingBasis || null;
+      fixedPricing = state.fixedPricing || null;
+      if (fixedPricing && (!Array.isArray(fixedPricing.qty) || !Array.isArray(fixedPricing.prices) || !Array.isArray(fixedPricing.pinned) || !Number.isSafeInteger(fixedPricing.target))) fixedPricing = null;
+      pricingSelection = Array.isArray(state.pricingSelection) ? state.pricingSelection : [];
       ipConditionsByCompany = state.ipConditionsByCompany || {};
       if (!state.ipConditionsByCompany) {
         // Legacy shared terms belong to the last selected IP only; do not duplicate them.
@@ -1584,6 +1754,7 @@
   }
 
   async function exportToWord() {
+    if (document.activeElement?.classList.contains('col-price')) commitFixedPrice(document.activeElement);
     if (!validateEquipment(true)) return;
     const docxLib = window.docx;
     if (!docxLib || !docxLib.Document) {
@@ -2214,6 +2385,27 @@
   // НАЗНАЧЕНИЕ ЕДИНЫХ СЛУШАТЕЛЕЙ (EVENT LISTENERS)
   // ==========================================
   function bindEvents() {
+    document.getElementById('btnPricingMode').addEventListener('click', () => {
+      pricingModeActive = !pricingModeActive;
+      pendingPricing = null; fixedPricingMessage = '';
+      updatePriceColumnStatus(); updateMarkupControl();
+      updateFixedPricingUI();
+    });
+    document.getElementById('btnFixPricingTotal').addEventListener('click', fixPricingTotal);
+    document.getElementById('btnAcceptPricingTotal').addEventListener('click', () => { if (pendingPricing) applyFixedPricing(pendingPricing); });
+    document.getElementById('btnCancelPricingTotal').addEventListener('click', () => { pendingPricing = null; fixedPricingMessage = ''; updateFixedPricingUI(); });
+    document.getElementById('pricingTargets').addEventListener('change', event => {
+      const index = Number(event.target.dataset.pricingIndex);
+      if (!Number.isInteger(index)) return;
+      pricingSelection = event.target.checked ? [...new Set([...pricingSelection, index])] : pricingSelection.filter(i => i !== index);
+      pendingPricing = null; fixedPricingMessage = ''; updateFixedPricingUI(); saveState();
+    });
+    document.getElementById('pricingTargets').addEventListener('click', event => {
+      const button = event.target.closest('[data-unlock-pricing]');
+      if (!button || !fixedPricing) return;
+      fixedPricing.pinned = fixedPricing.pinned.filter(i => i !== Number(button.dataset.unlockPricing));
+      pendingPricing = null; fixedPricingMessage = ''; updateFixedPricingUI(); saveState();
+    });
     // Верхняя панель и кнопки
     document.getElementById('btnToggleCalc')?.addEventListener('click', toggleCalcPanel);
     document.getElementById('btnCloseCalc')?.addEventListener('click', toggleCalcPanel);
@@ -2329,9 +2521,12 @@
       itemsTable.addEventListener('input', (e) => {
         const target = e.target;
         if (target.classList.contains('col-qty')) {
+          resetFixedPricing('Количество изменилось. Зафиксируйте итог заново.');
           recalc();
           saveState();
         } else if (target.classList.contains('col-price')) {
+          if (pricingModeActive && fixedPricing) return;
+          if (fixedPricing) resetFixedPricing('Цена изменена вне режима расценки. Зафиксируйте итог заново.');
           target.setAttribute('data-raw', target.value);
           recalc();
           saveState();
@@ -2351,12 +2546,16 @@
       itemsTable.addEventListener('focusout', (e) => {
         const target = e.target;
         if (target.classList.contains('col-price')) {
+          if (commitFixedPrice(target)) return;
           const num = readNumber(target.value);
           target.setAttribute('data-raw', target.value);
           if (Number.isFinite(num)) { target.dataset.raw = String(num); target.value = num > 0 ? fmt(num) : ''; }
           recalc();
           saveState();
         }
+      });
+      itemsTable.addEventListener('keydown', event => {
+        if (event.key === 'Enter' && event.target.classList.contains('col-price')) { event.preventDefault(); event.target.blur(); }
       });
     }
 
