@@ -329,36 +329,46 @@
     document.getElementById('btnTogglePrices').setAttribute('aria-expanded', String(expanded));
   }
 
-  function parsePriceColumn() {
-    const input = document.getElementById('priceColumnInput');
-    if (!input.value.trim()) return null;
-
-    // Spreadsheet paste normally ends with one newline. Preserve internal
-    // empty rows: they still represent positions in the source list.
-    const source = input.value.replace(/\r\n?/g, '\n').replace(/\n$/, '');
-    let lines = source.split('\n');
+  function priceColumnLines(text) {
+    let lines = text.replace(/\r\n?/g, '\n').split('\n');
     // Also accept a one-column Markdown table copied as text.
     if (lines.some(line => /^\s*\|?\s*:?-{3,}:?\s*\|?\s*$/.test(line))) {
       lines = lines.filter(line => !/^\s*\|?\s*:?-{3,}:?\s*\|?\s*$/.test(line));
-      lines = lines.map(line => line.replace(/^\s*\|/, '').replace(/\|\s*$/, '').trim());
     }
+    // Empty cells in a copied column do not represent КП positions.
+    return lines.map(line => line.replace(/^\s*\|/, '').replace(/\|\s*$/, '').trim()).filter(Boolean);
+  }
+
+  function parsePriceColumn() {
+    const input = document.getElementById('priceColumnInput');
+    const lines = priceColumnLines(input.value);
+    if (!lines.length) return null;
+
     const count = document.getElementById('tableBody').rows.length;
-    const empty = [];
     const invalid = [];
     const prices = [];
     lines.forEach((line, i) => {
-      const value = line.trim();
-      if (!value) { empty.push(i + 1); return; }
-      const number = /^\d[\d\s\u00a0\u202f]*(?:[,.]\d{1,2})?\s*(?:₽|руб\.?)?$/i.test(value)
-        ? readNumber(value.replace(/\s*(?:₽|руб\.?)$/i, '')) : NaN;
+      const number = /^\d[\d\s\u00a0\u202f]*(?:[,.]\d{1,2})?\s*(?:₽|руб\.?)?$/i.test(line)
+        ? readNumber(line.replace(/\s*(?:₽|руб\.?)$/i, '')) : NaN;
       if (!Number.isFinite(number)) invalid.push(i + 1);
       else prices.push(number);
     });
     const warnings = [];
     if (lines.length !== count) warnings.push(`Число строк (${lines.length}) не совпадает с числом позиций КП (${count}).`);
-    if (empty.length) warnings.push(`Пустая цена в строках: ${empty.join(', ')}.`);
     if (invalid.length) warnings.push(`Проверьте формат цены в строках: ${invalid.join(', ')}.`);
     return { prices, lines: lines.length, count, warnings };
+  }
+
+  function pastePriceColumn(event) {
+    const pasted = event.clipboardData?.getData('text/plain');
+    if (!pasted) return;
+    event.preventDefault();
+    const input = event.currentTarget;
+    const combined = input.value.slice(0, input.selectionStart) + pasted + input.value.slice(input.selectionEnd);
+    input.value = priceColumnLines(combined).join('\n');
+    input.setSelectionRange(input.value.length, input.value.length);
+    updatePriceColumnStatus();
+    saveState();
   }
 
   function updatePriceColumnStatus() {
@@ -2149,6 +2159,7 @@
     document.getElementById('btnTogglePrices')?.addEventListener('click', togglePricePanel);
     document.getElementById('btnClosePrices')?.addEventListener('click', togglePricePanel);
     document.getElementById('priceColumnInput')?.addEventListener('input', () => { updatePriceColumnStatus(); saveState(); });
+    document.getElementById('priceColumnInput')?.addEventListener('paste', pastePriceColumn);
     document.getElementById('btnApplyPrices')?.addEventListener('click', applyPriceColumn);
     document.getElementById('companySelect')?.addEventListener('change', onCompanyChange);
     initEquipmentImport();
