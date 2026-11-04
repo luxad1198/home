@@ -8,7 +8,7 @@
   <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
   <!-- Стили -->
-  <link rel="stylesheet" href="style.css?v=20261104-price-panel-1">
+  <link rel="stylesheet" href="style.css?v=20261104-apply-prices-1">
 </head>
 <body>
 
@@ -96,6 +96,7 @@
     <label class="calc-label" for="priceColumnInput">Вставьте один столбец цен из буфера обмена</label>
     <textarea id="priceColumnInput" class="calc-input price-column-input" spellcheck="false" placeholder="40000&#10;80860&#10;58910&#10;36300&#10;304700" aria-describedby="priceColumnStatus"></textarea>
     <div class="price-column-status" id="priceColumnStatus" role="status" aria-live="polite">Вставьте цены для сверки с позициями КП.</div>
+    <button type="button" class="ui-button ui-button--primary ui-button--full price-apply-btn" id="btnApplyPrices" disabled>Перенести в КП</button>
   </div>
 
   <!-- Фоновые миниатюры слева -->
@@ -412,6 +413,6 @@
 
   <!-- Скрипты логики -->
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-  <script src="app.js?v=20261104-price-panel-1"></script>
+  <script src="app.js?v=20261104-apply-prices-1"></script>
 </body>
 </html>
