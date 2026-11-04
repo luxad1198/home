@@ -82,6 +82,12 @@
       resetFixedPricing('Количество или список позиций изменились. Зафиксируйте итог заново.');
       pricingSelection = [];
     }
+    document.querySelectorAll('#tableBody tr').forEach((row, i) => {
+      const price = row.querySelector('.col-price');
+      price.readOnly = pricingModeActive && !!fixedPricing?.pinned.includes(i);
+      price.setAttribute('aria-readonly', String(price.readOnly));
+      price.title = price.readOnly ? 'Цена закреплена. Нажмите «Открепить» в режиме расценки.' : '';
+    });
     document.getElementById('pricingModeTools').hidden = !pricingModeActive;
     const toggle = document.getElementById('btnPricingMode');
     toggle.textContent = pricingModeActive ? 'Выключить режим расценки' : 'Включить режим расценки';
@@ -141,6 +147,10 @@
     const index = [...document.querySelectorAll('#tableBody tr')].indexOf(input.closest('tr'));
     const value = readNumber(input.value);
     const previous = fixedPricing.prices[index];
+    if (fixedPricing.pinned.includes(index)) {
+      input.dataset.raw = String(previous / 100); input.value = fmt(previous / 100);
+      return true;
+    }
     if (Number.isFinite(value) && Math.round(value * 100) === previous) {
       input.dataset.raw = String(previous / 100); input.value = fmt(previous / 100); return true;
     }
@@ -554,7 +564,7 @@
       price.dataset.raw = String(parsed.prices[i]);
       price.value = fmt(parsed.prices[i]);
     });
-    pricingBasis = null;
+    pricingBasis = { base: [...parsed.prices], output: null, coefficient: null };
     recalc();
     saveState();
     document.getElementById('priceColumnStatus').textContent = `Цены перенесены в КП: ${parsed.count} позиций.`;
@@ -565,6 +575,7 @@
     const sale = Number(document.getElementById('resSaleVat').getAttribute('data-val'));
     if (!Number.isFinite(purchase) || purchase <= 0 || !Number.isFinite(sale) || sale <= 0) return { reason: 'Введите корректную закупку и получите итог в калькуляторе.' };
     const coefficient = sale / purchase;
+    if (pricingBasis?.needsTransfer) return { coefficient, reason: 'Состав КП изменился. Перенесите закупочные цены заново перед расценкой.' };
     const rows = [...document.querySelectorAll('#tableBody tr')];
     const current = rows.map(row => readNumber(row.querySelector('.col-price').dataset.raw ?? row.querySelector('.col-price').value));
     const quantitiesValid = rows.every(row => {
@@ -575,18 +586,19 @@
     if (!rows.length || !quantitiesValid || current.some(price => !Number.isFinite(price) || price <= 0)) {
       return { coefficient, reason: 'Заполните корректные количество и цены за единицу во всех позициях КП.' };
     }
-    // Keep the original purchase prices when recalculating after a change in
-    // the calculator. A manual edit or transfer starts a new pricing basis.
-    const sameOutput = Array.isArray(pricingBasis?.base) && Array.isArray(pricingBasis?.output)
-      && pricingBasis.base.length === current.length && pricingBasis.output.length === current.length
-      && pricingBasis.base.every(price => Number.isFinite(price) && price > 0)
-      && current.every((price, i) => price === pricingBasis.output[i]);
-    const base = sameOutput ? pricingBasis.base : current;
+    // The purchase basis survives manual edits and fixed-total distribution.
+    // Only a new transfer or replacement of equipment starts a new basis.
+    const hasBasis = Array.isArray(pricingBasis?.base) && pricingBasis.base.length === current.length
+      && pricingBasis.base.every(price => Number.isFinite(price) && price > 0);
+    const base = hasBasis ? pricingBasis.base : current;
     const output = base.map(price => Math.round(price * coefficient / 10) * 10);
+    const sameCoefficient = hasBasis && (Number.isFinite(pricingBasis.coefficient)
+      ? pricingBasis.coefficient === coefficient
+      : Array.isArray(pricingBasis.output) && pricingBasis.output.length === output.length && output.every((price, i) => price === pricingBasis.output[i]));
     if (output.some(price => !Number.isFinite(price) || price > 1e12)) {
       return { coefficient, reason: 'После умножения цена превышает допустимый предел.' };
     }
-    return { coefficient, base, output, current, reason: output.every((price, i) => price === current[i]) ? 'Цены уже соответствуют этому коэффициенту.' : '' };
+    return { coefficient, base, output, current, reason: sameCoefficient ? 'Этот коэффициент уже применён. Текущие цены сохранены.' : output.every((price, i) => price === current[i]) ? 'Цены уже соответствуют этому коэффициенту.' : '' };
   }
 
   function updateMarkupControl() {
@@ -606,7 +618,7 @@
       price.dataset.raw = String(proposal.output[i]);
       price.value = fmt(proposal.output[i]);
     });
-    pricingBasis = { base: proposal.base, output: proposal.output };
+    pricingBasis = { base: [...proposal.base], output: [...proposal.output], coefficient: proposal.coefficient };
     recalc();
     saveState();
     document.getElementById('priceMarkupStatus').textContent = `Расценено позиций: ${proposal.output.length}. Цены округлены до 10 ₽.`;
@@ -1178,6 +1190,7 @@
       price: row.querySelector('.col-price').getAttribute('data-raw') || 0
     }));
     const writeRows = rows => {
+      pricingBasis = pricingBasis ? { needsTransfer: true } : null;
       resetFixedPricing('Список оборудования заменён. Зафиксируйте итог заново.'); pricingSelection = [];
       const tbody = document.getElementById('tableBody');
       const template = tbody.firstElementChild.cloneNode(true);
@@ -1263,6 +1276,7 @@
   }
 
   function addRow() {
+    pricingBasis = pricingBasis ? { needsTransfer: true } : null;
     resetFixedPricing('Список позиций изменился. Зафиксируйте итог заново.'); pricingSelection = [];
     const tbody = document.getElementById('tableBody');
     const idx = tbody.children.length + 1;
@@ -1294,6 +1308,7 @@
   }
 
   function deleteRow(btn) {
+    pricingBasis = pricingBasis ? { needsTransfer: true } : null;
     resetFixedPricing('Список позиций изменился. Зафиксируйте итог заново.'); pricingSelection = [];
     const tbody = document.getElementById('tableBody');
     if (tbody.children.length > 1) {
