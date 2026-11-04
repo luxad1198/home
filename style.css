@@ -343,6 +343,7 @@ body.hide-bg-sidebar .bg-sidebar {
   width: min(310px, calc(100vw - 24px));
   max-height: 88dvh;
   overflow-y: auto;
+  overscroll-behavior-y: contain;
   background: #fff;
   border-radius: 8px;
   padding: 14px;
@@ -360,7 +361,7 @@ body.hide-bg-sidebar .bg-sidebar {
   z-index: 55;
   box-shadow: 0 2px 8px rgba(15,23,42,.25);
 }
-.price-column-input { display: block; min-height: 180px; resize: vertical; text-align: right; font-variant-numeric: tabular-nums; }
+.price-column-input { display: block; min-height: 180px; resize: vertical; text-align: right; font-variant-numeric: tabular-nums; overscroll-behavior-y: contain; }
 .price-column-status { margin-top: 9px; color: #475569; line-height: 1.4; }
 .price-column-status.has-warning { color: #b45309; font-weight: 600; }
 .price-apply-btn { margin-top: 12px; }
