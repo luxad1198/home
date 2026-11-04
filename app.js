@@ -5,6 +5,7 @@
   const BG_VISIBILITY_KEY = 'rtstandard_bg_hidden';
   let currentMarginMode = 'rub';
   let currentFinMode = 'days';
+  let pricingBasis = null;
 
   const DEFAULT_DELIVERY_TIME_OOO = '5-10 (пять-десять) рабочих дней';
   const DEFAULT_PAY_OOO = '100% постоплата';
@@ -396,9 +397,61 @@
       price.dataset.raw = String(parsed.prices[i]);
       price.value = fmt(parsed.prices[i]);
     });
+    pricingBasis = null;
     recalc();
     saveState();
     document.getElementById('priceColumnStatus').textContent = `Цены перенесены в КП: ${parsed.count} позиций.`;
+  }
+
+  function markupProposal() {
+    const purchase = readNumber(document.getElementById('calcCostVat').value);
+    const sale = Number(document.getElementById('resSaleVat').getAttribute('data-val'));
+    if (!Number.isFinite(purchase) || purchase <= 0 || !Number.isFinite(sale) || sale <= 0) return { reason: 'Введите корректную закупку и получите итог в калькуляторе.' };
+    const coefficient = sale / purchase;
+    const rows = [...document.querySelectorAll('#tableBody tr')];
+    const current = rows.map(row => readNumber(row.querySelector('.col-price').dataset.raw ?? row.querySelector('.col-price').value));
+    const quantitiesValid = rows.every(row => {
+      const qty = row.querySelector('.col-qty');
+      const value = qty.value === '' ? 1 : Number(qty.value);
+      return !qty.validity.badInput && Number.isSafeInteger(value) && value >= 1 && value <= 1000000;
+    });
+    if (!rows.length || !quantitiesValid || current.some(price => !Number.isFinite(price) || price <= 0)) {
+      return { coefficient, reason: 'Заполните корректные количество и цены за единицу во всех позициях КП.' };
+    }
+    // Keep the original purchase prices when recalculating after a change in
+    // the calculator. A manual edit or transfer starts a new pricing basis.
+    const sameOutput = Array.isArray(pricingBasis?.base) && Array.isArray(pricingBasis?.output)
+      && pricingBasis.base.length === current.length && pricingBasis.output.length === current.length
+      && pricingBasis.base.every(price => Number.isFinite(price) && price > 0)
+      && current.every((price, i) => price === pricingBasis.output[i]);
+    const base = sameOutput ? pricingBasis.base : current;
+    const output = base.map(price => Math.round(price * coefficient / 10) * 10);
+    if (output.some(price => !Number.isFinite(price) || price > 1e12)) {
+      return { coefficient, reason: 'После умножения цена превышает допустимый предел.' };
+    }
+    return { coefficient, base, output, current, reason: output.every((price, i) => price === current[i]) ? 'Цены уже соответствуют этому коэффициенту.' : '' };
+  }
+
+  function updateMarkupControl() {
+    const proposal = markupProposal();
+    const label = document.getElementById('priceCoefficient');
+    label.textContent = proposal.coefficient === undefined ? '—' : proposal.coefficient.toLocaleString('ru-RU', { maximumFractionDigits: 6 });
+    document.getElementById('btnMarkupPrices').disabled = !!proposal.reason;
+    document.getElementById('priceMarkupStatus').textContent = proposal.reason || 'Цены КП готовы к расценке.';
+  }
+
+  function markupPrices() {
+    const proposal = markupProposal();
+    if (proposal.reason) { updateMarkupControl(); return; }
+    document.querySelectorAll('#tableBody tr').forEach((row, i) => {
+      const price = row.querySelector('.col-price');
+      price.dataset.raw = String(proposal.output[i]);
+      price.value = fmt(proposal.output[i]);
+    });
+    pricingBasis = { base: proposal.base, output: proposal.output };
+    recalc();
+    saveState();
+    document.getElementById('priceMarkupStatus').textContent = `Расценено позиций: ${proposal.output.length}. Цены округлены до 10 ₽.`;
   }
 
   function setFinMode(mode) {
@@ -600,6 +653,7 @@
       ['resCostNet', 'resNetProfit', 'resProfitTax', 'resVatPayable', 'resSaleVat'].forEach(id => { document.getElementById(id).textContent = '—'; });
       document.getElementById('calcFinCostVal').textContent = 'Проверьте выделенные поля';
       document.getElementById('resSaleVat').removeAttribute('data-val');
+      updateMarkupControl();
       return;
     }
     const cVat = parseNum(document.getElementById('calcCostVat').value);
@@ -627,6 +681,7 @@
       document.getElementById('resVatPayable').textContent = '0,00 ₽';
       document.getElementById('resSaleVat').textContent = '0,00 ₽';
       document.getElementById('resSaleVat').removeAttribute('data-val');
+      updateMarkupControl();
       return;
     }
 
@@ -661,6 +716,7 @@
     document.getElementById('resVatPayable').textContent = fmt(vatPayable) + ' ₽';
     document.getElementById('resSaleVat').textContent = fmt(saleVat) + ' ₽';
     document.getElementById('resSaleVat').setAttribute('data-val', saleVat.toFixed(2));
+    updateMarkupControl();
   }
 
   function copyCalcPrice() {
@@ -1119,6 +1175,7 @@
     if (!valid) {
       document.getElementById('grandTotal').textContent = '—';
       document.getElementById('textTotalBlock').textContent = 'Проверьте выделенные количество и цену. Экспорт недоступен до исправления.';
+      updateMarkupControl();
       return;
     }
     document.getElementById('grandTotal').textContent = fmt(grandTotal);
@@ -1142,6 +1199,7 @@
 
     document.getElementById('textTotalBlock').innerHTML =
       `<b>ИТОГО: ${fmtInt(t.rub)} (${tRubW}) ${tRubDecl} ${String(t.kop).padStart(2, '0')} ${tKopDecl}</b>, ${vatPhrase}.`;
+    updateMarkupControl();
   }
 
   function updateDocumentTitle() {
@@ -1206,6 +1264,7 @@
     document.getElementById('calcDeliveryCost').value = '';
     document.getElementById('calcProfitTarget').value = '';
     document.getElementById('priceColumnInput').value = '';
+    pricingBasis = null;
     updatePriceColumnStatus();
 
     const tbody = document.getElementById('tableBody');
@@ -1314,6 +1373,7 @@
         calcMarginMode: currentMarginMode,
         calcFinMode: currentFinMode,
         priceColumnInput: document.getElementById('priceColumnInput').value,
+        pricingBasis,
         rows: rows
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -1332,6 +1392,7 @@
         return false;
       }
       const state = JSON.parse(raw);
+      pricingBasis = state.pricingBasis || null;
       ipConditionsByCompany = state.ipConditionsByCompany || {};
       if (!state.ipConditionsByCompany) {
         // Legacy shared terms belong to the last selected IP only; do not duplicate them.
@@ -2161,6 +2222,7 @@
     document.getElementById('priceColumnInput')?.addEventListener('input', () => { updatePriceColumnStatus(); saveState(); });
     document.getElementById('priceColumnInput')?.addEventListener('paste', pastePriceColumn);
     document.getElementById('btnApplyPrices')?.addEventListener('click', applyPriceColumn);
+    document.getElementById('btnMarkupPrices')?.addEventListener('click', markupPrices);
     document.getElementById('companySelect')?.addEventListener('change', onCompanyChange);
     initEquipmentImport();
     document.getElementById('btnAddRow')?.addEventListener('click', addRow);

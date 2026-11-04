@@ -366,6 +366,12 @@ body.hide-bg-sidebar .bg-sidebar {
 .price-column-status.has-warning { color: #b45309; font-weight: 600; }
 .price-apply-btn { margin-top: 12px; }
 .price-apply-btn:disabled { opacity: .55; cursor: not-allowed; }
+.price-coefficient-box { margin-top: 14px; padding: 10px; border-radius: 6px; background: var(--ui-soft); display: flex; justify-content: space-between; align-items: center; gap: 8px; color: var(--ui-text); }
+.price-coefficient-box strong { font-variant-numeric: tabular-nums; font-size: 16px; color: var(--ui-accent); }
+.price-markup-btn { margin-top: 10px; }
+.price-markup-btn:disabled { opacity: .55; cursor: not-allowed; }
+.price-markup-status { margin-top: 8px; color: var(--ui-muted); }
+.price-markup-note { margin-top: 6px; color: var(--ui-muted); font-size: 11px; }
 
 @media (max-width: 1460px) {
   .calc-sidebar, .calc-toggle-panel-btn {
