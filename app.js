@@ -329,15 +329,9 @@
     document.getElementById('btnTogglePrices').setAttribute('aria-expanded', String(expanded));
   }
 
-  function updatePriceColumnStatus() {
+  function parsePriceColumn() {
     const input = document.getElementById('priceColumnInput');
-    const status = document.getElementById('priceColumnStatus');
-    if (!input || !status) return;
-    if (!input.value.trim()) {
-      status.textContent = 'Вставьте цены для сверки с позициями КП.';
-      status.classList.remove('has-warning');
-      return;
-    }
+    if (!input.value.trim()) return null;
 
     // Spreadsheet paste normally ends with one newline. Preserve internal
     // empty rows: they still represent positions in the source list.
@@ -351,17 +345,50 @@
     const count = document.getElementById('tableBody').rows.length;
     const empty = [];
     const invalid = [];
+    const prices = [];
     lines.forEach((line, i) => {
       const value = line.trim();
-      if (!value) empty.push(i + 1);
-      else if (!/^\d[\d\s\u00a0\u202f]*(?:[,.]\d{1,2})?\s*(?:₽|руб\.?)?$/i.test(value)) invalid.push(i + 1);
+      if (!value) { empty.push(i + 1); return; }
+      const number = /^\d[\d\s\u00a0\u202f]*(?:[,.]\d{1,2})?\s*(?:₽|руб\.?)?$/i.test(value)
+        ? readNumber(value.replace(/\s*(?:₽|руб\.?)$/i, '')) : NaN;
+      if (!Number.isFinite(number)) invalid.push(i + 1);
+      else prices.push(number);
     });
     const warnings = [];
     if (lines.length !== count) warnings.push(`Число строк (${lines.length}) не совпадает с числом позиций КП (${count}).`);
     if (empty.length) warnings.push(`Пустая цена в строках: ${empty.join(', ')}.`);
     if (invalid.length) warnings.push(`Проверьте формат цены в строках: ${invalid.join(', ')}.`);
-    status.textContent = warnings.length ? `⚠ ${warnings.join(' ')}` : `Строк: ${lines.length}. Совпадает с числом позиций КП.`;
+    return { prices, lines: lines.length, count, warnings };
+  }
+
+  function updatePriceColumnStatus() {
+    const status = document.getElementById('priceColumnStatus');
+    const button = document.getElementById('btnApplyPrices');
+    const parsed = parsePriceColumn();
+    if (!parsed) {
+      status.textContent = 'Вставьте цены для сверки с позициями КП.';
+      status.classList.remove('has-warning');
+      button.disabled = true;
+      return;
+    }
+    const { lines, warnings } = parsed;
+    status.textContent = warnings.length ? `⚠ ${warnings.join(' ')}` : `Строк: ${lines}. Совпадает с числом позиций КП.`;
     status.classList.toggle('has-warning', warnings.length > 0);
+    button.disabled = warnings.length > 0;
+  }
+
+  function applyPriceColumn() {
+    // Revalidate at click time in case the number of positions has changed.
+    const parsed = parsePriceColumn();
+    if (!parsed || parsed.warnings.length) { updatePriceColumnStatus(); return; }
+    document.querySelectorAll('#tableBody tr').forEach((row, i) => {
+      const price = row.querySelector('.col-price');
+      price.dataset.raw = String(parsed.prices[i]);
+      price.value = fmt(parsed.prices[i]);
+    });
+    recalc();
+    saveState();
+    document.getElementById('priceColumnStatus').textContent = `Цены перенесены в КП: ${parsed.count} позиций.`;
   }
 
   function setFinMode(mode) {
@@ -2122,6 +2149,7 @@
     document.getElementById('btnTogglePrices')?.addEventListener('click', togglePricePanel);
     document.getElementById('btnClosePrices')?.addEventListener('click', togglePricePanel);
     document.getElementById('priceColumnInput')?.addEventListener('input', () => { updatePriceColumnStatus(); saveState(); });
+    document.getElementById('btnApplyPrices')?.addEventListener('click', applyPriceColumn);
     document.getElementById('companySelect')?.addEventListener('change', onCompanyChange);
     initEquipmentImport();
     document.getElementById('btnAddRow')?.addEventListener('click', addRow);

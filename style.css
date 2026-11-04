@@ -363,6 +363,8 @@ body.hide-bg-sidebar .bg-sidebar {
 .price-column-input { display: block; min-height: 180px; resize: vertical; text-align: right; font-variant-numeric: tabular-nums; }
 .price-column-status { margin-top: 9px; color: #475569; line-height: 1.4; }
 .price-column-status.has-warning { color: #b45309; font-weight: 600; }
+.price-apply-btn { margin-top: 12px; }
+.price-apply-btn:disabled { opacity: .55; cursor: not-allowed; }
 
 @media (max-width: 1460px) {
   .calc-sidebar, .calc-toggle-panel-btn {
