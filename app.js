@@ -323,6 +323,47 @@
     panel.classList.toggle('collapsed');
   }
 
+  function togglePricePanel() {
+    const panel = document.getElementById('priceSidebar');
+    const expanded = panel.classList.toggle('collapsed') === false;
+    document.getElementById('btnTogglePrices').setAttribute('aria-expanded', String(expanded));
+  }
+
+  function updatePriceColumnStatus() {
+    const input = document.getElementById('priceColumnInput');
+    const status = document.getElementById('priceColumnStatus');
+    if (!input || !status) return;
+    if (!input.value.trim()) {
+      status.textContent = 'Вставьте цены для сверки с позициями КП.';
+      status.classList.remove('has-warning');
+      return;
+    }
+
+    // Spreadsheet paste normally ends with one newline. Preserve internal
+    // empty rows: they still represent positions in the source list.
+    const source = input.value.replace(/\r\n?/g, '\n').replace(/\n$/, '');
+    let lines = source.split('\n');
+    // Also accept a one-column Markdown table copied as text.
+    if (lines.some(line => /^\s*\|?\s*:?-{3,}:?\s*\|?\s*$/.test(line))) {
+      lines = lines.filter(line => !/^\s*\|?\s*:?-{3,}:?\s*\|?\s*$/.test(line));
+      lines = lines.map(line => line.replace(/^\s*\|/, '').replace(/\|\s*$/, '').trim());
+    }
+    const count = document.getElementById('tableBody').rows.length;
+    const empty = [];
+    const invalid = [];
+    lines.forEach((line, i) => {
+      const value = line.trim();
+      if (!value) empty.push(i + 1);
+      else if (!/^\d[\d\s\u00a0\u202f]*(?:[,.]\d{1,2})?\s*(?:₽|руб\.?)?$/i.test(value)) invalid.push(i + 1);
+    });
+    const warnings = [];
+    if (lines.length !== count) warnings.push(`Число строк (${lines.length}) не совпадает с числом позиций КП (${count}).`);
+    if (empty.length) warnings.push(`Пустая цена в строках: ${empty.join(', ')}.`);
+    if (invalid.length) warnings.push(`Проверьте формат цены в строках: ${invalid.join(', ')}.`);
+    status.textContent = warnings.length ? `⚠ ${warnings.join(' ')}` : `Строк: ${lines.length}. Совпадает с числом позиций КП.`;
+    status.classList.toggle('has-warning', warnings.length > 0);
+  }
+
   function setFinMode(mode) {
     currentFinMode = mode;
     document.getElementById('btnFinDays').classList.toggle('active', mode === 'days');
@@ -1127,6 +1168,8 @@
     document.getElementById('calcFinDaysInput').value = '0';
     document.getElementById('calcDeliveryCost').value = '';
     document.getElementById('calcProfitTarget').value = '';
+    document.getElementById('priceColumnInput').value = '';
+    updatePriceColumnStatus();
 
     const tbody = document.getElementById('tableBody');
     tbody.innerHTML = `
@@ -1233,6 +1276,7 @@
         calcProfitTarget: document.getElementById('calcProfitTarget').value,
         calcMarginMode: currentMarginMode,
         calcFinMode: currentFinMode,
+        priceColumnInput: document.getElementById('priceColumnInput').value,
         rows: rows
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -1309,6 +1353,7 @@
       if (state.calcFinDays) document.getElementById('calcFinDaysInput').value = state.calcFinDays;
       if (state.calcDeliveryCost) document.getElementById('calcDeliveryCost').value = state.calcDeliveryCost;
       if (state.calcProfitTarget) document.getElementById('calcProfitTarget').value = state.calcProfitTarget;
+      if (typeof state.priceColumnInput === 'string') document.getElementById('priceColumnInput').value = state.priceColumnInput;
       if (state.calcMarginMode) setMarginMode(state.calcMarginMode);
       if (state.calcFinMode) setFinMode(state.calcFinMode);
 
@@ -2074,6 +2119,9 @@
     // Верхняя панель и кнопки
     document.getElementById('btnToggleCalc')?.addEventListener('click', toggleCalcPanel);
     document.getElementById('btnCloseCalc')?.addEventListener('click', toggleCalcPanel);
+    document.getElementById('btnTogglePrices')?.addEventListener('click', togglePricePanel);
+    document.getElementById('btnClosePrices')?.addEventListener('click', togglePricePanel);
+    document.getElementById('priceColumnInput')?.addEventListener('input', () => { updatePriceColumnStatus(); saveState(); });
     document.getElementById('companySelect')?.addEventListener('change', onCompanyChange);
     initEquipmentImport();
     document.getElementById('btnAddRow')?.addEventListener('click', addRow);
@@ -2276,6 +2324,7 @@
     if (!counter || !tbody) return;
     const refresh = () => {
       counter.textContent = 'Позиций: ' + tbody.rows.length;
+      updatePriceColumnStatus();
     };
     new MutationObserver(refresh).observe(tbody, { childList: true });
     refresh();
@@ -2304,6 +2353,7 @@
     onCompanyChange();
     initAutoResize();
     recalc();
+    updatePriceColumnStatus();
     updateDocumentTitle();
     syncDocumentPresentation();
   });
