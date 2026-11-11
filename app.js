@@ -1105,6 +1105,7 @@
     if (doc.getElementsByTagName('parsererror').length || !doc.getElementsByTagNameNS(ns, 'body').length) throw new Error('Не удалось прочитать структуру Word.');
     const all = (node, name) => Array.from(node.getElementsByTagNameNS(ns, name));
     const children = (node, name) => Array.from(node.children).filter(el => el.namespaceURI === ns && el.localName === name);
+    const oneLine = text => text.replace(/\s+/g, ' ').trim();
     const cellText = cell => {
       const walk = node => {
         if (node.namespaceURI === ns) {
@@ -1112,6 +1113,11 @@
           if (node.localName === 't') return node.textContent;
           if (['br', 'cr'].includes(node.localName)) return '\n';
           if (node.localName === 'tab') return '\t';
+          if (node.localName === 'tbl') {
+            const lines = children(node, 'tr').map(row => children(row, 'tc')
+              .map(tc => oneLine(walk(tc))).filter(Boolean).join(' — ')).filter(Boolean);
+            return lines.length ? lines.join('\n') + '\n' : '';
+          }
         }
         const text = Array.from(node.childNodes).map(walk).join('');
         return text + (node.namespaceURI === ns && node.localName === 'p' ? '\n' : '');
@@ -1135,35 +1141,64 @@
       const clean = text.replace(/\s/g, '').replace(/(?:руб\.?|₽|шт\.?|штук[аи]?|ед\.?)$/i, '').replace(',', '.');
       return /^\d+(?:\.\d+)?$/.test(clean) ? Number(clean) : NaN;
     };
+    const description = (cells, map) => {
+      if (map.desc < 0) return '';
+      const parts = cells.slice(map.desc, map.desc + map.descSpan);
+      if (map.descSpan === 3 && parts[2]) {
+        const label = oneLine(parts[0]);
+        const unit = oneLine(parts[1]);
+        const value = [oneLine(parts[2]), /^[-–—]$/.test(unit) ? '' : unit].filter(Boolean).join(' ');
+        if (!label) return value;
+        return label + (label.endsWith(':') ? ' ' : label.includes(':') ? ' — ' : ': ') + value;
+      }
+      return parts.filter(Boolean).join(' — ');
+    };
     const rows = [], warnings = [];
     for (const table of all(doc, 'tbl')) {
       // Nested tables are part of the enclosing description, not extra equipment.
       let parent = table.parentElement, nested = false;
       while (parent) { if (parent.localName === 'tbl') nested = true; parent = parent.parentElement; }
       if (nested) continue;
-      let map = null;
+      let map = null, mergedProduct = null;
       for (const tr of children(table, 'tr')) {
-        const cells = [];
+        const cells = [], spans = [], merges = [];
         for (const tc of children(tr, 'tc')) {
+          const props = children(tc, 'tcPr')[0];
+          const span = props ? Number(children(props, 'gridSpan')[0]?.getAttributeNS(ns, 'val') || 1) : 1;
+          const merge = props && children(props, 'vMerge')[0];
+          spans[cells.length] = Math.min(span, 100);
+          if (merge) merges[cells.length] = merge.getAttributeNS(ns, 'val') || 'continue';
           cells.push(cellText(tc));
-          const span = Number(all(tc, 'gridSpan')[0]?.getAttributeNS(ns, 'val') || 1);
           for (let i = 1; i < Math.min(span, 100); i++) cells.push('');
         }
         const header = columns(cells);
-        if (header.name >= 0 && header.qty >= 0 && header.name !== header.qty) { map = header; continue; }
-        if (!map || !cells.some(Boolean) || /^(итого|всего|общая стоимость)(?:\s|:|$)/i.test(cells.find(Boolean) || '')) continue;
+        if (header.name >= 0 && header.qty >= 0 && header.name !== header.qty) {
+          map = { ...header, descSpan: spans[header.desc] || 1 };
+          mergedProduct = null;
+          continue;
+        }
+        if (!map || !cells.some(Boolean)) continue;
+        if (/^(итого|всего|общая стоимость)(?:\s|:|$)/i.test(cells.find(Boolean) || '')) { mergedProduct = null; continue; }
         // Word forms often repeat a technical row numbering the columns 1…N.
         // Match the complete sequence, never just a numeric product name.
         const isColumnNumbering = cells.length >= 3 && cells.every((text, index) =>
           text.trim() === String(index + 1));
         if (isColumnNumbering) continue;
+        const desc = description(cells, map);
+        if (mergedProduct && merges[map.name] === 'continue') {
+          if (desc) mergedProduct.desc = [mergedProduct.desc, desc].filter(Boolean).join('\n');
+          continue;
+        }
+        mergedProduct = null;
         const name = cells[map.name]?.trim();
         if (!name) { warnings.push('Пропущена строка без наименования.'); continue; }
         const qty = number(cells[map.qty] || '');
         if (!Number.isSafeInteger(qty) || qty < 1 || qty > 1000000) throw new Error(`Проверьте количество у «${name.slice(0, 70)}»: требуется целое число от 1 до 1 000 000.`);
         let price = map.price < 0 || !cells[map.price]?.trim() ? 0 : number(cells[map.price]);
         if (!Number.isFinite(price) || price < 0 || price > 1e12) throw new Error(`Не удалось распознать цену у «${name.slice(0, 70)}».`);
-        rows.push({name, desc: cells[map.desc] || '', country: cells[map.country] || '', qty, price});
+        const product = {name, desc, country: cells[map.country] || '', qty, price};
+        rows.push(product);
+        if (merges[map.name] === 'restart') mergedProduct = product;
         if (rows.length > 300) throw new Error('За один раз можно импортировать не более 300 позиций.');
       }
     }
