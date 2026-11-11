@@ -1,6 +1,6 @@
 // Focused real-browser DOCX equipment import regressions.
-// node scripts/import-docx-tests.cjs append replace cancel invalid undo roundtrip
-// With no args: append, replace, cancel, invalid, undo. "roundtrip" is opt-in.
+// node scripts/import-docx-tests.cjs append replace cancel invalid undo technical merged roundtrip
+// "roundtrip" is opt-in.
 'use strict';
 
 const { before, after, test } = require('node:test');
@@ -12,7 +12,7 @@ const { chromium } = require('playwright');
 const JSZip = require('jszip');
 
 const ROOT = path.resolve(__dirname, '..');
-const DEFAULT_CASES = ['append', 'replace', 'cancel', 'invalid', 'undo', 'technical'];
+const DEFAULT_CASES = ['append', 'replace', 'cancel', 'invalid', 'undo', 'technical', 'merged'];
 const CASES = [...DEFAULT_CASES, 'roundtrip'];
 const args = process.argv.slice(2);
 if (args.some(k => !CASES.includes(k))) {
@@ -39,7 +39,7 @@ function cell(value) {
 function row(values) {
   return '<w:tr>' + values.map(cell).join('') + '</w:tr>';
 }
-async function fixtureDocx({ badQty, badPrice, noTable, technicalDetails } = {}) {
+async function fixtureDocx({ badQty, badPrice, noTable, technicalDetails, mergedSpecifications } = {}) {
   const zip = new JSZip();
   const productRows = [
     ['1', 'Импортный сервер', 'Процессор и ОЗУ\nДве строки описания', 'Россия',
@@ -58,6 +58,7 @@ async function fixtureDocx({ badQty, badPrice, noTable, technicalDetails } = {})
     ['4', 'Сканер Avision AD340GFN', 'Тип сканирования: Протяжный и планшетный\nИнтерфейс подключения: USB', 'Китай', '2']
   ];
   const table = noTable ? '<w:p><w:r><w:t>Произвольный документ без оборудования</w:t></w:r></w:p>'
+    : mergedSpecifications ? mergedSpecificationTable()
     : technicalDetails ? '<w:tbl>' +
       row(['№', 'Наименование товара', 'Основные характеристики предложенного товара и прочие условия', 'Страна', 'Количество, шт.']) +
       technicalRows.map(row).join('') + '</w:tbl>'
@@ -79,6 +80,20 @@ async function fixtureDocx({ badQty, badPrice, noTable, technicalDetails } = {})
     '</Relationships>');
   zip.file('word/document.xml', document);
   return zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
+}
+
+function mergedSpecificationTable() {
+  const span = '<w:gridSpan w:val="3"/>';
+  const restart = '<w:vMerge w:val="restart"/>';
+  const next = '<w:vMerge/>';
+  const withProps = (value, props) => cell(value).replace('<w:tc>', `<w:tc><w:tcPr>${props}</w:tcPr>`);
+  const tr = cells => `<w:tr>${cells.join('')}</w:tr>`;
+  const nested = '<w:tbl>' + row(['Мощность', '500 Вт']) + row(['Интерфейс', 'USB']) + '</w:tbl>';
+  return '<w:tbl>' + tr([cell('№'), cell('Наименование товара'), withProps('Характеристики', span), cell('Страна'), cell('Количество')])
+    + tr([withProps('1', restart), withProps('Аккумулятор', restart), cell('Напряжение'), cell('В'), cell('12'), withProps('Китай', restart), withProps('50', restart)])
+    + tr([withProps('', next), withProps('', next), cell('Емкость'), cell('Ач'), cell('7.2'), withProps('', next), withProps('', next)])
+    + tr([cell('2'), cell('ИБП'), withProps('Комплектация', span).replace('</w:tc>', nested + '<w:p/></w:tc>'), cell('Россия'), cell('3')])
+    + '</w:tbl>';
 }
 
 async function withPage(check) {
@@ -310,6 +325,23 @@ if (selected.includes('technical')) test('import: long characteristics do not ov
     await checkTable(page, data, 0);
     assert(await page.locator('#btnUndoEquipmentImport').isHidden(),
       'A page reload must not unexpectedly restore an old undo action');
+  });
+});
+
+if (selected.includes('merged')) test('import: keeps all rows of vertically merged and nested specifications', async () => {
+  await withPage(async page => {
+    const expected = [
+      { name: 'Аккумулятор', desc: 'Напряжение: 12 В\nЕмкость: 7.2 Ач', country: 'Китай', qty: 50, price: 0 },
+      { name: 'ИБП', desc: 'Комплектация\nМощность — 500 Вт\nИнтерфейс — USB', country: 'Россия', qty: 3, price: 0 }
+    ];
+    await selectDocx(page, await fixtureDocx({ mergedSpecifications: true }), 'merged-specifications.docx');
+    await loaded(page);
+    assert.doesNotMatch(await page.locator('#equipmentImportStatus').innerText(), /Пропущена строка/);
+    assert.equal(await page.locator('#equipmentImportPreview tr').first().locator('td').nth(2).textContent(), expected[0].desc);
+    await chooseAndApply(page, 'replace');
+    await checkTable(page, expected, 0);
+    await page.reload({ waitUntil: 'load' });
+    await checkTable(page, expected, 0);
   });
 });
 
